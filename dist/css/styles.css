@@ -161,10 +161,7 @@ body {
       padding: 10px;
       background-color: #ffffff;
       border-bottom: 1px solid #f2f3f4;
-      transition: background-color .2s ease-in-out;
-      cursor: pointer; }
-      .filter__result__item:hover {
-        background-color: rgba(255, 255, 255, 0.9); }
+      transition: background-color .2s ease-in-out; }
       .filter__result__item:not(:last-child) {
         margin-bottom: 10px; }
       .filter__result__item .title {
@@ -177,6 +174,35 @@ body {
           font-size: 15px; }
       .filter__result__item .address {
         font-size: 14px; }
+      .filter__result__item .bottom {
+        display: flex;
+        justify-content: flex-end; }
+      .filter__result__item .direction,
+      .filter__result__item .more {
+        margin-top: 10px;
+        padding-bottom: 2px;
+        display: inline-block;
+        font-size: 14px;
+        color: #000000;
+        text-decoration: none;
+        border-bottom: 1px dashed #000;
+        transition: .1s ease-in-out; }
+        .filter__result__item .direction:hover,
+        .filter__result__item .more:hover {
+          border-bottom: 1px dashed #fff; }
+      .filter__result__item .more {
+        margin-left: 20px;
+        position: relative; }
+        .filter__result__item .more:before {
+          top: -1px;
+          left: -10px;
+          height: 20px;
+          width: 1px;
+          display: inline-block;
+          position: absolute;
+          color: #9b9c9e;
+          content: '';
+          background-color: #9b9c9e; }
 
 .map {
   flex: 1;
