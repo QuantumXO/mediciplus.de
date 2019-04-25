@@ -50,6 +50,12 @@ function page() {
 		prefix: '@@',
 		basepath: '@file'
 	}))
+  	.pipe(plugin.if(argv.prod, plugin.htmlmin({
+		collapseWhitespace: true,
+		minifyURLs: true,
+		removeComments: true,
+		continueOnParseError: true,
+  	})))
     .pipe(gulp.dest(dest))
 	.pipe(browserSync.reload({ stream:true }));
 }
@@ -117,11 +123,11 @@ function jsMin() {
 // Img
 function img() {
 	return gulp.src(path.assets.img)
-		//.pipe(plugin.changed(path.build.img))
-		.pipe(plugin.if(argv.prod, plugin.cache(plugin.imagemin({optimizationLevel:5,progressive:true,interlaced:true}))))
+		.pipe(plugin.changed(path.build.img))
+		//.pipe(plugin.if(argv.prod, plugin.cache(plugin.imagemin({optimizationLevel:5,progressive:true,interlaced:true}))))
 		.pipe(plugin.if(argv.prod, plugin.cache(plugin.imagemin([
 				plugin.imagemin.gifsicle({interlaced:true}),
-				imageminJpegRecompress({progressive:true,max:80,min:75}),
+				imageminJpegRecompress({progressive:true, max:80,min:75}),
 				imageminPngquant({quality: '75-85'}),
 				plugin.imagemin.svgo({plugins: [{removeViewBox:false}]})
 			]))))
