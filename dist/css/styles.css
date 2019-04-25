@@ -1,0 +1,162 @@
+@charset "UTF-8";
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline; }
+
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+  display: block; }
+
+body {
+  line-height: 1; }
+
+ol, ul {
+  list-style: none; }
+
+blockquote, q {
+  quotes: none; }
+
+blockquote:before, blockquote:after, q:before, q:after {
+  content: '';
+  content: none; }
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0; }
+
+@font-face {
+  font-family: 'Days';
+  src: url("../fonts/days.eot");
+  src: local("☺"), url("../fonts/days.woff") format("woff"), url("../fonts/days.ttf") format("truetype"), url("../fonts/days.svg") format("svg");
+  font-weight: normal;
+  font-style: normal; }
+
+.clearfix::after {
+  content: "";
+  display: table;
+  clear: both; }
+
+.upper {
+  text-transform: uppercase; }
+
+.hide {
+  display: none !important; }
+
+*, *:after, *:before {
+  box-sizing: border-box; }
+
+html,
+body {
+  width: 100%;
+  height: 100%; }
+
+body {
+  font-size: 16px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+
+.container {
+  max-width: 1280px;
+  margin: 20px auto 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center; }
+
+.filter {
+  min-width: 400px;
+  min-height: 600px;
+  position: relative;
+  background: linear-gradient(0.25turn, #03b1d3, #31aa6a);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3); }
+  .filter__toggle {
+    top: 17px;
+    right: -49px;
+    padding: 5px 8px;
+    display: inline-block;
+    position: absolute;
+    color: #9b9c9e;
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 700;
+    border: 1px solid #f2f3f4;
+    border-bottom: 0;
+    letter-spacing: .35px;
+    background-color: #fff;
+    transform: rotate(90deg);
+    transition: color .2s ease-in-out;
+    cursor: pointer;
+    z-index: 99; }
+    .filter__toggle .letter {
+      display: inline-block;
+      transform: rotate(-90deg); }
+      .filter__toggle .letter:not(:last-child) {
+        margin-right: 2px; }
+    .filter__toggle:hover {
+      color: #000000; }
+  .filter__wrap {
+    height: 100%;
+    display: flex;
+    flex-direction: column; }
+  .filter__header {
+    padding: 10px; }
+    .filter__header__search .search-field {
+      flex: 1;
+      height: 44px;
+      padding: 0 10px;
+      display: block;
+      border: 0;
+      outline: none;
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: .05em; }
+      .filter__header__search .search-field::placeholder {
+        color: #00b1da; }
+    .filter__header__search .find-icon,
+    .filter__header__search .clear-icon {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #00b1da;
+      background-color: #ffffff;
+      border-left: 1px solid #f2f3f4;
+      transition: all .2s ease-in-out;
+      cursor: pointer; }
+      .filter__header__search .find-icon:hover, .filter__header__search .find-icon:focus,
+      .filter__header__search .clear-icon:hover,
+      .filter__header__search .clear-icon:focus {
+        background-color: rgba(255, 255, 255, 0.9); }
+    .filter__header__inner {
+      display: flex;
+      align-items: center; }
+  .filter__result {
+    flex: 1;
+    height: 100%;
+    padding: 0 10px 10px; }
+    .filter__result__list {
+      list-style: none; }
+    .filter__result__item {
+      padding: 10px;
+      border-bottom: 1px solid #f2f3f4;
+      background-color: #ffffff; }
+      .filter__result__item:not(:last-child) {
+        margin-bottom: 10px; }
+      .filter__result__item .title {
+        font-size: 15px;
+        font-weight: 700; }
+      .filter__result__item .info {
+        margin: 5px 0;
+        font-size: 14px; }
+        .filter__result__item .info .value {
+          font-size: 15px; }
+      .filter__result__item .address {
+        font-size: 14px; }
+
+.map {
+  flex: 1;
+  height: 100%;
+  min-height: 100vh; }

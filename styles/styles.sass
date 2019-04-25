@@ -1,0 +1,141 @@
+
+@import "reset"
+@import "config"
+
+body
+	font-size: 16px
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif
+
+.container
+	max-width: 1280px
+	margin: 20px auto 0
+	display: flex
+	align-items: flex-start
+	justify-content: center
+
+.filter
+	min-width: 400px
+	min-height: 600px
+	position: relative
+	background: $gradientBG
+	box-shadow: 0 0 20px rgba(0, 0, 0, .3)
+
+	&__toggle
+		top: 17px
+		right: -49px
+		padding: 5px 8px
+		display: inline-block
+		position: absolute
+		color: #9b9c9e
+		font-size: 13px
+		line-height: 20px
+		font-weight: 700
+		border: 1px solid #f2f3f4
+		border-bottom: 0
+		letter-spacing: .35px
+		background-color: #fff
+		transform: rotate(90deg)
+		transition: color .2s ease-in-out
+		cursor: pointer
+		z-index: 99
+
+		.letter
+			display: inline-block
+			transform: rotate(-90deg)
+
+			&:not(:last-child)
+				margin-right: 2px
+
+		&:hover
+			color: #000000
+
+
+	&__wrap
+		height: 100%
+		display: flex
+		flex-direction: column
+
+	&__header
+		padding: 10px
+
+		&__search
+
+			.search-field
+				flex: 1
+				height: 44px
+				padding: 0 10px
+				display: block
+				border: 0
+				outline: none
+				font-weight: 700
+				font-size: 16px
+				letter-spacing: .05em
+				//border-bottom: 2px solid #bdbdbd
+			
+				&::placeholder
+					color: $colorBlue
+
+			.find-icon,
+			.clear-icon
+				width: 44px
+				height: 44px
+				display: flex
+				align-items: center
+				justify-content: center
+				color: $colorBlue
+				background-color: #ffffff
+				border-left: 1px solid #f2f3f4
+				transition: all .2s ease-in-out
+				cursor: pointer
+
+				&:hover,
+				&:focus
+					//color: #000000
+					background-color: rgba(#fff, .9)
+
+
+		&__inner
+			display: flex
+			align-items: center
+
+	&__result
+		flex: 1
+		height: 100%
+		//margin-top: 10px
+		padding: 0 10px 10px
+
+		&__list
+			list-style: none
+			//max-height: 100vh
+			//overflow-y: scroll
+
+		&__item
+			padding: 10px
+			border-bottom: 1px solid #f2f3f4
+			background-color: #ffffff
+
+			&:not(:last-child)
+				margin-bottom: 10px
+
+			.title
+				font-size: 15px
+				font-weight: 700
+
+			.info
+				margin: 5px 0
+				font-size: 14px
+
+				.value
+					font-size: 15px
+
+			.address
+				font-size: 14px
+
+
+
+		.schedule
+			//
+.map
+	flex: 1
+	height: 100%
+	min-height: 100vh
