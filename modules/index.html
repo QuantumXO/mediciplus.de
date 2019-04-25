@@ -28,6 +28,39 @@
                             <span class="fas fa-times clear-icon js-clear"></span>
                         </div>
                     </div>
+
+                    <div class="filter__header__btns">
+                        <ul class="filter__header__btns__list">
+                            <li class="filter__header__btns__item">
+                                <span class="title"></span>
+                            </li>
+
+                            <li class="filter__header__btns__item">
+                                <span class="title"></span>
+                            </li>
+
+                            <li class="filter__header__btns__item">
+                                <span class="title"></span>
+                            </li>
+
+                            <li class="filter__header__btns__item">
+                                <span class="title"></span>
+                            </li>
+
+                            <li class="filter__header__btns__item">
+                                <span class="title"></span>
+                            </li>
+
+                            <li class="filter__header__btns__item">
+                                <span class="title"></span>
+                            </li>
+
+                            <li class="filter__header__btns__item">
+                                <span class="title"></span>
+                            </li>
+                        </ul>
+                    </div>
+
                 </div>
                 <div class="filter__result">
                     <ul class="filter__result__list" id="resultList">
@@ -47,67 +80,8 @@
         </div>
 
     </div>
-    <script>
 
-        document.addEventListener('DOMContentLoaded', function () {
-
-
-            const resultList = document.getElementById('resultList');
-            const resultListFragment = document.createDocumentFragment();
-            const resultItem = resultList.getElementsByClassName('filter__result__item')[0];
-
-            let cloneItem;
-
-            for(let i = 10; i > 0; i--){
-                cloneItem = resultItem.cloneNode(true);
-                resultListFragment.appendChild(cloneItem);
-            }
-
-            /*console.log('resultItem: ', resultItem);
-            console.log(resultListFragment);*/
-            resultList.appendChild(resultListFragment);
-
-        });
-
-
-        function initMap() {
-
-            let marker;
-
-            const options = {
-                center: {lat: 54.967567, lng: -1.605804}, //{lat: -34.397, lng: 150.644}
-                zoom: 13,
-            };
-
-            //console.log(marker);
-            const map = new google.maps.Map(document.getElementById('map'), options);
-
-            const locations = [
-                {
-                    title: 'Legalizuem.ru Head Office',
-                    position: {lat: 55.77186, lng: 37.593437999999999},
-                    /*icon: {
-                        url: "images/markers/svg/Arrow_3.svg",
-                        scaledSize: new google.maps.Size(64, 64)
-                    }*/
-                },
-            ];
-
-            locations.forEach( function( element ) {
-                marker = new google.maps.Marker({
-                    position: element.position,
-                    map: map,
-                    title: element.title,
-                    icon: element.icon,
-                });
-            });
-
-
-
-        }
-
-    </script>
-
+    <script src="./js/main.js"></script>
     <script async defer src="//maps.googleapis.com/maps/api/js?key=AIzaSyBeVoPDyYZyUq-h735KGeK4OA9-BEuecBg&callback=initMap"></script>
 </body>
 </html>

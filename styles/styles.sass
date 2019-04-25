@@ -8,12 +8,14 @@ body
 
 .container
 	max-width: 1280px
+	max-height: 800px
 	margin: 20px auto 0
 	display: flex
 	align-items: flex-start
 	justify-content: center
 
 .filter
+	height: 100%
 	min-width: 400px
 	min-height: 600px
 	position: relative
@@ -74,6 +76,11 @@ body
 			
 				&::placeholder
 					color: $colorBlue
+					transition: opacity .2s ease-in-out
+
+				&:focus
+					&::placeholder
+						opacity: 0
 
 			.find-icon,
 			.clear-icon
@@ -98,6 +105,22 @@ body
 			display: flex
 			align-items: center
 
+		&__btns
+			width: 100%
+			margin-top: 10px
+
+			&__list
+				display: flex
+				align-items: center
+				flex-wrap: wrap
+				justify-content: space-between
+
+			&__item
+				width: 40px
+				height: 40px
+				display: inline-block
+				background-color: #ffffff
+
 	&__result
 		flex: 1
 		height: 100%
@@ -111,8 +134,13 @@ body
 
 		&__item
 			padding: 10px
-			border-bottom: 1px solid #f2f3f4
 			background-color: #ffffff
+			border-bottom: 1px solid #f2f3f4
+			transition: background-color .2s ease-in-out
+			cursor: pointer
+
+			&:hover
+				background-color: rgba(#fff, .9)
 
 			&:not(:last-child)
 				margin-bottom: 10px
@@ -138,4 +166,4 @@ body
 .map
 	flex: 1
 	height: 100%
-	min-height: 100vh
+	height: 700px
