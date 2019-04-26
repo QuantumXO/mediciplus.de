@@ -2,31 +2,29 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
+    const searchField = document.getElementById('searchField');
+    const searchFind = document.getElementById('searchFind');
+    const searchClear = document.getElementById('searchClear');
 
-    const resultList = document.getElementById('resultList');
-    const resultListFragment = document.createDocumentFragment();
-    const resultItem = resultList.getElementsByClassName('filter__result__item')[0];
+    searchFind.addEventListener('click', function () {
 
-    let cloneItem;
+    });
 
-    for(let i = 6; i > 0; i--){
-        cloneItem = resultItem.cloneNode(true);
-        resultListFragment.appendChild(cloneItem);
-    }
-
-    /*console.log('resultItem: ', resultItem);
-     console.log(resultListFragment);*/
-    resultList.appendChild(resultListFragment);
+    searchClear.addEventListener('click', function () {
+        searchField.value = null;
+    });
 
 });
 
 
 function initMap() {
 
-    const hospitalIcon = "./../img/hospital.png";
+    const hospitalIcon = "./../img/hospital.png"; // "./img/hospital.png"
     const hospitalIconWidth = 26;
     const hospitalIconHeight = 33.8;
-    const doctorIcon = "./../img/doctor.png";
+    const doctorIcon = "./../img/doctor.png"; // "./img/hospital.png"
+    const doctorIconWidth = 26;
+    const doctorIconHeight = 33.8;
     const options = {
         center: {lat: 50.431275, lng: 30.516910}, //{lat: -34.397, lng: 150.644}
         zoom: 13,
@@ -35,7 +33,9 @@ function initMap() {
 
     let marker,
         allMarkers = [],
-        popUpIsActive = null;
+        popUpIsActive = null,
+        activeMarker;
+    let animationMarkerInterval;
 
     //console.log(marker);
     const map = new google.maps.Map(document.getElementById('map'), options);
@@ -46,7 +46,12 @@ function initMap() {
             icon: {
                 url: hospitalIcon,
                 scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
-             }
+             },
+            schedule: '00:00–00:00',
+            type: 'hospital',
+            address: '14, вул. Кутузова, Киев, 02000',
+            lat: 50.418861,
+            lng: 30.526437
         },
         {
             title: 'Киевская городская клиническая больница №17',
@@ -54,7 +59,12 @@ function initMap() {
             icon: {
                 url: hospitalIcon,
                 scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
-            }
+            },
+            schedule: '08:00–20:00',
+            type: 'hospital',
+            address: '14, вул. Кутузова, Киев, 02000',
+            lat: 50.428157,
+            lng: 30.527383,
         },
         {
             title: 'Больница1',
@@ -62,7 +72,12 @@ function initMap() {
             icon: {
                 url: doctorIcon,
                 scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
-            }
+            },
+            schedule: '08:00–20:00',
+            type: 'doctor',
+            address: '14, вул. Кутузова, Киев, 02000',
+            lat: 50.424270,
+            lng: 30.516910,
         },
         {
             title: 'Больница2',
@@ -70,7 +85,12 @@ function initMap() {
             icon: {
                 url: hospitalIcon,
                 scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
-            }
+            },
+            schedule: '08:00–20:00',
+            type: 'hospital',
+            address: '14, вул. Кутузова, Киев, 02000',
+            lat: 50.441555,
+            lng: 30.527385,
         },
         {
             title: 'Больница3',
@@ -78,7 +98,12 @@ function initMap() {
             icon: {
                 url: hospitalIcon,
                 scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
-            }
+            },
+            schedule: '08:00–20:00',
+            type: 'hospital',
+            address: '14, вул. Кутузова, Киев, 02000',
+            lat: 50.424160,
+            lng: 30.481633,
         },
         {
             title: 'Больница4',
@@ -86,17 +111,28 @@ function initMap() {
             icon: {
                 url: hospitalIcon,
                 scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
-            }
+            },
+            schedule: '08:00–20:00',
+            type: 'hospital',
+            address: '14, вул. Кутузова, Киев, 02000',
+            lat: 50.445192,
+            lng: 30.516832,
         },
     ];
 
-    locations.forEach( function( element ) {
+    locations.forEach( function( element, i ) {
 
         marker = new google.maps.Marker({
             position: element.position,
             map: map,
             title: element.title,
             icon: element.icon,
+            type: element.type,
+            schedule: element.schedule,
+            address: element.address,
+            lat: element.lat,
+            lng: element.lng,
+            id: i
             //animation: google.maps.Animation.BOUNCE,
         });
 
@@ -104,6 +140,8 @@ function initMap() {
 
 
     });
+
+    renderList(allMarkers);
 
     allMarkers.forEach(function (item) {
 
@@ -142,30 +180,97 @@ function initMap() {
 
     }
 
-    console.log('allMarkers: ', allMarkers);
-    
-    /*const contentString = '<div id="content">'+
-        '<div id="siteNotice">'+
-        '</div>'+
-        '<h1 id="firstHeading" class="firstHeading">Uluru</h1>'+
-        '<div id="bodyContent">'+
-        '<p><b>Uluru</b>, also referred to as <b>Ayers Rock</b>, is a large ' +
-        'sandstone rock formation in the southern part of the '+
-        'Northern Territory, central Australia. It lies 335&#160;km (208&#160;mi) '+
-        'south west of the nearest large town, Alice Springs; 450&#160;km '+
-        '(280&#160;mi) by road. Kata Tjuta and Uluru are the two major '+
-        'features of the Uluru - Kata Tjuta National Park. Uluru is '+
-        'sacred to the Pitjantjatjara and Yankunytjatjara, the '+
-        'Aboriginal people of the area. It has many springs, waterholes, '+
-        'rock caves and ancient paintings. Uluru is listed as a World '+
-        'Heritage Site.</p>'+
-        '<p>Attribution: Uluru, <a href="https://en.wikipedia.org/w/index.php?title=Uluru&oldid=297882194">'+
-        'https://en.wikipedia.org/w/index.php?title=Uluru</a> '+
-        '(last visited June 22, 2009).</p>'+
-        '</div>'+
-        '</div>';*/
+    function renderList(allMarkers) {
+
+        const resultList = document.getElementById('resultList');
+        const resultListFragment = document.createDocumentFragment();
+        const allMarkersLength = allMarkers.length;
+
+        let newReultItem,
+            type;
+
+        for(let i = 0; i < allMarkersLength; i++){
+
+            type = allMarkers[i].type == 'hospital' ? 'Больница' : 'Врач';
+
+            newReultItem = document.createElement('li');
+            newReultItem.classList.add('filter__result__item');
+            newReultItem.innerHTML = `
+                <h3 class="title">
+                    <a 
+                        href="#" 
+                        class="to-center-link js-to-center-link" 
+                        data-lat="${allMarkers[i].lat}" 
+                        data-lng="${allMarkers[i].lng}"
+                        data-marker-id="${allMarkers[i].id}"
+                    >
+                        ${allMarkers[i].title}
+                    </a>
+                </h3>
+                <p class="info">Открыто:&nbsp;<span class="value">${allMarkers[i].schedule}</span>,&nbsp; <span class="type hospital">${type}</span></p>
+                <p class="address">${allMarkers[i].address}</p>
+                <div class="bottom">
+                    <a href="#" class="direction">Проложить маршрут</a>
+                    <a href="#" class="more">Подробнее</a>
+                </div>
+            `;
+
+            resultListFragment.appendChild(newReultItem);
+
+        }
+
+        resultList.appendChild(resultListFragment);
+
+    }
 
 
+    function linkToCenterItem(map){
+
+        const resultItemsLinks = document.getElementsByClassName('js-to-center-link');
+        const resultItemsArr = [].slice.call(resultItemsLinks);
+
+        let lat,
+            lng;
+        let center;
+
+        resultItemsArr.forEach(function (item, i) {
+
+            item.addEventListener('click', function () {
+
+                setActiveMarker(this, i);
+
+            });
+
+        });
+
+        function setActiveMarker($this, i) {
+
+            console.log('activeMarker: ', activeMarker);
+
+            clearInterval(animationMarkerInterval);
+
+            if(activeMarker){
+                activeMarker.setAnimation(null);
+            }
+
+            lat = $this.getAttribute('data-lat');
+            lng = $this.getAttribute('data-lng');
+
+            center = new google.maps.LatLng(lat, lng);
+            map.panTo(center);
+
+            animationMarkerInterval = setInterval(function () {
+                allMarkers[i].setAnimation(google.maps.Animation.BOUNCE);
+            }, 100);
+
+            activeMarker = allMarkers[i];
+        }
+
+    }
+
+    linkToCenterItem(map);
+
+    //setUser
 
 
 
