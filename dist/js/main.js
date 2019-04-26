@@ -1,5 +1,4 @@
 
-
 document.addEventListener('DOMContentLoaded', function () {
 
     const searchField = document.getElementById('searchField');
@@ -7,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const searchClear = document.getElementById('searchClear');
 
     searchFind.addEventListener('click', function () {
-
+        //
     });
 
     searchClear.addEventListener('click', function () {
@@ -28,7 +27,7 @@ function initMap() {
     const options = {
         center: {lat: 50.431275, lng: 30.516910}, //{lat: -34.397, lng: 150.644}
         zoom: 13,
-        //mapTypeId: google.maps.MapTypeId.ROADMAP
+        mapTypeId: google.maps.MapTypeId.ROADMAP
     };
 
     let marker,
@@ -37,7 +36,6 @@ function initMap() {
         activeMarker;
     let animationMarkerInterval;
 
-    //console.log(marker);
     const map = new google.maps.Map(document.getElementById('map'), options);
     const locations = [
         {
@@ -71,7 +69,7 @@ function initMap() {
             position: {lat: 50.424270, lng: 30.516910},
             icon: {
                 url: doctorIcon,
-                scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
+                scaledSize: new google.maps.Size(doctorIconWidth, doctorIconHeight)
             },
             schedule: '08:00–20:00',
             type: 'doctor',
@@ -155,15 +153,13 @@ function initMap() {
 
     function renderPopUp(item) {
 
-        //console.log('item title: ', item.title);
-
         if(popUpIsActive){
             popUpIsActive.close();
         }
 
-        const {title} = item;
+        const {title} = item; // item data
 
-        let contentString = `
+        let infoWindowContent = `
             <div class="popUp">
                 <h3>${title}</h3>
             </div>
@@ -171,7 +167,7 @@ function initMap() {
         `;
 
         const infowindow = new google.maps.InfoWindow({
-            content: contentString
+            content: infoWindowContent
         });
 
         infowindow.open(map, item);
@@ -245,7 +241,7 @@ function initMap() {
 
         function setActiveMarker($this, i) {
 
-            console.log('activeMarker: ', activeMarker);
+            //console.log('activeMarker: ', activeMarker);
 
             clearInterval(animationMarkerInterval);
 
@@ -270,7 +266,9 @@ function initMap() {
 
     linkToCenterItem(map);
 
-    //setUser
+    function f() {
+        
+    }
 
 
 
