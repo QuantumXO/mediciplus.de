@@ -154,7 +154,7 @@ function browserSyncFunc(){
 		server: {
 			baseDir: "./dist"
 		},
-		tunnel: true,
+		tunnel: false,
 		host: 'localhost',
 		port: 3000,
 		notify: true,

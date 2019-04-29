@@ -18,10 +18,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function initMap() {
 
-    const hospitalIcon = "./../img/hospital.png"; // "./img/hospital.png"
+    const hospitalIcon = "./img/hospital.png";
     const hospitalIconWidth = 26;
     const hospitalIconHeight = 33.8;
-    const doctorIcon = "./../img/doctor.png"; // "./img/hospital.png"
+    const doctorIcon = "./img/doctor.png";
     const doctorIconWidth = 26;
     const doctorIconHeight = 33.8;
     const options = {
