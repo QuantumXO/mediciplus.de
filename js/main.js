@@ -65,7 +65,7 @@ function initMap() {
             lng: 30.527383,
         },
         {
-            title: 'Больница1',
+            title: 'Doctor',
             position: {lat: 50.424270, lng: 30.516910},
             icon: {
                 url: doctorIcon,
@@ -73,6 +73,7 @@ function initMap() {
             },
             schedule: '08:00–20:00',
             type: 'doctor',
+            name: 'Иванов иван иванович',
             address: '14, вул. Кутузова, Киев, 02000',
             lat: 50.424270,
             lng: 30.516910,
@@ -123,6 +124,7 @@ function initMap() {
         marker = new google.maps.Marker({
             position: element.position,
             map: map,
+            animation: google.maps.Animation.DROP,
             title: element.title,
             icon: element.icon,
             type: element.type,
@@ -130,12 +132,12 @@ function initMap() {
             address: element.address,
             lat: element.lat,
             lng: element.lng,
-            id: i
+            id: i,
+            name: element.name || null,
             //animation: google.maps.Animation.BOUNCE,
         });
 
         allMarkers.push(marker);
-
 
     });
 
@@ -146,6 +148,8 @@ function initMap() {
         item.addListener('click', function() {
 
             renderPopUp(item);
+
+            item.setAnimation(null);
 
         });
 
@@ -176,49 +180,55 @@ function initMap() {
 
     }
 
-    function renderList(allMarkers) {
+    function renderList(markersList){
 
         const resultList = document.getElementById('resultList');
         const resultListFragment = document.createDocumentFragment();
-        const allMarkersLength = allMarkers.length;
+        const allMarkersLength = markersList.length;
 
         let newReultItem,
             type;
 
-        for(let i = 0; i < allMarkersLength; i++){
+        resultList.innerHTML = ''; // Clear list
 
-            type = allMarkers[i].type == 'hospital' ? 'Больница' : 'Врач';
+        if(allMarkersLength){
+            for(let i = 0; i < allMarkersLength; i++){
 
-            newReultItem = document.createElement('li');
-            newReultItem.classList.add('filter__result__item');
-            newReultItem.innerHTML = `
+                type = markersList[i].type == 'hospital' ? 'Больница' : 'Врач';
+
+                newReultItem = document.createElement('li');
+                newReultItem.classList.add('filter__result__item');
+                newReultItem.innerHTML = `
                 <h3 class="title">
                     <a 
                         href="#" 
                         class="to-center-link js-to-center-link" 
-                        data-lat="${allMarkers[i].lat}" 
-                        data-lng="${allMarkers[i].lng}"
-                        data-marker-id="${allMarkers[i].id}"
+                        data-lat="${markersList[i].lat}" 
+                        data-lng="${markersList[i].lng}"
+                        data-marker-id="${markersList[i].id}"
                     >
-                        ${allMarkers[i].title}
+                        ${markersList[i].title}
                     </a>
                 </h3>
-                <p class="info">Открыто:&nbsp;<span class="value">${allMarkers[i].schedule}</span>,&nbsp; <span class="type hospital">${type}</span></p>
-                <p class="address">${allMarkers[i].address}</p>
+                <p class="info">Открыто:&nbsp;<span class="value">${markersList[i].schedule}</span>,&nbsp; <span class="type hospital">${type}</span></p>
+                <p class="address">${markersList[i].address}</p>
                 <div class="bottom">
                     <a href="#" class="direction">Проложить маршрут</a>
                     <a href="#" class="more">Подробнее</a>
                 </div>
             `;
 
-            resultListFragment.appendChild(newReultItem);
+                resultListFragment.appendChild(newReultItem);
+            }
 
+            resultList.appendChild(resultListFragment);
+        }else{
+            //resultList.innerHTML = '<li class="filter__result__item">not found</li>';
+            resultList.innerHTML = 'not found';
         }
 
-        resultList.appendChild(resultListFragment);
 
     }
-
 
     function linkToCenterItem(map){
 
@@ -226,50 +236,92 @@ function initMap() {
         const resultItemsArr = [].slice.call(resultItemsLinks);
 
         let lat,
-            lng;
+            lng,
+            id;
         let center;
 
-        resultItemsArr.forEach(function (item, i) {
+        document.addEventListener('click', function (e) {
+            const target = e.target;
 
-            item.addEventListener('click', function () {
-
-                setActiveMarker(this, i);
-
-            });
-
+            if(target.classList.contains('js-to-center-link')){
+                setActiveMarker(target);
+            }
         });
 
-        function setActiveMarker($this, i) {
-
-            //console.log('activeMarker: ', activeMarker);
-
-            clearInterval(animationMarkerInterval);
+        function setActiveMarker($this) {
 
             if(activeMarker){
+                clearInterval(animationMarkerInterval);
                 activeMarker.setAnimation(null);
             }
 
             lat = $this.getAttribute('data-lat');
             lng = $this.getAttribute('data-lng');
+            id = $this.getAttribute('data-marker-id');
 
             center = new google.maps.LatLng(lat, lng);
             map.panTo(center);
 
-            animationMarkerInterval = setInterval(function () {
-                allMarkers[i].setAnimation(google.maps.Animation.BOUNCE);
-            }, 100);
+            let i = 0;
 
-            activeMarker = allMarkers[i];
+            animationMarkerInterval = setInterval(function () {
+                i++;
+                allMarkers[id].setAnimation(google.maps.Animation.BOUNCE);
+
+                if(i == 10){
+                    clearInterval(animationMarkerInterval);
+                }
+            }, 150);
+            activeMarker = allMarkers[id];
+
         }
 
     }
 
     linkToCenterItem(map);
 
-    function f() {
-        
-    }
+    function search() {
+        const searField = document.getElementById('searchField');
+        const markersList = allMarkers;
 
+        //console.log('search() -> ', allMarkers);
+
+        searchField.addEventListener('keyup', function (e) {
+
+            const searchValue = this.value.toLowerCase();
+
+            let newMarkersList = [];
+
+            if(searchValue){
+
+                console.log('searchValue: ', searchValue);
+
+                markersList.forEach(function(item) {
+                    let {address, title, name} = item;
+
+                    address = address.toLowerCase();
+                    title = title.toLowerCase();
+                    name = name ? name.toLowerCase() : null;
+
+                    if( address.match(searchValue) ||
+                        title.match(searchValue) ||
+                        (name && name.match(searchValue))
+                    ){
+                        newMarkersList.push(item);
+                    }
+                });
+
+            }else{
+                newMarkersList = allMarkers;
+            }
+
+            console.log('newMarkersList[]: ', newMarkersList);
+            renderList(newMarkersList);
+        });
+
+
+    }
+    search();
 
 
 }
