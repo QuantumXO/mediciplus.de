@@ -20,6 +20,7 @@
             <span class="letter">d</span>
             <span class="letter">e</span>
         </div>
+
         <div class="filter__wrap">
             <div class="filter__header">
                 <div class="filter__header__search">

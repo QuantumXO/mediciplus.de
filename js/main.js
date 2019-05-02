@@ -216,7 +216,7 @@ function initMap() {
 
     function renderList(markersList){
 
-        console.log('allMarkers: ', allMarkers);
+        //console.log('allMarkers: ', allMarkers);
 
         const resultList = document.getElementById('resultList');
         const resultListFragment = document.createDocumentFragment();
@@ -303,7 +303,7 @@ function initMap() {
 
             let i = 0;
 
-            console.log('setActiveMarker() -> $this', $this);
+            //console.log('setActiveMarker() -> $this', $this);
 
             animationMarkerInterval = setInterval(function () {
                 i++;
@@ -340,7 +340,7 @@ function initMap() {
 
         if(searchValue){
 
-            console.log('searchValue: ', searchValue);
+            //console.log('searchValue: ', searchValue);
 
             markersList.forEach(function(item) {
                 let {address, title, name} = item;
