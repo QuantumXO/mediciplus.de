@@ -29,12 +29,14 @@ function initMap() {
         zoom: 13,
         mapTypeId: google.maps.MapTypeId.ROADMAP
     };
+    const animationDrop = google.maps.Animation.DROP;
 
     let marker,
         allMarkers = [],
         popUpIsActive = null,
-        activeMarker;
-    let animationMarkerInterval;
+        activeMarker,
+        activeFilter,
+        animationMarkerInterval;
 
     const map = new google.maps.Map(document.getElementById('map'), options);
     const locations = [
@@ -46,10 +48,12 @@ function initMap() {
                 scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
              },
             schedule: '00:00–00:00',
-            type: 'hospital',
+            type: 'clinic',
             address: '14, вул. Кутузова, Киев, 02000',
             lat: 50.418861,
-            lng: 30.526437
+            lng: 30.526437,
+            dutyClinic: true,
+            aussendienst: false,
         },
         {
             title: 'Киевская городская клиническая больница №17',
@@ -59,10 +63,12 @@ function initMap() {
                 scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
             },
             schedule: '08:00–20:00',
-            type: 'hospital',
+            type: 'clinic',
             address: '14, вул. Кутузова, Киев, 02000',
             lat: 50.428157,
             lng: 30.527383,
+            dutyClinic: true,
+            aussendienst: false,
         },
         {
             title: 'Doctor',
@@ -77,6 +83,8 @@ function initMap() {
             address: '14, вул. Кутузова, Киев, 02000',
             lat: 50.424270,
             lng: 30.516910,
+            dutyClinic: true,
+            aussendienst: false,
         },
         {
             title: 'Больница2',
@@ -86,10 +94,12 @@ function initMap() {
                 scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
             },
             schedule: '08:00–20:00',
-            type: 'hospital',
+            type: 'clinic',
             address: '14, вул. Кутузова, Киев, 02000',
             lat: 50.441555,
             lng: 30.527385,
+            dutyClinic: true,
+            aussendienst: true,
         },
         {
             title: 'Больница3',
@@ -99,10 +109,12 @@ function initMap() {
                 scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
             },
             schedule: '08:00–20:00',
-            type: 'hospital',
+            type: 'clinic',
             address: '14, вул. Кутузова, Киев, 02000',
             lat: 50.424160,
             lng: 30.481633,
+            dutyClinic: false,
+            aussendienst: false,
         },
         {
             title: 'Больница4',
@@ -112,49 +124,66 @@ function initMap() {
                 scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
             },
             schedule: '08:00–20:00',
-            type: 'hospital',
+            type: 'clinic',
             address: '14, вул. Кутузова, Киев, 02000',
             lat: 50.445192,
             lng: 30.516832,
+            dutyClinic: false,
+            aussendienst: false,
         },
     ];
 
-    locations.forEach( function( element, i ) {
+    function setMarkers(locations, animation){
 
-        marker = new google.maps.Marker({
-            position: element.position,
-            map: map,
-            animation: google.maps.Animation.DROP,
-            title: element.title,
-            icon: element.icon,
-            type: element.type,
-            schedule: element.schedule,
-            address: element.address,
-            lat: element.lat,
-            lng: element.lng,
-            id: i,
-            name: element.name || null,
-            //animation: google.maps.Animation.BOUNCE,
+        if(allMarkers){
+            removeMarkers();
+        }
+
+        locations.forEach( function( element, i ) {
+
+            marker = new google.maps.Marker({
+                position: element.position,
+                map: map,
+                animation: animation,
+                title: element.title,
+                icon: element.icon,
+                type: element.type,
+                schedule: element.schedule,
+                address: element.address,
+                lat: element.lat,
+                lng: element.lng,
+                id: i,
+                name: element.name || null,
+                //animation: google.maps.Animation.BOUNCE,
+            });
+
+            allMarkers.push(marker);
+
+            allMarkers.forEach(function (item) {
+
+                item.addListener('click', function() {
+
+                    renderPopUp(item);
+
+                    item.setAnimation(null);
+
+                });
+
+            });
+
         });
+    }
 
-        allMarkers.push(marker);
+    setMarkers(locations, animationDrop); // first init of markers
+    renderList(allMarkers); // renders list of markers
 
-    });
+    function removeMarkers(){
 
-    renderList(allMarkers);
-
-    allMarkers.forEach(function (item) {
-
-        item.addListener('click', function() {
-
-            renderPopUp(item);
-
-            item.setAnimation(null);
-
-        });
-
-    });
-
+        for(let i = 0; i < allMarkers.length ; i++){
+            allMarkers[i].setMap(null);
+        }
+    }
+    
     function renderPopUp(item) {
 
         if(popUpIsActive){
@@ -194,7 +223,7 @@ function initMap() {
         if(allMarkersLength){
             for(let i = 0; i < allMarkersLength; i++){
 
-                type = markersList[i].type == 'hospital' ? 'Больница' : 'Врач';
+                type = markersList[i].type == 'clinic' ? 'Больница' : 'Врач';
 
                 newReultItem = document.createElement('li');
                 newReultItem.classList.add('filter__result__item');
@@ -323,5 +352,43 @@ function initMap() {
     }
     search();
 
+    function filter() {
+        const filterBtnsWrap = document.getElementsByClassName('js-filter-btns-wrap')[0];
+
+
+        filterBtnsWrap.addEventListener('click', function (e) {
+            const target = e.target;
+
+            if(target.classList.contains('js-clinic')){
+                inner('clinic');
+            }else if(target.classList.contains('js-doctor')){
+                inner('doctor');
+            }else if(target.classList.contains('js-duty-Clinic')){
+                inner('dutyClinic');
+            }else if(target.classList.contains('js-aussendienst')){
+                inner('aussendienst');
+            }
+        });
+
+        function inner(type) {
+            activeFilter = type;
+
+            let locFilterArr = [];
+
+            if(type == 'clinic' || type == 'doctor'){
+                locFilterArr = locations.filter(item => item.type === type);
+            }else if(type == 'dutyClinic'){
+                locFilterArr = locations.filter(item => item.dutyClinic);
+            }else if(type == 'aussendienst'){
+                locFilterArr = locations.filter(item => item.aussendienst);
+            }
+
+            console.log('locFilterArr: ', locFilterArr);
+
+            removeMarkers();
+            setMarkers(locFilterArr, animationDrop);
+        }
+    }
+    filter();
 
 }

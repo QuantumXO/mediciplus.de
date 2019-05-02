@@ -151,7 +151,8 @@ body {
         width: 40px;
         height: 40px;
         display: inline-block;
-        background-color: #ffffff; }
+        background-color: #ffffff;
+        cursor: pointer; }
   .filter__result {
     flex: 1;
     height: 100%;
