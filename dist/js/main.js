@@ -35,6 +35,7 @@ function initMap() {
     const map = new google.maps.Map(document.getElementById('map'), options);
     const locations = [
         {
+            id: 0,
             title: 'ЛОР центр',
             position: {lat: 50.418861, lng: 30.526437},
             icon: {
@@ -50,6 +51,7 @@ function initMap() {
             aussendienst: false,
         },
         {
+            id: 1,
             title: 'Киевская городская клиническая больница №17',
             position: {lat: 50.428157, lng: 30.527383},
             icon: {
@@ -65,6 +67,7 @@ function initMap() {
             aussendienst: false,
         },
         {
+            id: 2,
             title: 'Doctor',
             position: {lat: 50.424270, lng: 30.516910},
             icon: {
@@ -81,6 +84,7 @@ function initMap() {
             aussendienst: false,
         },
         {
+            id: 3,
             title: 'Больница2',
             position: {lat: 50.441555, lng: 30.527385},
             icon: {
@@ -96,6 +100,7 @@ function initMap() {
             aussendienst: true,
         },
         {
+            id: 4,
             title: 'Больница3',
             position: {lat: 50.424160, lng: 30.481633},
             icon: {
@@ -111,6 +116,7 @@ function initMap() {
             aussendienst: false,
         },
         {
+            id: 5,
             title: 'Больница4',
             position: {lat: 50.445192, lng: 30.516832},
             icon: {
@@ -146,7 +152,7 @@ function initMap() {
                 address: element.address,
                 lat: element.lat,
                 lng: element.lng,
-                id: i,
+                id: element.id,
                 name: element.name || null,
                 //animation: google.maps.Animation.BOUNCE,
             });
@@ -297,16 +303,24 @@ function initMap() {
 
             let i = 0;
 
+            console.log('setActiveMarker() -> $this', $this);
+
             animationMarkerInterval = setInterval(function () {
                 i++;
-                allMarkers[id].setAnimation(google.maps.Animation.BOUNCE);
 
-                if(i == 10){
+
+
+                for(let i = 0; i < allMarkers.length; i++){
+                    if(allMarkers[i].id == id){
+                        allMarkers[i].setAnimation(google.maps.Animation.BOUNCE);
+                        activeMarker = allMarkers[i];
+                    }
+                }
+                if(i === 10){
                     clearInterval(animationMarkerInterval);
                 }
             }, 150);
-                console.log('setActiveMarker() -> ');
-            activeMarker = allMarkers[id];
+
 
         }
 

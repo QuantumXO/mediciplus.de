@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
     <!--<link rel="stylesheet" href="./css/styles.min.css">-->
     <link rel="stylesheet" href="./css/styles.css">
-    <!--     <script src="//api.bitrix24.com/api/v1/"></script> -->
-    <!--     <script src="//ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> -->
+    <!--<script src="//api.bitrix24.com/api/v1/"></script> -->
+    <!--<script src="//ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> -->
     <title>Map application</title>
 </head>
 <body>
@@ -20,7 +20,6 @@
             <span class="letter">d</span>
             <span class="letter">e</span>
         </div>
-
         <div class="filter__wrap">
             <div class="filter__header">
                 <div class="filter__header__search">
@@ -32,25 +31,25 @@
                 </div>
 
                 <div class="filter__header__btns">
-                    <ul class="filter__header__btns__list">
-                        <li class="filter__header__btns__item">
-                            <span class="title"></span>
+                    <ul class="filter__header__btns__list js-filter-btns-wrap">
+                        <li class="filter__header__btns__item js-all">
+                            All
                         </li>
 
-                        <li class="filter__header__btns__item">
-                            <span class="title"></span>
+                        <li class="filter__header__btns__item js-clinic">
+                            Clinic
                         </li>
 
-                        <li class="filter__header__btns__item">
-                            <span class="title"></span>
+                        <li class="filter__header__btns__item js-doctor">
+                            Doctor
                         </li>
 
-                        <li class="filter__header__btns__item">
-                            <span class="title"></span>
+                        <li class="filter__header__btns__item js-duty-Clinic">
+                            Duty
                         </li>
 
-                        <li class="filter__header__btns__item">
-                            <span class="title"></span>
+                        <li class="filter__header__btns__item js-aussendienst">
+                            Ausendienst
                         </li>
 
                         <li class="filter__header__btns__item">
