@@ -151,13 +151,17 @@ body {
         width: 40px;
         height: 40px;
         display: inline-block;
+        user-select: none;
         background-color: #ffffff;
         cursor: pointer; }
+        .filter__header__btns__item:hover {
+          box-shadow: 0 0 1px 5px rgba(0, 0, 0, 0.5); }
   .filter__result {
     flex: 1;
     height: 100%;
     padding: 0 10px 10px; }
     .filter__result__list {
+      min-width: 340px;
       max-width: 400px;
       max-height: 568px;
       list-style: none;

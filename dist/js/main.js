@@ -1,23 +1,16 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    const searchField = document.getElementById('searchField');
-    const searchFind = document.getElementById('searchFind');
     const searchClear = document.getElementById('searchClear');
 
-    searchFind.addEventListener('click', function () {
-        //
-    });
-
-    searchClear.addEventListener('click', function () {
-        searchField.value = null;
-    });
 
 });
 
 
 function initMap() {
 
+    const searField = document.getElementById('searchField');
+    const filterBtnsWrap = document.getElementsByClassName('js-filter-btns-wrap')[0];
     const hospitalIcon = "./img/hospital.png";
     const hospitalIconWidth = 26;
     const hospitalIconHeight = 33.8;
@@ -35,8 +28,9 @@ function initMap() {
         allMarkers = [],
         popUpIsActive = null,
         activeMarker,
-        activeFilter,
+        activeFilter = 'all',
         animationMarkerInterval;
+    let searchValue;
 
     const map = new google.maps.Map(document.getElementById('map'), options);
     const locations = [
@@ -159,6 +153,8 @@ function initMap() {
 
             allMarkers.push(marker);
 
+            //console.log('setMarkers() -> allMarkers', allMarkers);
+
             allMarkers.forEach(function (item) {
 
                 item.addListener('click', function() {
@@ -172,16 +168,19 @@ function initMap() {
             });
 
         });
+
+        //renderList(allMarkers); // renders list of markers
     }
 
     setMarkers(locations, animationDrop); // first init of markers
-    renderList(allMarkers); // renders list of markers
 
     function removeMarkers(){
 
         for(let i = 0; i < allMarkers.length ; i++){
             allMarkers[i].setMap(null);
         }
+
+        allMarkers = [];
     }
     
     function renderPopUp(item) {
@@ -210,6 +209,8 @@ function initMap() {
     }
 
     function renderList(markersList){
+
+        console.log('allMarkers: ', allMarkers);
 
         const resultList = document.getElementById('resultList');
         const resultListFragment = document.createDocumentFragment();
@@ -259,6 +260,9 @@ function initMap() {
 
     }
 
+
+    search(allMarkers); // as fix
+
     function linkToCenterItem(map){
 
         const resultItemsLinks = document.getElementsByClassName('js-to-center-link');
@@ -301,6 +305,7 @@ function initMap() {
                     clearInterval(animationMarkerInterval);
                 }
             }, 150);
+                console.log('setActiveMarker() -> ');
             activeMarker = allMarkers[id];
 
         }
@@ -309,86 +314,92 @@ function initMap() {
 
     linkToCenterItem(map);
 
-    function search() {
-        const searField = document.getElementById('searchField');
+    function search(allMarkers) {
+
         const markersList = allMarkers;
 
-        //console.log('search() -> ', allMarkers);
+        //console.log('search() -> searchValue: ', searchValue);
 
-        searchField.addEventListener('keyup', function (e) {
+        searchValue = searField.value.toLowerCase();
 
-            const searchValue = this.value.toLowerCase();
+        let newMarkersList = [];
 
-            let newMarkersList = [];
+        if(searchValue){
 
-            if(searchValue){
+            console.log('searchValue: ', searchValue);
 
-                console.log('searchValue: ', searchValue);
+            markersList.forEach(function(item) {
+                let {address, title, name} = item;
 
-                markersList.forEach(function(item) {
-                    let {address, title, name} = item;
+                address = address.toLowerCase();
+                title = title.toLowerCase();
+                name = name ? name.toLowerCase() : null;
 
-                    address = address.toLowerCase();
-                    title = title.toLowerCase();
-                    name = name ? name.toLowerCase() : null;
+                if( address.match(searchValue) ||
+                    title.match(searchValue) ||
+                    (name && name.match(searchValue))
+                ){
+                    newMarkersList.push(item);
+                }
+            });
 
-                    if( address.match(searchValue) ||
-                        title.match(searchValue) ||
-                        (name && name.match(searchValue))
-                    ){
-                        newMarkersList.push(item);
-                    }
-                });
-
-            }else{
-                newMarkersList = allMarkers;
-            }
-
-            console.log('newMarkersList[]: ', newMarkersList);
-            renderList(newMarkersList);
-        });
-
+        }else{
+            newMarkersList = allMarkers;
+        }
+        renderList(newMarkersList);
 
     }
-    search();
 
-    function filter() {
-        const filterBtnsWrap = document.getElementsByClassName('js-filter-btns-wrap')[0];
+    searchField.addEventListener('keyup', function () {
+
+        search(allMarkers);
+
+    });
+
+    searchClear.addEventListener('click', function () {
+        searchField.value = null;
+        search(allMarkers);
+    });
+
+    filterBtnsWrap.addEventListener('click', function (e) {
+        const target = e.target;
+
+        if(target.classList.contains('js-all')){
+            filter('all');
+        }else if(target.classList.contains('js-clinic')){
+            filter('clinic');
+        }else if(target.classList.contains('js-doctor')){
+            filter('doctor');
+        }else if(target.classList.contains('js-duty-Clinic')){
+            filter('dutyClinic');
+        }else if(target.classList.contains('js-aussendienst')){
+            filter('aussendienst');
+        }
+    });
+
+    function filter(type) {
+
+        let locFilterArr = [];
 
 
-        filterBtnsWrap.addEventListener('click', function (e) {
-            const target = e.target;
+        if(type == 'all'){
+            locFilterArr = locations;
+        }else if(type == 'clinic' || type == 'doctor'){
+            locFilterArr = locations.filter(item => item.type === type);
+        }else if(type == 'dutyClinic'){
+            locFilterArr = locations.filter(item => item.dutyClinic);
+        }else if(type == 'aussendienst'){
+            locFilterArr = locations.filter(item => item.aussendienst);
+        }
 
-            if(target.classList.contains('js-clinic')){
-                inner('clinic');
-            }else if(target.classList.contains('js-doctor')){
-                inner('doctor');
-            }else if(target.classList.contains('js-duty-Clinic')){
-                inner('dutyClinic');
-            }else if(target.classList.contains('js-aussendienst')){
-                inner('aussendienst');
-            }
-        });
-
-        function inner(type) {
-            activeFilter = type;
-
-            let locFilterArr = [];
-
-            if(type == 'clinic' || type == 'doctor'){
-                locFilterArr = locations.filter(item => item.type === type);
-            }else if(type == 'dutyClinic'){
-                locFilterArr = locations.filter(item => item.dutyClinic);
-            }else if(type == 'aussendienst'){
-                locFilterArr = locations.filter(item => item.aussendienst);
-            }
-
-            console.log('locFilterArr: ', locFilterArr);
-
+        if(activeFilter !== type){
             removeMarkers();
             setMarkers(locFilterArr, animationDrop);
+            search(locFilterArr);
+
+            activeFilter = type;
         }
+
     }
-    filter();
 
 }
