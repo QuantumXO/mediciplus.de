@@ -13,25 +13,47 @@
 </head>
 <body>
 <div class="container">
-    <div class="filter">
+    <div id="filter" class="filter">
         <div class="filter__toggle" data-status="show">
-            <span class="letter">H</span>
-            <span class="letter">i</span>
-            <span class="letter">d</span>
-            <span class="letter">e</span>
+            <div class="filter__toggle__inner show">
+                <span class="letter">H</span>
+                <span class="letter">i</span>
+                <span class="letter">d</span>
+                <span class="letter">e</span>
+            </div>
+            <div class="filter__toggle__inner hidden">
+                <span class="letter">S</span>
+                <span class="letter">h</span>
+                <span class="letter">o</span>
+                <span class="letter">w</span>
+            </div>
         </div>
 
         <div class="filter__wrap">
             <div class="filter__header">
                 <div class="filter__header__search">
-                    <div class="filter__header__inner">
+                    <div class="filter__header__inner search" style="margin-bottom: 10px;">
                         <input type="text" id="searchField" class="search-field" placeholder="Поиск" />
                         <span id="searchFind" class="fas fa-search find-icon js-find"></span>
                         <span id="searchClear" class="fas fa-times clear-icon js-clear"></span>
                     </div>
+
+                    <div class="filter__header__inner direction">
+                        <div class="block">
+                            <input type="text" id="directionFrom" class="direction-field" placeholder="Укажите пункт отправления..." />
+                            <span id="directionFromClear" class="fas fa-times clear-icon js-clear"></span>
+
+                        </div>
+
+                        <div class="block">
+                            <input type="text" id="directionTo" class="direction-field" placeholder="Укажите пункт назначения..." />
+                            <span id="directionToClear" class="fas fa-times clear-icon js-clear"></span>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div class="filter__header__btns">
+                <div class="filter__header__btns hide">
                     <ul class="filter__header__btns__list js-filter-btns-wrap">
                         <li class="filter__header__btns__item js-all">
                            All
@@ -67,15 +89,7 @@
 
             <div class="filter__result">
                 <ul class="filter__result__list" id="resultList">
-                    <!--<li class="filter__result__item">
-                        <h3 class="title">Киевская городская клиническая больница №17</h3>
-                        <p class="info">Открыто:&nbsp;<span class="value">08:00–20:00</span>,&nbsp; <span class="type hospital">Больница</span></p>
-                        <p class="address">14, вул. Кутузова, Киев, 02000</p>
-                        <div class="bottom">
-                            <a href="#" class="direction">Проложить маршрут</a>
-                            <a href="#" class="more">Подробнее</a>
-                        </div>
-                    </li>-->
+
                 </ul>
             </div>
         </div>
@@ -86,6 +100,6 @@
 </div>
 
 <script src="./js/main.js"></script>
-<script async defer src="//maps.googleapis.com/maps/api/js?key=AIzaSyBeVoPDyYZyUq-h735KGeK4OA9-BEuecBg&callback=initMap"></script>
+<script async defer src="//maps.googleapis.com/maps/api/js?key=AIzaSyBeVoPDyYZyUq-h735KGeK4OA9-BEuecBg&libraries=places&callback=initMap"></script>
 </body>
 </html>

@@ -11,17 +11,23 @@ body
 	max-height: 800px
 	margin: 20px auto 0
 	display: flex
+	position: relative
+	overflow: hidden
 	align-items: flex-start
 	justify-content: center
 
 .filter
+	top: 0
+	left: 0
 	height: 100%
 	//min-width: 400px
 	min-height: 600px
 	max-width: 360px
-	position: relative
+	position: absolute
 	background: $gradientBG
+	transition: .3s ease-in-out
 	box-shadow: 0 0 20px rgba(0, 0, 0, .3)
+	z-index: 999
 
 	&__toggle
 		top: 17px
@@ -42,12 +48,25 @@ body
 		cursor: pointer
 		z-index: 99
 
-		.letter
-			display: inline-block
-			transform: rotate(-90deg)
+		&__inner
+			user-select: none
 
-			&:not(:last-child)
-				margin-right: 2px
+			.letter
+				display: inline-block
+				transform: rotate(-90deg)
+
+				&:not(:last-child)
+					margin-right: 2px
+
+			&:first-child
+				display: none
+				&.show
+					display: block
+
+			&:last-child
+				display: block
+				&.hidden
+					display: none
 
 		&:hover
 			color: #000000
@@ -63,7 +82,8 @@ body
 
 		&__search
 
-			.search-field
+			.search-field,
+			.direction-field
 				flex: 1
 				height: 44px
 				padding: 0 10px
@@ -104,9 +124,17 @@ body
 
 
 		&__inner
-			display: flex
-			align-items: center
+			&.search
+				display: flex
+				align-items: center
 
+			&.direction
+				.block
+					display: flex
+					align-items: center
+
+					&:not(:last-child)
+						margin-bottom: 10px
 		&__btns
 			width: 100%
 			margin-top: 10px

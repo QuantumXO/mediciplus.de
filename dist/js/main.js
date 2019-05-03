@@ -1,15 +1,22 @@
 
-document.addEventListener('DOMContentLoaded', function () {
 
-    const searchClear = document.getElementById('searchClear');
+/*
 
+    statusOfAppIsSearch = !statusOfAppIsSearch;
+    console.log('statusOfAppIsSearch: ', statusOfAppIsSearch);
 
-});
+*/
 
 
 function initMap() {
 
+    const searchClear = document.getElementById('searchClear');
+    const filterWrap = document.getElementById('filter');
+    const filterToggleBtn = document.getElementsByClassName('filter__toggle')[0];
     const searField = document.getElementById('searchField');
+    const directionFields = document.getElementsByClassName('direction-field');
+    const directionFromField = document.getElementById('directionFrom');
+    const directionToField = document.getElementById('directionTo');
     const filterBtnsWrap = document.getElementsByClassName('js-filter-btns-wrap')[0];
     const hospitalIcon = "./img/hospital.png";
     const hospitalIconWidth = 26;
@@ -17,9 +24,11 @@ function initMap() {
     const doctorIcon = "./img/doctor.png";
     const doctorIconWidth = 26;
     const doctorIconHeight = 33.8;
+    const directionFromIcon = "./img/directionFromIcon.png";
     const options = {
         center: {lat: 50.431275, lng: 30.516910}, //{lat: -34.397, lng: 150.644}
         zoom: 13,
+        mapTypeControl: false,
         mapTypeId: google.maps.MapTypeId.ROADMAP
     };
     const animationDrop = google.maps.Animation.DROP;
@@ -29,8 +38,9 @@ function initMap() {
         popUpIsActive = null,
         activeMarker,
         activeFilter = 'all',
-        animationMarkerInterval;
-    let searchValue;
+        animationMarkerInterval,
+        searchValue,
+        statusOfAppIsSearch = true; // Direction or search
 
     const map = new google.maps.Map(document.getElementById('map'), options);
     const locations = [
@@ -44,7 +54,7 @@ function initMap() {
              },
             schedule: '00:00–00:00',
             type: 'clinic',
-            address: '14, вул. Кутузова, Киев, 02000',
+            address: '1, вул. Кутузова, Киев, 02000',
             lat: 50.418861,
             lng: 30.526437,
             dutyClinic: true,
@@ -60,7 +70,7 @@ function initMap() {
             },
             schedule: '08:00–20:00',
             type: 'clinic',
-            address: '14, вул. Кутузова, Киев, 02000',
+            address: '2, вул. Кутузова, Киев, 02000',
             lat: 50.428157,
             lng: 30.527383,
             dutyClinic: true,
@@ -77,7 +87,7 @@ function initMap() {
             schedule: '08:00–20:00',
             type: 'doctor',
             name: 'Иванов иван иванович',
-            address: '14, вул. Кутузова, Киев, 02000',
+            address: '3, вул. Кутузова, Киев, 02000',
             lat: 50.424270,
             lng: 30.516910,
             dutyClinic: true,
@@ -132,6 +142,89 @@ function initMap() {
             aussendienst: false,
         },
     ];
+
+    const defaultLocations = locations;
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    filterToggleBtn.addEventListener('click', function () {
+        filterWrap.classList.toggle('filter--hide');
+        document.querySelectorAll('.filter__toggle__inner')[0].classList.toggle('show');
+        document.querySelectorAll('.filter__toggle__inner')[1].classList.toggle('hidden');
+    });
+
+    function autocompliteFunc() {
+        let autocomplete;
+
+        autocomplete = new google.maps.places.Autocomplete(directionFromField);
+
+        autocomplete.bindTo('bounds', map);
+
+        let directionMarker = new google.maps.Marker({
+            map: map,
+            icon: {
+                url: directionFromIcon,
+                scaledSize: new google.maps.Size(35, 35)
+            },
+            anchorPoint: new google.maps.Point(0, -29)
+        });
+
+        autocomplete.addListener('place_changed', function() {
+            directionMarker.setVisible(false);
+
+            let place = autocomplete.getPlace();
+
+            if (!place.geometry) {
+                // User entered the name of a Place that was not suggested and
+                // pressed the Enter key, or the Place Details request failed.
+                window.alert("No details available for input: '" + place.name + "'");
+                return;
+            }
+
+            // If the place has a geometry, then present it on a map.
+            if (place.geometry.viewport) {
+                map.fitBounds(place.geometry.viewport);
+            } else {
+                map.setCenter(place.geometry.location);
+                map.setZoom(17);  // Why 17? Because it looks good.
+            }
+            directionMarker.setPosition(place.geometry.location);
+            directionMarker.setVisible(true);
+
+        });
+
+    }autocompliteFunc();
+
+
+    function direction(){
+
+        const directionLink = document.getElementsByClassName('js-direction');
+        const directionLinksArr = [].slice.call(directionLink) || null;
+
+        let linkAddress;
+
+        if(directionLinksArr){
+
+            directionLinksArr.forEach(function (item, i) {
+
+                item.addEventListener('click', function (e) {
+
+                    e.preventDefault();
+
+                    linkAddress = item.getAttribute('data-direction');
+
+                    directionToField.value = linkAddress;
+
+
+                });
+
+            });
+        }
+
+
+
+    }
 
     function setMarkers(locations, animation){
 
@@ -249,7 +342,7 @@ function initMap() {
                 <p class="info">Открыто:&nbsp;<span class="value">${markersList[i].schedule}</span>,&nbsp; <span class="type hospital">${type}</span></p>
                 <p class="address">${markersList[i].address}</p>
                 <div class="bottom">
-                    <a href="#" class="direction">Проложить маршрут</a>
+                    <a href="#" class="direction js-direction" data-direction="${markersList[i].address}">Проложить маршрут</a>
                     <a href="#" class="more">Подробнее</a>
                 </div>
             `;
@@ -258,14 +351,15 @@ function initMap() {
             }
 
             resultList.appendChild(resultListFragment);
+
+            direction(); // if exist results, we can create direction;
+
         }else{
             //resultList.innerHTML = '<li class="filter__result__item">not found</li>';
             resultList.innerHTML = 'not found';
         }
 
-
     }
-
 
     search(allMarkers); // as fix
 
@@ -307,8 +401,6 @@ function initMap() {
 
             animationMarkerInterval = setInterval(function () {
                 i++;
-
-
 
                 for(let i = 0; i < allMarkers.length; i++){
                     if(allMarkers[i].id == id){
@@ -365,9 +457,7 @@ function initMap() {
     }
 
     searchField.addEventListener('keyup', function () {
-
         search(allMarkers);
-
     });
 
     searchClear.addEventListener('click', function () {
