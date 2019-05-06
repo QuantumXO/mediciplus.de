@@ -94,9 +94,9 @@ function fonts() {
 
 // src css
 function css() {
-	return gulp.src(path.assets.fonts)
-		.pipe(plugin.changed(path.build.fonts))
-		.pipe(gulp.dest(path.build.fonts));
+	return gulp.src(path.assets.css)
+		.pipe(plugin.changed(path.build.styles))
+		.pipe(gulp.dest(path.build.styles));
 }
 
 // Скрипты js

@@ -1,5 +1,13 @@
 
+(function($) {
+    $(function() {
 
+        // jQuery Form Styler
+        // http://dimox.name/jquery-form-styler
+         $('.filter__radio').styler();
+
+    });
+})(jQuery);
 /*
 
     statusOfAppIsSearch = !statusOfAppIsSearch;
@@ -7,17 +15,28 @@
 
 */
 
-
 function initMap() {
 
-    const searchClear = document.getElementById('searchClear');
-    const filterWrap = document.getElementById('filter');
-    const filterToggleBtn = document.getElementsByClassName('filter__toggle')[0];
+    // Search
     const searField = document.getElementById('searchField');
-    const directionFields = document.getElementsByClassName('direction-field');
-    const directionFromField = document.getElementById('directionFrom');
+    const searchClear = document.getElementById('searchClear');
+
+    // Filter
+    const filterWrap = document.getElementById('filter');
+    const filterBlock = document.getElementsByClassName('filter__header__inner'); // Search or Direction
+    const filterParams = document.getElementsByClassName('js-filter-params')[0];
+    const filterParamsClose = document.getElementsByClassName('js-filter-params-close')[0];
+    const filterParamsBasicBtn = document.getElementsByClassName('js-params-basic-btn'); // Clinic or Doctor
+    const filterToggleBtn = document.getElementsByClassName('filter__toggle')[0]; // Toggle filter
+    const filterParamsWrap = document.getElementsByClassName('js-filter-params-wrap')[0];
+    const filterToggleListBtn = document.getElementsByClassName('js-toggle-filters-list')[0]; // Toggle additional filter
+
+    // Direction
     const directionToField = document.getElementById('directionTo');
-    const filterBtnsWrap = document.getElementsByClassName('js-filter-btns-wrap')[0];
+    const directionFromField = document.getElementById('directionFrom');
+    const directionFields = document.getElementsByClassName('direction-field'); // both fields
+
+    // Google map
     const hospitalIcon = "./img/hospital.png";
     const hospitalIconWidth = 26;
     const hospitalIconHeight = 33.8;
@@ -154,6 +173,15 @@ function initMap() {
         document.querySelectorAll('.filter__toggle__inner')[1].classList.toggle('hidden');
     });
 
+    filterToggleListBtn.addEventListener('click', function () {
+        filterParams.classList.toggle('show');
+    });
+
+    filterParamsClose.addEventListener('click', function () {
+        filterParams.classList.remove('show');
+    });
+
+
     function autocompliteFunc() {
         let autocomplete;
 
@@ -212,6 +240,10 @@ function initMap() {
 
                     e.preventDefault();
 
+                    filterParamsWrap.classList.add('hidden');
+                    filterBlock[0].classList.add('hidden');
+                    filterBlock[1].classList.remove('hidden');
+
                     linkAddress = item.getAttribute('data-direction');
 
                     directionToField.value = linkAddress;
@@ -222,7 +254,27 @@ function initMap() {
             });
         }
 
+    }
 
+    function showMore() {
+        const showMore = document.getElementsByClassName('js-more');
+
+        let markerId,
+            marker;
+
+        [].slice.call(showMore).forEach(function (item) {
+
+            item.addEventListener('click', function () {
+                console.log('click');
+                markerId = item.getAttribute('data-marker-id');
+
+                marker = allMarkers.filter(item => item.id == markerId)[0];
+
+                console.log('showMore() -> marker:', marker);
+
+                renderPopUp(marker);
+            });
+        });
 
     }
 
@@ -288,22 +340,33 @@ function initMap() {
             popUpIsActive.close();
         }
 
-        const {title} = item; // item data
+        const {title, type} = item; // item data
 
         let infoWindowContent = `
             <div class="popUp">
                 <h3>${title}</h3>
+                <p>Адрес</p>
+                <p>Медпрофиль контакта или компании</p>
+                <p>Сотрудничество</p>
+                <p>Wochenende ( компания и контакт)</p>
+                <p>Wochenende ( компания и контакт)</p>
+                <p>Ausendienst ( только для контактов)</p>
+                <p>Статус компании или контакта</p>
+                <p>Телефон раб</p>
+                <p>Факс</p>
+                <p>Мобильный (под вопросом)</p>
+                ${type == 'doctor' ? '<p>Пол (муж или жен)</p>' : ''}
             </div>
                 
         `;
 
-        const infowindow = new google.maps.InfoWindow({
+        const infoWindow = new google.maps.InfoWindow({
             content: infoWindowContent
         });
 
-        infowindow.open(map, item);
+        infoWindow.open(map, item);
 
-        popUpIsActive = infowindow;
+        popUpIsActive = infoWindow;
 
     }
 
@@ -343,7 +406,7 @@ function initMap() {
                 <p class="address">${markersList[i].address}</p>
                 <div class="bottom">
                     <a href="#" class="direction js-direction" data-direction="${markersList[i].address}">Проложить маршрут</a>
-                    <a href="#" class="more">Подробнее</a>
+                    <a href="#" class="more js-more" data-marker-id="${markersList[i].id}">Подробнее</a>
                 </div>
             `;
 
@@ -354,10 +417,13 @@ function initMap() {
 
             direction(); // if exist results, we can create direction;
 
+            showMore(); // if exist results, we can show infoWindow;
+
         }else{
             //resultList.innerHTML = '<li class="filter__result__item">not found</li>';
             resultList.innerHTML = 'not found';
         }
+
 
     }
 
@@ -465,14 +531,14 @@ function initMap() {
         search(allMarkers);
     });
 
-    filterBtnsWrap.addEventListener('click', function (e) {
+    filterParamsWrap.addEventListener('click', function (e) {
         const target = e.target;
 
         if(target.classList.contains('js-all')){
             filter('all');
-        }else if(target.classList.contains('js-clinic')){
+        }else if(target.classList.contains('js-clinics')){
             filter('clinic');
-        }else if(target.classList.contains('js-doctor')){
+        }else if(target.classList.contains('js-doctors')){
             filter('doctor');
         }else if(target.classList.contains('js-duty-Clinic')){
             filter('dutyClinic');
@@ -484,7 +550,6 @@ function initMap() {
     function filter(type) {
 
         let locFilterArr = [];
-
 
         if(type == 'all'){
             locFilterArr = locations;

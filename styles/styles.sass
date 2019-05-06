@@ -2,6 +2,27 @@
 @import "reset"
 @import "config"
 
+.jq-checkbox.checked
+	.jq-checkbox__div
+		width: 9px
+		height: 5px
+		margin: 3px 0 0 2px
+.jq-radio
+	border: 0
+	background-color: #fff
+
+	&.checked
+		border: 0
+
+		.jq-radio__div
+			width: 14px
+			height: 14px
+			margin: 0
+			box-shadow: none
+			background-color: $colorBlue
+	&.focused
+		border: 0
+
 body
 	font-size: 16px
 	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif
@@ -24,7 +45,7 @@ body
 	min-height: 600px
 	max-width: 360px
 	position: absolute
-	background: $gradientBG
+	background: $colorBlue
 	transition: .3s ease-in-out
 	box-shadow: 0 0 20px rgba(0, 0, 0, .3)
 	z-index: 999
@@ -69,7 +90,7 @@ body
 					display: none
 
 		&:hover
-			color: #000000
+			color: #000
 
 
 	&__wrap
@@ -79,6 +100,7 @@ body
 
 	&__header
 		padding: 10px
+		position: relative
 
 		&__search
 
@@ -122,8 +144,37 @@ body
 					//color: #000000
 					background-color: rgba(#fff, .9)
 
+			.direction__menu
+				width: 100%
+				height: 44px
+				margin-top: 10px
+				padding: 0 10px
+				display: none
+				align-items: center
+				justify-content: space-between
+				background-color: #ffffff
+
+				&.show
+					display: flex
+
+
+			.to-searching,
+			.get-directions
+				font-size: 14px
+				cursor: pointer
+
+			.to-searching
+				padding-bottom: 2px
+				color: #000000
+				border-bottom: 1px dashed #000
+
+			.get-directions
+				padding: 9px 10px
+				color: #ffffff
+				background-color: $colorBlue
 
 		&__inner
+
 			&.search
 				display: flex
 				align-items: center
@@ -135,26 +186,113 @@ body
 
 					&:not(:last-child)
 						margin-bottom: 10px
-		&__btns
+
+			&.hidden
+				display: none !important
+
+		&__open
+			padding: 0 10px
+			margin-left: 10px
+			display: inline-block
+			border-left: 1px solid #f2f3f4
+			user-select: none
+			//font-weight: 700
+			transition: all .2s ease-in-out
+			//opacity: 0
+			cursor: pointer
+
+			&:hover
+				background-color: #ecf7fb
+
+			.arrow
+				display: inline-block
+				font-family: "Bodoni 72"
+				transform: rotate(90deg)
+
+			&.show
+				//opacity: 1
+
+				.arrow
+					transform: rotate(270deg)
+
+		&__params
 			width: 100%
 			margin-top: 10px
+			//overflow: hidden
+			position: relative
 
-			&__list
+			&.hidden
+				display: none !important
+
+			&__inner
+				padding-left: 10px
 				display: flex
 				align-items: center
-				flex-wrap: wrap
 				justify-content: space-between
+				line-height: 44px
+				background-color: #fff
+				z-index: 99
+
+				.btns
+					flex: 1
+					display: flex
+
+				.filter__label
+					display: flex
+					align-items: center
+					user-select: none
+					cursor: pointer
+
+					&:not(last-child)
+						margin-right: 10px
+
+			&__list
+				top: 44px
+				left: 0
+				margin-top: 10px
+				width: 100%
+				display: none
+				position: absolute
+				align-items: center
+				flex-wrap: wrap
+				background-color: #ffffff
+				justify-content: space-between
+				//transform: translateY( calc(-100% - 10px))
+				transition: .2s ease-in-out
+				box-shadow: 0 2px 6px 0 rgba(0, 0, 0, .41)
+				z-index: 99
+
+				&.show
+					display: flex
+
+				.close
+					top: 5px
+					right: 5px
+					width: 20px
+					height: 20px
+					padding-bottom: 2px
+					display: flex
+					position: absolute
+					align-items: center
+					justify-content: center
+					user-select: none
+					border-radius: 50%
+					border: 1px solid #000
+					z-index: 999
+					cursor: pointer
 
 			&__item
-				width: 40px
-				height: 40px
+				width: 100%
+				//height: 40px
+				padding: 10px
 				display: inline-block
 				user-select: none
 				background-color: #ffffff
+				border-bottom: 1px solid $colorBorder
 				cursor: pointer
 
-				&:hover
-					box-shadow: 0 0 1px 5px rgba(0, 0, 0, 0.5)
+				&:not(:last-child)
+					//margin-bottom: 10px
 
 	&__result
 		flex: 1
