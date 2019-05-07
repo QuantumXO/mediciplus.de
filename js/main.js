@@ -19,10 +19,12 @@ function initMap() {
 
     // Search
     const searField = document.getElementById('searchField');
-    const searchClear = document.getElementById('searchClear');
 
     // Filter
     const filterWrap = document.getElementById('filter');
+    const clearFieldBtn = document.getElementsByClassName('js-clear'); // all clear btns
+    const clearFieldBtnsArr = [].slice.call(clearFieldBtn);
+    const filterResultItem = document.getElementsByClassName('filter__result__item'); // all results
     const filterBlock = document.getElementsByClassName('filter__header__inner'); // Search or Direction
     const filterParams = document.getElementsByClassName('js-filter-params')[0];
     const filterParamsClose = document.getElementsByClassName('js-filter-params-close')[0];
@@ -32,11 +34,16 @@ function initMap() {
     const filterToggleListBtn = document.getElementsByClassName('js-toggle-filters-list')[0]; // Toggle additional filter
 
     // Direction
+    const backToSearchBtn = document.getElementsByClassName('js-to-searching')[0];
+    const getDirectionsBtn = document.getElementsByClassName('js-get-directions')[0];
     const directionToField = document.getElementById('directionTo');
     const directionFromField = document.getElementById('directionFrom');
     const directionFields = document.getElementsByClassName('direction-field'); // both fields
+    const directionFieldsWrap = document.getElementsByClassName('direction__menu')[0]; // fields wrap
 
     // Google map
+    const directionsService = new google.maps.DirectionsService;
+    const directionsDisplay = new google.maps.DirectionsRenderer;
     const hospitalIcon = "./img/hospital.png";
     const hospitalIconWidth = 26;
     const hospitalIconHeight = 33.8;
@@ -217,8 +224,9 @@ function initMap() {
                 map.setCenter(place.geometry.location);
                 map.setZoom(17);  // Why 17? Because it looks good.
             }
-            directionMarker.setPosition(place.geometry.location);
-            directionMarker.setVisible(true);
+
+            //directionMarker.setPosition(place.geometry.location);
+            //directionMarker.setVisible(true);
 
         });
 
@@ -230,9 +238,20 @@ function initMap() {
         const directionLink = document.getElementsByClassName('js-direction');
         const directionLinksArr = [].slice.call(directionLink) || null;
 
-        let linkAddress;
+        let linkAddress,
+            directionsIinfoWrap,
+            itemWrap,
+            itemId;
+
+        let duration = document.querySelectorAll('.js-duration');
+        let distance = document.querySelectorAll('.js-distance');
+
+        let durationsArr = [].slice.call(duration);
+        let distanceArr = [].slice.call(distance);
 
         if(directionLinksArr){
+
+            directionsDisplay.setMap(map);
 
             directionLinksArr.forEach(function (item, i) {
 
@@ -240,19 +259,84 @@ function initMap() {
 
                     e.preventDefault();
 
+                    durationsArr.forEach(function (item) {
+                        item.innerHTML = '';
+                    });
+
+                    distanceArr.forEach(function (item) {
+                        item.innerHTML = '';
+                    });
+
                     filterParamsWrap.classList.add('hidden');
                     filterBlock[0].classList.add('hidden');
                     filterBlock[1].classList.remove('hidden');
+                    directionFieldsWrap.classList.add('show');
 
                     linkAddress = item.getAttribute('data-direction');
 
+                    itemWrap = item.closest('.filter__result__item');
+
+                    itemId = itemWrap.getAttribute('data-item-id');
+
                     directionToField.value = linkAddress;
 
+                    directionsIinfoWrap = itemWrap.classList.add('active');
+
+                    //.getElementsByClassName('js-directions-info');
+
+                    //console.log('itemId: ', itemId);
+                    setActiveResultItem(itemId);
 
                 });
 
             });
+
+            // Hide directions fields && show
+            backToSearchBtn.addEventListener('click', function () {
+                filterParamsWrap.classList.remove('hidden');
+                filterBlock[0].classList.remove('hidden');
+                filterBlock[1].classList.add('hidden');
+                directionFieldsWrap.classList.remove('show');
+            });
+
+            getDirectionsBtn.addEventListener('click', function () {
+                directionsService.route({
+                    origin: directionFromField.value,
+                    destination: directionToField.value,
+                    travelMode: 'DRIVING'
+                }, function(response, status) {
+                    if (status === 'OK') {
+                        directionsDisplay.setDirections(response);
+
+                        let point = response.routes[0].legs[0];
+
+                        itemWrap.querySelector('.js-duration').innerHTML =  `Duration:&nbsp; <span class="value">${point.duration.text}</span>`;
+                        itemWrap.querySelector('.js-distance').innerHTML = `Distance:&nbsp; <span class="value">${point.distance.text}</span>`;
+
+                    } else {
+                        window.alert('Directions request failed due to ' + status);
+                    }
+                });
+
+            });
+
         }
+
+    }
+
+    function setActiveResultItem(itemId) {
+
+        const filterResultItemsArr = [].slice.call(filterResultItem);
+
+        filterResultItemsArr.forEach(function (item) {
+            item.classList.remove('active');
+        });
+
+        const activeItem = filterResultItemsArr.filter(item => item.getAttribute('data-item-id') == itemId)[0];
+
+
+        activeItem.classList.add('active');
+        console.log('setActiveResultItem() -> activeItem: ', activeItem);
 
     }
 
@@ -390,6 +474,7 @@ function initMap() {
 
                 newReultItem = document.createElement('li');
                 newReultItem.classList.add('filter__result__item');
+                newReultItem.setAttribute('data-item-id', markersList[i].id);
                 newReultItem.innerHTML = `
                 <h3 class="title">
                     <a 
@@ -402,11 +487,15 @@ function initMap() {
                         ${markersList[i].title}
                     </a>
                 </h3>
-                <p class="info">Открыто:&nbsp;<span class="value">${markersList[i].schedule}</span>,&nbsp; <span class="type hospital">${type}</span></p>
+                <p class="info">Открыто:&nbsp;<span class="value">${markersList[i].schedule}</span>,&nbsp;<span class="type hospital">${type}</span></p>
                 <p class="address">${markersList[i].address}</p>
                 <div class="bottom">
                     <a href="#" class="direction js-direction" data-direction="${markersList[i].address}">Проложить маршрут</a>
                     <a href="#" class="more js-more" data-marker-id="${markersList[i].id}">Подробнее</a>
+                </div>
+                <div class="directions-info js-directions-info">
+                    <div class="js-duration"></div>
+                    <div class="distance js-distance"></div>
                 </div>
             `;
 
@@ -416,7 +505,6 @@ function initMap() {
             resultList.appendChild(resultListFragment);
 
             direction(); // if exist results, we can create direction;
-
             showMore(); // if exist results, we can show infoWindow;
 
         }else{
@@ -518,16 +606,17 @@ function initMap() {
         }else{
             newMarkersList = allMarkers;
         }
-        renderList(newMarkersList);
 
+        renderList(newMarkersList);
     }
 
     searchField.addEventListener('keyup', function () {
         search(allMarkers);
     });
 
-    searchClear.addEventListener('click', function () {
-        searchField.value = null;
+    clearFieldBtnsArr.addEventListener('click', function () {
+        this.parentNode.getElementsByClassName('field')[0].value = null;
+        //searchField.value = null;
         search(allMarkers);
     });
 

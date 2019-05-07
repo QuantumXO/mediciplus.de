@@ -320,13 +320,26 @@ body
 				cursor: pointer
 				//outline: 1px solid slategrey
 
-
 		&__item
 			padding: 10px
 			background-color: #ffffff
-			border-bottom: 1px solid #f2f3f4
+			border: 1px solid #f2f3f4
 			transition: background-color .2s ease-in-out
 			//cursor: pointer
+
+			&.active
+				border: 1px solid orange
+
+				.directions-info
+					margin-top: 10px
+					display: block !important
+					font-size: 14px
+
+					.distance
+						margin-top: 5px
+
+					.value
+						font-weight: 700
 
 			&:hover
 				//background-color: rgba(#fff, .9)
@@ -393,7 +406,8 @@ body
 					content: ''
 					background-color: #9b9c9e
 
-
+			.directions-info
+				display: none
 		.schedule
 			//
 .map
