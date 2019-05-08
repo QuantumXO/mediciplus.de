@@ -42,30 +42,35 @@ function initMap() {
     const directionFieldsWrap = document.getElementsByClassName('direction__menu')[0]; // fields wrap
 
     // Google map
+    const defaultZoom = 13;
     const directionsService = new google.maps.DirectionsService;
     const directionsDisplay = new google.maps.DirectionsRenderer;
     const hospitalIcon = "./img/hospital.png";
     const hospitalIconWidth = 26;
     const hospitalIconHeight = 33.8;
+    //const hospitalIconWidthScaledSize = 31;
+    //const hospitalIconHeightScaledSize = 38.8;
     const doctorIcon = "./img/doctor.png";
     const doctorIconWidth = 26;
     const doctorIconHeight = 33.8;
     const directionFromIcon = "./img/directionFromIcon.png";
     const options = {
         center: {lat: 50.431275, lng: 30.516910}, //{lat: -34.397, lng: 150.644}
-        zoom: 13,
+        zoom: defaultZoom,
         mapTypeControl: false,
         mapTypeId: google.maps.MapTypeId.ROADMAP
     };
     const animationDrop = google.maps.Animation.DROP;
+    const animationBounce= google.maps.Animation.BOUNCE;
 
     let marker,
         allMarkers = [],
         popUpIsActive = null,
         activeMarker,
         activeFilter = 'all',
-        animationMarkerInterval,
         searchValue,
+        ACTIVE_RESULT_ITEM_ID = null,
+        APP_STATUS = 0, //  0 - search | 1 - direction
         statusOfAppIsSearch = true; // Direction or search
 
     const map = new google.maps.Map(document.getElementById('map'), options);
@@ -80,7 +85,7 @@ function initMap() {
              },
             schedule: '00:00–00:00',
             type: 'clinic',
-            address: '1, вул. Кутузова, Киев, 02000',
+            address: 'вулиця Ковпака, 3, Київ, 02000',
             lat: 50.418861,
             lng: 30.526437,
             dutyClinic: true,
@@ -234,18 +239,15 @@ function initMap() {
 
 
     function direction(){
-
         const directionLink = document.getElementsByClassName('js-direction');
         const directionLinksArr = [].slice.call(directionLink) || null;
 
         let linkAddress,
-            directionsIinfoWrap,
-            itemWrap,
-            itemId;
-
+            directionsInfoWrap,
+            itemId,
+            itemWrap;
         let duration = document.querySelectorAll('.js-duration');
         let distance = document.querySelectorAll('.js-distance');
-
         let durationsArr = [].slice.call(duration);
         let distanceArr = [].slice.call(distance);
 
@@ -259,6 +261,7 @@ function initMap() {
 
                     e.preventDefault();
 
+
                     durationsArr.forEach(function (item) {
                         item.innerHTML = '';
                     });
@@ -267,55 +270,34 @@ function initMap() {
                         item.innerHTML = '';
                     });
 
-                    filterParamsWrap.classList.add('hidden');
-                    filterBlock[0].classList.add('hidden');
-                    filterBlock[1].classList.remove('hidden');
-                    directionFieldsWrap.classList.add('show');
 
-                    linkAddress = item.getAttribute('data-direction');
+                    if(APP_STATUS == 0){
+
+                        APP_STATUS = 1;
+
+                        filterParamsWrap.classList.add('hidden');
+                        filterBlock[0].classList.add('hidden');
+                        filterBlock[1].classList.remove('hidden');
+                        directionFieldsWrap.classList.add('show');
+
+                    }
 
                     itemWrap = item.closest('.filter__result__item');
-
                     itemId = itemWrap.getAttribute('data-item-id');
 
-                    directionToField.value = linkAddress;
+                    if(itemId !== ACTIVE_RESULT_ITEM_ID){
 
-                    directionsIinfoWrap = itemWrap.classList.add('active');
+                        linkAddress = item.getAttribute('data-direction');
 
-                    //.getElementsByClassName('js-directions-info');
+                        directionToField.value = linkAddress;
 
-                    //console.log('itemId: ', itemId);
-                    setActiveResultItem(itemId);
+                        //directionsInfoWrap = itemWrap.classList.add('active');
 
-                });
-
-            });
-
-            // Hide directions fields && show
-            backToSearchBtn.addEventListener('click', function () {
-                filterParamsWrap.classList.remove('hidden');
-                filterBlock[0].classList.remove('hidden');
-                filterBlock[1].classList.add('hidden');
-                directionFieldsWrap.classList.remove('show');
-            });
-
-            getDirectionsBtn.addEventListener('click', function () {
-                directionsService.route({
-                    origin: directionFromField.value,
-                    destination: directionToField.value,
-                    travelMode: 'DRIVING'
-                }, function(response, status) {
-                    if (status === 'OK') {
-                        directionsDisplay.setDirections(response);
-
-                        let point = response.routes[0].legs[0];
-
-                        itemWrap.querySelector('.js-duration').innerHTML =  `Duration:&nbsp; <span class="value">${point.duration.text}</span>`;
-                        itemWrap.querySelector('.js-distance').innerHTML = `Distance:&nbsp; <span class="value">${point.distance.text}</span>`;
-
-                    } else {
-                        window.alert('Directions request failed due to ' + status);
+                        setActiveResultItem(itemId);
                     }
+
+
+
                 });
 
             });
@@ -323,6 +305,41 @@ function initMap() {
         }
 
     }
+
+
+    // Hide directions fields && show
+    backToSearchBtn.addEventListener('click', function () {
+        filterParamsWrap.classList.remove('hidden');
+        filterBlock[0].classList.remove('hidden');
+        filterBlock[1].classList.add('hidden');
+        directionFieldsWrap.classList.remove('show');
+
+        APP_STATUS = 0; // search
+    });
+
+    getDirectionsBtn.addEventListener('click', function () {
+
+        let itemWrap = document.querySelector('.filter__result__item.active');
+
+        directionsService.route({
+            origin: directionFromField.value,
+            destination: directionToField.value,
+            travelMode: 'DRIVING'
+        }, function(response, status) {
+            if (status === 'OK') {
+                directionsDisplay.setDirections(response);
+
+                let point = response.routes[0].legs[0];
+
+                itemWrap.querySelector('.js-duration').innerHTML = `Duration:&nbsp;<span class="value">${point.duration.text}</span>`;
+                itemWrap.querySelector('.js-distance').innerHTML = `Distance:&nbsp;<span class="value">${point.distance.text}</span>`;
+
+            } else {
+                window.alert('Directions request failed due to ' + status);
+            }
+        });
+
+    });
 
     function setActiveResultItem(itemId) {
 
@@ -334,9 +351,9 @@ function initMap() {
 
         const activeItem = filterResultItemsArr.filter(item => item.getAttribute('data-item-id') == itemId)[0];
 
-
         activeItem.classList.add('active');
-        console.log('setActiveResultItem() -> activeItem: ', activeItem);
+
+        ACTIVE_RESULT_ITEM_ID = itemId;
 
     }
 
@@ -349,12 +366,13 @@ function initMap() {
         [].slice.call(showMore).forEach(function (item) {
 
             item.addEventListener('click', function () {
-                console.log('click');
                 markerId = item.getAttribute('data-marker-id');
 
                 marker = allMarkers.filter(item => item.id == markerId)[0];
 
-                console.log('showMore() -> marker:', marker);
+                //console.log('showMore() -> marker:', marker);
+
+                setActiveResultItem(markerId);
 
                 renderPopUp(marker);
             });
@@ -397,6 +415,8 @@ function initMap() {
                     renderPopUp(item);
 
                     item.setAnimation(null);
+
+                    setActiveResultItem(item.id);
 
                 });
 
@@ -456,7 +476,7 @@ function initMap() {
 
     function renderList(markersList){
 
-        //console.log('allMarkers: ', allMarkers);
+        console.log('renderList() -> iteration');
 
         const resultList = document.getElementById('resultList');
         const resultListFragment = document.createDocumentFragment();
@@ -475,6 +495,11 @@ function initMap() {
                 newReultItem = document.createElement('li');
                 newReultItem.classList.add('filter__result__item');
                 newReultItem.setAttribute('data-item-id', markersList[i].id);
+
+                if(markersList[i].id == ACTIVE_RESULT_ITEM_ID){
+                    newReultItem.classList.add('active');
+                }
+
                 newReultItem.innerHTML = `
                 <h3 class="title">
                     <a 
@@ -530,15 +555,19 @@ function initMap() {
         document.addEventListener('click', function (e) {
             const target = e.target;
 
-            if(target.classList.contains('js-to-center-link')){
+            if(
+                target.classList.contains('js-to-center-link') //&&
+                //(!activeMarker || (activeMarker && target.getAttribute('data-marker-id') != activeMarker.id))
+            ){
+
                 setActiveMarker(target);
+
             }
         });
 
         function setActiveMarker($this) {
 
             if(activeMarker){
-                clearInterval(animationMarkerInterval);
                 activeMarker.setAnimation(null);
             }
 
@@ -546,27 +575,19 @@ function initMap() {
             lng = $this.getAttribute('data-lng');
             id = $this.getAttribute('data-marker-id');
 
+            setActiveResultItem(id);
+
             center = new google.maps.LatLng(lat, lng);
             map.panTo(center);
+            map.setZoom(16);
 
-            let i = 0;
+            for(let i = 0; i < allMarkers.length; i++){
+                if(allMarkers[i].id == id){
+                    //allMarkers[i].setAnimation(animationBounce);
 
-            //console.log('setActiveMarker() -> $this', $this);
-
-            animationMarkerInterval = setInterval(function () {
-                i++;
-
-                for(let i = 0; i < allMarkers.length; i++){
-                    if(allMarkers[i].id == id){
-                        allMarkers[i].setAnimation(google.maps.Animation.BOUNCE);
-                        activeMarker = allMarkers[i];
-                    }
+                    activeMarker = allMarkers[i];
                 }
-                if(i === 10){
-                    clearInterval(animationMarkerInterval);
-                }
-            }, 150);
-
+            }
 
         }
 
@@ -591,9 +612,9 @@ function initMap() {
             markersList.forEach(function(item) {
                 let {address, title, name} = item;
 
-                address = address.toLowerCase();
-                title = title.toLowerCase();
                 name = name ? name.toLowerCase() : null;
+                title = title ? title.toLowerCase() : null;
+                address = address ? address.toLowerCase() : null;
 
                 if( address.match(searchValue) ||
                     title.match(searchValue) ||
@@ -614,25 +635,38 @@ function initMap() {
         search(allMarkers);
     });
 
-    clearFieldBtnsArr.addEventListener('click', function () {
-        this.parentNode.getElementsByClassName('field')[0].value = null;
-        //searchField.value = null;
-        search(allMarkers);
+    clearFieldBtnsArr.forEach(function (item) {
+        item.addEventListener('click', function () {
+
+            let field = this.parentNode.getElementsByClassName('field')[0];
+
+            // fix re-render result list
+            if(field.value){
+                field.value = null;
+                search(allMarkers);
+            }
+        });
     });
+
 
     filterParamsWrap.addEventListener('click', function (e) {
         const target = e.target;
 
         if(target.classList.contains('js-all')){
             filter('all');
+            map.setZoom(defaultZoom);
         }else if(target.classList.contains('js-clinics')){
             filter('clinic');
+            map.setZoom(defaultZoom);
         }else if(target.classList.contains('js-doctors')){
             filter('doctor');
+            map.setZoom(defaultZoom);
         }else if(target.classList.contains('js-duty-Clinic')){
             filter('dutyClinic');
+            map.setZoom(defaultZoom);
         }else if(target.classList.contains('js-aussendienst')){
             filter('aussendienst');
+            map.setZoom(defaultZoom);
         }
     });
 

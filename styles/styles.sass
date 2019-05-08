@@ -112,7 +112,6 @@ body
 				display: block
 				border: 0
 				outline: none
-				font-weight: 700
 				font-size: 16px
 				border-radius: 0
 				letter-spacing: .05em
@@ -120,6 +119,7 @@ body
 			
 				&::placeholder
 					color: $colorBlue
+					font-weight: 700
 					transition: opacity .2s ease-in-out
 
 				&:focus
@@ -171,6 +171,7 @@ body
 			.get-directions
 				padding: 9px 10px
 				color: #ffffff
+				user-select: none
 				background-color: $colorBlue
 
 		&__inner
@@ -328,7 +329,11 @@ body
 			//cursor: pointer
 
 			&.active
-				border: 1px solid orange
+				border: 1px solid black
+
+				.to-center-link
+					color: $colorBlue
+					border-color: $colorBlue
 
 				.directions-info
 					margin-top: 10px
@@ -347,21 +352,18 @@ body
 			&:not(:last-child)
 				margin-bottom: 10px
 
-			.title
+			.to-center-link
+				color: #000
 				font-size: 15px
 				font-weight: 700
-				color: red
+				line-height: 1.2
+				text-decoration: none
+				border-bottom: 1px solid #000
+				transition: .1s ease-in-out
 
-				.to-center-link
-					color: #000
-					line-height: 1.2
-					text-decoration: none
-					border-bottom: 1px solid #000
-					transition: .1s ease-in-out
-
-					&:hover,
-					&:focus
-						border-bottom-color: #fff
+				&:hover,
+				&:focus
+					border-bottom-color: #fff
 
 			.info
 				margin: 5px 0

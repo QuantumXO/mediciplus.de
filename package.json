@@ -38,5 +38,8 @@
     "imagemin-jpeg-recompress": "^6.0.0",
     "imagemin-pngquant": "^7.0.0",
     "yargs": "^13.2.2"
+  },
+  "dependencies": {
+    "gulp-preprocess": "^3.0.2"
   }
 }

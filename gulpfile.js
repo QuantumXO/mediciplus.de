@@ -4,11 +4,15 @@ const gulp           		  = require('gulp'),
 	  gulpLoadPlugins		  = require('gulp-load-plugins'),
 	  browserSync    		  = require("browser-sync"),
 	  argv           		  = require('yargs').argv,
-	  imageminJpegRecompress = require('imagemin-jpeg-recompress'),
+	  imageminJpegRecompress  = require('imagemin-jpeg-recompress'),
 	  imageminPngquant 		  = require('imagemin-pngquant'),
-	  //htmlInclude 			  = require('gulp-htm-include'),
-	  plugin                 = gulpLoadPlugins();
-	
+	  //htmlInclude 		  = require('gulp-htm-include'),
+	  plugin                  = gulpLoadPlugins();
+
+const isProduction = argv.prod ? true : false;
+const env = isProduction ? 'production' : 'develop';
+const debug = isProduction ? false : true;
+
 // Paths
 const dest = 'dist/',
 	  clearDir = 'dist',
@@ -50,7 +54,8 @@ function page() {
 		prefix: '@@',
 		basepath: '@file'
 	}))
-  	.pipe(plugin.if(argv.prod, plugin.htmlmin({
+	.pipe(plugin.preprocess({ context: { NODE_ENV: env, DEBUG: debug } })) // To set environment variables in-line
+	.pipe(plugin.if(isProduction, plugin.htmlmin({
 		collapseWhitespace: true,
 		minifyURLs: true,
 		removeComments: true,
@@ -68,22 +73,22 @@ function styles() {
 		.pipe(plugin.sass().on( 'error', plugin.notify.onError(
 			{message: "<%= error.message %>",
 				title  : "Sass Error!"})))
-		.pipe(plugin.if(argv.prod, plugin.autoprefixer({ browsers: ['last 16 versions'], cascade: false })))
+		.pipe(plugin.if(isProduction, plugin.autoprefixer({ browsers: ['last 16 versions'], cascade: false })))
 		.pipe(gulp.dest(path.build.styles))
 		.pipe(plugin.cssRebaseUrls())
-		.pipe(plugin.if(argv.prod, plugin.cleancss()))
+		.pipe(plugin.if(isProduction, plugin.cleancss()))
 		//.pipe(sourcemaps.write())
-		.pipe(plugin.if(argv.prod, plugin.criticalCss()))
-		.pipe(plugin.if(argv.prod, plugin.rename({suffix: '.min'})))
-		.pipe(plugin.if(argv.prod, gulp.dest(path.build.styles)))
+		.pipe(plugin.if(isProduction, plugin.criticalCss()))
+		.pipe(plugin.if(isProduction, plugin.rename({suffix: '.min'})))
+		.pipe(plugin.if(isProduction, gulp.dest(path.build.styles)))
 		.pipe(browserSync.reload({stream:true}));
 }
 
 // Конвертируем шрифты в base64
 function fc() {
 	return gulp.src([path.assets.fonts + '*.{woff,woff2}'])
-		.pipe(plugin.if(argv.prod, plugin.cssfont64()))
-		.pipe(plugin.if(argv.prod, gulp.dest(path.build.styles)))
+		.pipe(plugin.if(isProduction, plugin.cssfont64()))
+		.pipe(plugin.if(isProduction, gulp.dest(path.build.styles)))
 }
 
 // fonts
@@ -106,10 +111,12 @@ function js() {
 		//.pipe(concat('main.js'))
 		//.pipe(plugin.rename({ suffix: '.min' }))
 		.pipe(gulp.dest(path.build.js))
-		.pipe(plugin.if(argv.prod, plugin.uglify().on( 'error', plugin.notify.onError(
-		  { message: "<%= error.message %>", title  : "JS Error!" }))))
-		.pipe(plugin.if(argv.prod, plugin.rename({ suffix: '.min' })))
-		.pipe(plugin.if(argv.prod, gulp.dest(path.build.js)))
+		.pipe(plugin.if(isProduction, plugin.uglify({
+				compress: true,
+				warnings: true,
+			}).on( 'error', plugin.notify.onError({ message: "<%= error.message %>", title  : "JS Error!" }))))
+		.pipe(plugin.if(isProduction, plugin.rename({ suffix: '.min' })))
+		.pipe(plugin.if(isProduction, gulp.dest(path.build.js)))
 		.pipe(browserSync.reload({stream:true}));
 }
 
@@ -123,13 +130,13 @@ function jsMin() {
 // Img
 function img() {
 	return gulp.src(path.assets.img)
-		.pipe(plugin.changed(path.build.img))
-		//.pipe(plugin.if(argv.prod, plugin.cache(plugin.imagemin({optimizationLevel:5,progressive:true,interlaced:true}))))
-		.pipe(plugin.if(argv.prod, plugin.cache(plugin.imagemin([
+		.pipe(plugin.if(!isProduction, plugin.changed(path.build.img)))
+		//.pipe(plugin.if(isProduction, plugin.cache(plugin.imagemin({optimizationLevel:5,progressive:true,interlaced:true}))))
+		.pipe(plugin.if(isProduction, plugin.cache(plugin.imagemin([
 				plugin.imagemin.gifsicle({interlaced:true}),
+				plugin.imagemin.svgo({plugins: [{removeViewBox:false}]}),
 				imageminJpegRecompress({progressive:true, max:80,min:75}),
 				imageminPngquant({quality: '75-85'}),
-				plugin.imagemin.svgo({plugins: [{removeViewBox:false}]})
 			]))))
 		.pipe(gulp.dest(path.build.img))
         .pipe(browserSync.reload({stream:true}));
@@ -162,12 +169,6 @@ function browserSyncFunc(){
 	});
 }
 
-/*// Server connect
-function browserSyncFunc() {
-	browserSync.init({
-    });
-};*/
-
 // Наблюдение Watch
 function watch() {
 	// Наблюдение за .sass файлами
@@ -182,9 +183,14 @@ function watch() {
 	gulp.watch(path.watch.fonts, fonts);
 	gulp.watch(path.watch.css, css);
 	// Наблюдение за fonts файлами
-	gulp.watch(path.watch.page, gulp.parallel(page));
+	gulp.watch(path.watch.page, page);
 }
 
 // Задача по-умолчанию
-gulp.task('default', gulp.parallel(styles, fonts, img, js, jsMin, css, fc, browserSyncFunc, watch));
+if(!isProduction){ // Dev
+	gulp.task('default', gulp.parallel(styles, fonts, img, page, js, jsMin, css, fc, browserSyncFunc, watch));
+}else{
+	gulp.task('default', gulp.parallel(styles, fonts, img, page, js, jsMin, css, fc));
+}
+
 gulp.task('clear', clear);
