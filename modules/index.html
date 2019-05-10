@@ -42,19 +42,23 @@
             </div>
         </div>
 
+        <div class="close-filter js-close-filter">
+            <img src="//maps.gstatic.com/mapfiles/maps_lite/images/2x/ic_arrow_right_white_24dp.png" width="25" alt="close filter">
+            <span class="title">close</span>
+            <span class="title">show</span>
+        </div>
         <div class="filter__wrap">
             <div class="filter__header">
                 <div class="filter__header__search">
-
                     <div class="filter__header__inner search js-search-block">
-                        <input type="text" id="searchField" class="field search-field" placeholder="Поиск" />
-                        <span id="searchFind" class="fas fa-search find-icon js-find"></span>
+                        <input type="text" id="searchField" class="field search-field" placeholder="Поиск" value="Kiev Pechersk Lavra, улица Лаврская, Киев, Украина" />
+                        <!--<span id="searchFind" class="fas fa-search find-icon js-find"></span>-->
                         <span id="searchClear" class="fas fa-times clear-icon js-clear"></span>
                     </div>
 
                     <div class="filter__header__inner direction js-direction-block hidden">
                         <div class="block">
-                            <input type="text" id="directionFrom" class="field direction-field" placeholder="Укажите пункт отправления..." />
+                            <input type="text" id="directionFrom" class="field search-field direction-field" placeholder="Укажите пункт отправления..." />
                             <span id="directionFromClear" class="fas fa-times clear-icon js-clear"></span>
                         </div>
 
@@ -91,7 +95,7 @@
                                 Doctors
                             </label>
                         </div>
-                        <div class="filter__header__open js-toggle-filters-list">Additional<!-- <span class="arrow">&gt;</span>--></div>
+                        <div class="filter__header__open js-toggle-filters-list"><span class="desktop">Additional</span><span class="arrow">&gt;</span><!-- <span class="arrow"></span>--></div>
                     </div>
 
                     <ul class="filter__header__params__list js-filter-params">

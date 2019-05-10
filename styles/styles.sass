@@ -37,6 +37,9 @@ body
 	align-items: flex-start
 	justify-content: center
 
+	@include mobile
+		margin: 0
+
 .filter
 	top: 0
 	left: 0
@@ -49,6 +52,9 @@ body
 	transition: .3s ease-in-out
 	box-shadow: 0 0 20px rgba(0, 0, 0, .3)
 	z-index: 999
+
+	@include mobile
+		max-width: 100%
 
 	&__toggle
 		top: 17px
@@ -68,6 +74,9 @@ body
 		transition: color .2s ease-in-out
 		cursor: pointer
 		z-index: 99
+
+		@include mobile
+			display: none
 
 		&__inner
 			user-select: none
@@ -93,10 +102,54 @@ body
 			color: #000
 
 
+	.close-filter
+		top: 10px
+		left: 10px
+		padding: 3px 7px 3px 2px
+		//margin-bottom: 10px
+		display: none
+		position: absolute
+		align-items: center
+		color: #E5F5FB
+		flex-grow: inherit
+		user-select: none
+		text-transform: capitalize
+		justify-content: flex-start
+		border: 1px solid rgba(#E5F5FB, .6)
+		border-radius: 5px
+		cursor: pointer
+		z-index: 999
+
+		.title:last-child
+			display: none
+
+		@include mobile
+			display: inline-flex
+
+		img
+			margin-right: 4px
+			transform: rotate(180deg)
+
+		&.revert
+			left: calc(100% + 10px)
+			background-color: $colorBlue
+
+			img
+				transform: rotate(0)
+
+			.title:nth-child(2)
+				display: none
+
+			.title:last-child
+				display: inline-block
+
 	&__wrap
 		height: 100%
 		display: flex
 		flex-direction: column
+
+		@include mobile
+			margin-top: 42px
 
 	&__header
 		padding: 10px
@@ -216,6 +269,20 @@ body
 				.arrow
 					transform: rotate(270deg)
 
+			.arrow
+				display: none
+
+			@include mobile
+
+				.arrow
+					padding: 0 10px
+					font-size: 22px
+					display: inline-block
+					font-weight: 700
+
+				.desktop
+					display: none
+
 		&__params
 			width: 100%
 			margin-top: 10px
@@ -308,6 +375,10 @@ body
 			//max-height: 100vh
 			list-style: none
 			overflow-y: scroll
+
+			@include mobile
+				max-width: 100%
+				min-width: 100%
 
 			&::-webkit-scrollbar
 				width: 13px
