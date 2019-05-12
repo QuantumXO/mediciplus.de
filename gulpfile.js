@@ -136,7 +136,7 @@ function img() {
 				plugin.imagemin.gifsicle({interlaced:true}),
 				plugin.imagemin.svgo({plugins: [{removeViewBox:false}]}),
 				imageminJpegRecompress({progressive:true, max:80,min:75}),
-				imageminPngquant({quality: '75-85'}),
+				//imageminPngquant({quality: '75-85'}),
 			]))))
 		.pipe(gulp.dest(path.build.img))
         .pipe(browserSync.reload({stream:true}));

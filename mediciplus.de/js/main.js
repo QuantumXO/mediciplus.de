@@ -8,17 +8,20 @@
 
     });
 })(jQuery);
+/*
+
+    statusOfAppIsSearch = !statusOfAppIsSearch;
+    console.log('statusOfAppIsSearch: ', statusOfAppIsSearch);
+
+*/
 
 function initMap() {
 
     // Search
-    const searhField = document.getElementById('searchField');
-    const searhFields = document.getElementsByClassName('search-field');
-    const searchFindBtn = document.getElementById('searchFind');
+    const searField = document.getElementById('searchField');
 
     // Filter
     const filterWrap = document.getElementById('filter');
-    const closeFilterMobBtn = document.getElementsByClassName('js-close-filter')[0];
     const clearFieldBtn = document.getElementsByClassName('js-clear'); // all clear btns
     const clearFieldBtnsArr = [].slice.call(clearFieldBtn);
     const filterResultItem = document.getElementsByClassName('filter__result__item'); // all results
@@ -40,7 +43,6 @@ function initMap() {
 
     // Google map
     const defaultZoom = 13;
-    const geocoder = new google.maps.Geocoder();
     const directionsService = new google.maps.DirectionsService;
     const directionsDisplay = new google.maps.DirectionsRenderer;
     const hospitalIcon = "./img/hospital.png";
@@ -66,13 +68,10 @@ function initMap() {
         popUpIsActive = null,
         activeMarker,
         activeFilter = 'all',
-        SEARCH_VALUE = searhField.value || null,
+        searchValue,
         ACTIVE_RESULT_ITEM_ID = null,
         APP_STATUS = 0, //  0 - search | 1 - direction
         statusOfAppIsSearch = true; // Direction or search
-
-    let clientMarker,
-        clientMarkerRadius;
 
     const map = new google.maps.Map(document.getElementById('map'), options);
     const locations = [
@@ -180,30 +179,6 @@ function initMap() {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /*searchFindBtn.addEventListener('click', function () {
-        searhField.focus();
-        autocompliteFunc();
-    });*/
-
-    if(SEARCH_VALUE){
-        searchField.value = SEARCH_VALUE;
-
-        geocodeAddress(geocoder, map);
-    }
-
-
-    function asdasdsa(){
-        [].slice.call(filterResultItem).forEach(function (item) {
-
-        });
-    }asdasdsa();
-
-
-    closeFilterMobBtn.addEventListener('click', function () {
-        filterWrap.classList.toggle('filter--hide');
-        this.classList.toggle('revert');
-    });
-
     filterToggleBtn.addEventListener('click', function () {
         filterWrap.classList.toggle('filter--hide');
         document.querySelectorAll('.filter__toggle__inner')[0].classList.toggle('show');
@@ -219,93 +194,44 @@ function initMap() {
     });
 
 
-    function geocodeAddress(geocoder, resultsMap) {
-        let address = SEARCH_VALUE;
-
-        geocoder.geocode({'address': address}, function(results, status) {
-            if (status === 'OK') {
-
-                if(clientMarker){
-                    clientMarker.setVisible(false);
-                    clientMarkerRadius.setMap(null);
-                }
-
-                resultsMap.setCenter(results[0].geometry.location);
-
-                clientMarker = new google.maps.Marker({
-                    map: resultsMap,
-                    position: results[0].geometry.location
-                });
-
-                clientMarkerRadius = new google.maps.Circle({
-                    strokeColor: '#00B1DA',
-                    strokeOpacity: 0.3,
-                    strokeWeight: 1,
-                    fillColor: '#00B1DA',
-                    fillOpacity: 0.35,
-                    map: map,
-                    center: results[0].geometry.location,
-                    radius: 3000 // in meters
-                });
-
-            } else {
-                alert('Geocode was not successful for the following reason: ' + status);
-            }
-        });
-    }
-
     function autocompliteFunc() {
         let autocomplete;
 
-        [].slice.call(searhFields).forEach(function (item) {
+        autocomplete = new google.maps.places.Autocomplete(directionFromField);
 
-            autocomplete = new google.maps.places.Autocomplete(item);
+        autocomplete.bindTo('bounds', map);
 
-            autocomplete.bindTo('bounds', map);
+        let directionMarker = new google.maps.Marker({
+            map: map,
+            icon: {
+                url: directionFromIcon,
+                scaledSize: new google.maps.Size(35, 35)
+            },
+            anchorPoint: new google.maps.Point(0, -29)
+        });
 
-            let directionMarker = new google.maps.Marker({
-                map: map,
-                icon: {
-                    url: directionFromIcon,
-                    scaledSize: new google.maps.Size(35, 35)
-                },
-                anchorPoint: new google.maps.Point(0, -29)
-            });
+        autocomplete.addListener('place_changed', function() {
+            directionMarker.setVisible(false);
 
-            autocomplete.addListener('place_changed', function() {
+            let place = autocomplete.getPlace();
 
-                console.log('1312312');
+            if (!place.geometry) {
+                // User entered the name of a Place that was not suggested and
+                // pressed the Enter key, or the Place Details request failed.
+                window.alert("No details available for input: '" + place.name + "'");
+                return;
+            }
 
-                directionMarker.setVisible(false);
+            // If the place has a geometry, then present it on a map.
+            if (place.geometry.viewport) {
+                map.fitBounds(place.geometry.viewport);
+            } else {
+                map.setCenter(place.geometry.location);
+                map.setZoom(17);  // Why 17? Because it looks good.
+            }
 
-                let place = autocomplete.getPlace();
-
-                console.log('autocomplete: ', autocomplete);
-                console.log('place: ', place);
-
-                /*if (!place.geometry) {
-                    // User entered the name of a Place that was not suggested and
-                    // pressed the Enter key, or the Place Details request failed.
-                    window.alert("No details available for input: '" + place.name + "'");
-                    return;
-                }
-*/
-                // If the place has a geometry, then present it on a map.
-                /*if (place.geometry.viewport) {
-                    map.fitBounds(place.geometry.viewport);
-                }else {
-                    map.setCenter(place.geometry.location);
-                    map.setZoom(17);  // Why 17? Because it looks good.
-                }*/
-
-                SEARCH_VALUE = item.value || null;
-
-                //directionMarker.setPosition(place.geometry.location);
-                directionMarker.setVisible(true);
-
-                geocodeAddress(geocoder, map);
-            });
-
+            //directionMarker.setPosition(place.geometry.location);
+            //directionMarker.setVisible(true);
 
         });
 
@@ -335,6 +261,7 @@ function initMap() {
 
                     e.preventDefault();
 
+
                     durationsArr.forEach(function (item) {
                         item.innerHTML = '';
                     });
@@ -361,8 +288,6 @@ function initMap() {
                     if(itemId !== ACTIVE_RESULT_ITEM_ID){
 
                         linkAddress = item.getAttribute('data-direction');
-
-                        directionFromField.value = SEARCH_VALUE;
 
                         directionToField.value = linkAddress;
 
@@ -428,8 +353,6 @@ function initMap() {
 
         activeItem.classList.add('active');
 
-        activeItem.scrollIntoView({block: "end", behavior: "smooth"});
-
         ACTIVE_RESULT_ITEM_ID = itemId;
 
     }
@@ -446,6 +369,8 @@ function initMap() {
                 markerId = item.getAttribute('data-marker-id');
 
                 marker = allMarkers.filter(item => item.id == markerId)[0];
+
+                //console.log('showMore() -> marker:', marker);
 
                 setActiveResultItem(markerId);
 
@@ -481,6 +406,8 @@ function initMap() {
 
             allMarkers.push(marker);
 
+            //console.log('setMarkers() -> allMarkers', allMarkers);
+
             allMarkers.forEach(function (item) {
 
                 item.addListener('click', function() {
@@ -497,7 +424,7 @@ function initMap() {
 
         });
 
-        renderList(allMarkers); // renders list of markers
+        //renderList(allMarkers); // renders list of markers
     }
 
     setMarkers(locations, animationDrop); // first init of markers
@@ -510,7 +437,7 @@ function initMap() {
 
         allMarkers = [];
     }
-
+    
     function renderPopUp(item) {
 
         if(popUpIsActive){
@@ -548,6 +475,8 @@ function initMap() {
     }
 
     function renderList(markersList){
+
+        console.log('renderList() -> iteration');
 
         const resultList = document.getElementById('resultList');
         const resultListFragment = document.createDocumentFragment();
@@ -611,6 +540,8 @@ function initMap() {
 
     }
 
+    search(allMarkers); // as fix
+
     function linkToCenterItem(map){
 
         const resultItemsLinks = document.getElementsByClassName('js-to-center-link');
@@ -664,16 +595,19 @@ function initMap() {
 
     linkToCenterItem(map);
 
-    function search() {
+    function search(allMarkers) {
 
-        /*const markersList = allMarkers;
+        const markersList = allMarkers;
 
+        //console.log('search() -> searchValue: ', searchValue);
 
-        searchValue = searhField.value.toLowerCase();
+        searchValue = searField.value.toLowerCase();
 
         let newMarkersList = [];
 
         if(searchValue){
+
+            //console.log('searchValue: ', searchValue);
 
             markersList.forEach(function(item) {
                 let {address, title, name} = item;
@@ -694,8 +628,12 @@ function initMap() {
             newMarkersList = allMarkers;
         }
 
-        renderList(newMarkersList);*/
+        renderList(newMarkersList);
     }
+
+    searchField.addEventListener('keyup', function () {
+        search(allMarkers);
+    });
 
     clearFieldBtnsArr.forEach(function (item) {
         item.addEventListener('click', function () {
@@ -705,7 +643,7 @@ function initMap() {
             // fix re-render result list
             if(field.value){
                 field.value = null;
-                SEARCH_VALUE = null;
+                search(allMarkers);
             }
         });
     });
@@ -749,7 +687,7 @@ function initMap() {
         if(activeFilter !== type){
             removeMarkers();
             setMarkers(locFilterArr, animationDrop);
-            search();
+            search(locFilterArr);
 
             activeFilter = type;
         }
