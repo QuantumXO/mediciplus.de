@@ -33,8 +33,8 @@ function initMap() {
     // Direction
     const backToSearchBtn = document.getElementsByClassName('js-to-searching')[0];
     const getDirectionsBtn = document.getElementsByClassName('js-get-directions')[0];
-    const directionToField = document.getElementById('directionTo');
     const directionFromField = document.getElementById('directionFrom');
+    const directionToField = document.getElementById('directionTo');
     const directionFields = document.getElementsByClassName('direction-field'); // both fields
     const directionFieldsWrap = document.getElementsByClassName('direction__menu')[0]; // fields wrap
 
@@ -191,14 +191,6 @@ function initMap() {
         geocodeAddress(geocoder, map);
     }
 
-
-    function asdasdsa(){
-        [].slice.call(filterResultItem).forEach(function (item) {
-
-        });
-    }asdasdsa();
-
-
     closeFilterMobBtn.addEventListener('click', function () {
         filterWrap.classList.toggle('filter--hide');
         this.classList.toggle('revert');
@@ -274,14 +266,9 @@ function initMap() {
 
             autocomplete.addListener('place_changed', function() {
 
-                console.log('1312312');
-
                 directionMarker.setVisible(false);
 
                 let place = autocomplete.getPlace();
-
-                console.log('autocomplete: ', autocomplete);
-                console.log('place: ', place);
 
                 /*if (!place.geometry) {
                     // User entered the name of a Place that was not suggested and
@@ -381,7 +368,6 @@ function initMap() {
 
     }
 
-
     // Hide directions fields && show
     backToSearchBtn.addEventListener('click', function () {
         filterParamsWrap.classList.remove('hidden');
@@ -390,11 +376,15 @@ function initMap() {
         directionFieldsWrap.classList.remove('show');
 
         APP_STATUS = 0; // search
+
+        searhField.value = SEARCH_VALUE ? SEARCH_VALUE : null; // value from direction field
     });
 
     getDirectionsBtn.addEventListener('click', function () {
 
         let itemWrap = document.querySelector('.filter__result__item.active');
+
+        directionFromField.value = SEARCH_VALUE ? SEARCH_VALUE : null; // value from direction field
 
         directionsService.route({
             origin: directionFromField.value,
