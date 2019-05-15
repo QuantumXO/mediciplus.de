@@ -194,3 +194,4 @@ if(!isProduction){ // Dev
 }
 
 gulp.task('clear', clear);
+gulp.task('server', browserSyncFunc);

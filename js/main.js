@@ -5,6 +5,7 @@
         // jQuery Form Styler
         // http://dimox.name/jquery-form-styler
          $('.filter__radio').styler();
+         $('.filter__select').styler();
 
     });
 })(jQuery);
@@ -18,6 +19,8 @@ function initMap() {
 
     // Filter
     const filterWrap = document.getElementById('filter');
+    const filterRadius= document.getElementById('radius');
+    const filterParamsSelect = document.getElementsByClassName('filter__params__select')[0];
     const closeFilterMobBtn = document.getElementsByClassName('js-close-filter')[0];
     const clearFieldBtn = document.getElementsByClassName('js-clear'); // all clear btns
     const clearFieldBtnsArr = [].slice.call(clearFieldBtn);
@@ -39,7 +42,7 @@ function initMap() {
     const directionFieldsWrap = document.getElementsByClassName('direction__menu')[0]; // fields wrap
 
     // Google map
-    const defaultZoom = 13;
+    const defaultZoom = 11;
     const geocoder = new google.maps.Geocoder();
     const directionsService = new google.maps.DirectionsService;
     const directionsDisplay = new google.maps.DirectionsRenderer;
@@ -62,6 +65,7 @@ function initMap() {
     const animationBounce= google.maps.Animation.BOUNCE;
 
     let marker,
+        RADIUS = 10000,
         allMarkers = [],
         popUpIsActive = null,
         activeMarker,
@@ -210,8 +214,18 @@ function initMap() {
         filterParams.classList.remove('show');
     });
 
+    filterRadius.addEventListener('input', function () {
+        let value = +this.value;
 
-    function geocodeAddress(geocoder, resultsMap) {
+        document.getElementsByClassName('filter__radius__value')[0].innerHTML =  value;
+
+        RADIUS = +value*1000;
+
+        geocodeAddress(geocoder, map, RADIUS);
+    });
+
+
+    function geocodeAddress() {
         let address = SEARCH_VALUE;
 
         geocoder.geocode({'address': address}, function(results, status) {
@@ -222,10 +236,10 @@ function initMap() {
                     clientMarkerRadius.setMap(null);
                 }
 
-                resultsMap.setCenter(results[0].geometry.location);
+                map.setCenter(results[0].geometry.location);
 
                 clientMarker = new google.maps.Marker({
-                    map: resultsMap,
+                    map: map,
                     position: results[0].geometry.location
                 });
 
@@ -237,7 +251,7 @@ function initMap() {
                     fillOpacity: 0.35,
                     map: map,
                     center: results[0].geometry.location,
-                    radius: 3000 // in meters
+                    radius: RADIUS // in meters
                 });
 
             } else {
@@ -701,23 +715,12 @@ function initMap() {
     });
 
 
-    filterParamsWrap.addEventListener('click', function (e) {
+    filterParamsSelect.closest('.jqselect').addEventListener('click', function (e) {
         const target = e.target;
+        const type = target.getAttribute('data-type') || null;
 
-        if(target.classList.contains('js-all')){
-            filter('all');
-            map.setZoom(defaultZoom);
-        }else if(target.classList.contains('js-clinics')){
-            filter('clinic');
-            map.setZoom(defaultZoom);
-        }else if(target.classList.contains('js-doctors')){
-            filter('doctor');
-            map.setZoom(defaultZoom);
-        }else if(target.classList.contains('js-duty-Clinic')){
-            filter('dutyClinic');
-            map.setZoom(defaultZoom);
-        }else if(target.classList.contains('js-aussendienst')){
-            filter('aussendienst');
+        if(type){
+            filter(type);
             map.setZoom(defaultZoom);
         }
     });

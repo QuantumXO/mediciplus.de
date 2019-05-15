@@ -79,20 +79,20 @@
                     <div class="filter__header__params__inner">
 
                         <div class="btns">
-                            <label for="show-all" class="filter__label js-params-basic-btn js-all">
-                                <input type="radio" id="show-all" name="filter-basic" class="filter__radio" data-type="all" checked />
-                                All
-                            </label>
 
-                            <label for="show-clinics" class="filter__label js-params-basic-btn js-clinics">
-                                <input type="radio" id="show-clinics" name="filter-basic" class="filter__radio" data-type="clinics" />
-                                Clinics
-                            </label>
+                            <select id="filterParamsSelect" name="" class="filter__select filter__params__select">
+                                <option id="show-all" data-type="all" value="all" selected>All</option>
+                                <option id="show-clinics" data-type="clinic" value="clinic">Clinics</option>
+                                <option id="show-doctors" data-type="doctor" value="doctor">Doctors</option>
+                                <option id="show-duty-clinics" data-type="dutyClinic" value="dutyClinic">Duty clinics</option>
+                                <option id="show-ausendienst" data-type="ausendienst" value="ausendienst">Ausendienst</option>
+                            </select>
 
-                            <label for="show-doctors" class="filter__label js-params-basic-btn js-doctors">
-                                <input type="radio" id="show-doctors" name="filter-basic" class="filter__radio" data-type="doctors" />
-                                Doctors
-                            </label>
+                            <div class="filter__radius__wrap">
+                                <label for="radius" class="filter__radius__label">Radius:&nbsp;<div class="filter__radius__value">10</div>km</label>
+                                <input type="range" id="radius" class="filter__radius__field" value="10" min="0" max="200" step="10" />
+                            </div>
+
                         </div>
                         <div class="filter__header__open js-toggle-filters-list"><span class="desktop">Additional</span><span class="arrow">&gt;</span><!-- <span class="arrow"></span>--></div>
                     </div>
