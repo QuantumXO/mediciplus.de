@@ -210,11 +210,24 @@ function initMap() {
         filterParams.classList.toggle('show');
     });
 
+
     filterParamsClose.addEventListener('click', function () {
         filterParams.classList.remove('show');
     });
 
-    filterRadius.addEventListener('input', function () {
+    [].slice.call(document.querySelectorAll('li.radius__value')).forEach(function (item) {
+        let num;
+
+        item.addEventListener('click', function () {
+            num = this.innerHTML + '000';
+            num = +num.replace(/ km/gi, '');
+            console.log('this: ', num);
+            RADIUS = num;
+            geocodeAddress(geocoder, map, RADIUS);
+        })
+    });
+
+    /*filterRadius.addEventListener('input', function () {
         let value = +this.value;
 
         document.getElementsByClassName('filter__radius__value')[0].innerHTML =  value;
@@ -222,7 +235,7 @@ function initMap() {
         RADIUS = +value*1000;
 
         geocodeAddress(geocoder, map, RADIUS);
-    });
+    });*/
 
 
     function geocodeAddress() {
@@ -611,7 +624,6 @@ function initMap() {
             //resultList.innerHTML = '<li class="filter__result__item">not found</li>';
             resultList.innerHTML = 'not found';
         }
-
 
     }
 

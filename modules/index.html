@@ -89,9 +89,21 @@
                             </select>
 
                             <div class="filter__radius__wrap">
-                                <label for="radius" class="filter__radius__label">Radius:&nbsp;<div class="filter__radius__value">10</div>km</label>
-                                <input type="range" id="radius" class="filter__radius__field" value="10" min="0" max="200" step="10" />
+                                <label for="radius" class="filter__radius__label">Radius:&nbsp;</label>
+
+                                <select id="radius" name="radius" class="filter__select filter__params__select">
+                                    <option value="0" class="radius__value">0</option>
+                                    <option value="1000" class="radius__value">1 km</option>
+                                    <option value="5000" class="radius__value">5 km</option>
+                                    <option value="10000" class="radius__value" selected>10 km</option>
+                                    <option value="50000" class="radius__value">50 km</option>
+                                    <option value="100000" class="radius__value">100 km</option>
+                                    <option value="150000" class="radius__value">150 km</option>
+                                    <option value="200000" class="radius__value">200 km</option>
+                                </select>
+                                <!--<input type="range" id="radius" class="filter__radius__field" value="10" min="0" max="200" step="10" />-->
                             </div>
+
 
                         </div>
                         <div class="filter__header__open js-toggle-filters-list"><span class="desktop">Additional</span><span class="arrow">&gt;</span><!-- <span class="arrow"></span>--></div>
