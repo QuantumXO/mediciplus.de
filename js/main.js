@@ -34,6 +34,7 @@ function initMap() {
     //const filterToggleListBtn = document.getElementsByClassName('js-toggle-filters-list')[0]; // Toggle additional filter
 
     // Direction
+    const publicTransportBtn = document.getElementsByClassName('js-public-transport')[0];
     const backToSearchBtn = document.getElementsByClassName('js-to-searching')[0];
     const getDirectionsBtn = document.getElementsByClassName('js-get-directions')[0];
     const directionFromField = document.getElementById('directionFrom');
@@ -207,6 +208,20 @@ function initMap() {
         filterWrap.classList.toggle('filter--hide');
         document.querySelectorAll('.filter__toggle__inner')[0].classList.toggle('show');
         document.querySelectorAll('.filter__toggle__inner')[1].classList.toggle('hidden');
+    });
+
+    publicTransportBtn.addEventListener('click', function (e) {
+        //e.preventDefault();
+
+        let from = SEARCH_VALUE;
+        let to = directionToField.value;
+        from = from.replace(/ /gi, '+');
+        to = to.replace(/ /gi, '+');
+
+        e.target.href=`//google.ru/maps/dir/?api=1&origin=${from}&destination=${to}&travelmode=DRIVING`;
+
+        //this.unbind(e);
+        this.click();
     });
 
     document.body.addEventListener('click', function (e) {
