@@ -42,7 +42,7 @@
         </div>
 
         <div class="close-filter js-close-filter">
-            <img src="//maps.gstatic.com/mapfiles/maps_lite/images/2x/ic_arrow_right_white_24dp.png" width="25" alt="close filter">
+            <img src="//maps.gstatic.com/mapfiles/maps_lite/images/2x/ic_arrow_right_white_24dp.png" width="20" alt="close filter">
             <span class="title">close</span>
             <span class="title">show</span>
         </div>
@@ -69,7 +69,11 @@
 
                     <div class="direction__menu">
                         <div class="to-searching js-to-searching">Вернуться к поиску</div>
-                        <div class="get-directions js-get-directions">Проложить маршрут</div>
+
+                        <div class="travel-type__inner">
+                            <span class="car js-travel-type-btn active" data-type="DRIVING" title="Car"></span>
+                            <span class="walk js-travel-type-btn" data-type="WALKING" title="Walk"></span>
+                        </div>
                     </div>
 
                 </div>
@@ -80,13 +84,62 @@
 
                         <div class="btns">
 
-                            <select id="filterParamsSelect" name="" class="filter__select filter__params__select">
+                            <div class="btns__inner">
+
+                                <label class="filter__radius__label">Filters:&nbsp;</label>
+
+                                <div class="inner">
+                                    <div class="btn js-btn active" data-type="all">
+                                        <!--<span class="icon"></span>-->
+                                        <span class="text">All</span>
+                                    </div>
+                                    <div class="btn js-btn" data-type="clinics">
+                                        <!--<span class="icon" style="height: 23.47px;"><img src="./img/doctor.png" width="20" alt="doctor icon" /></span>-->
+                                        <span class="text">Clinics</span>
+                                    </div>
+                                    <div class="btn js-btn" data-type="doctors">
+                                        <!--<span class="icon" style="height: 26px;"><img src="./img/hospital.png" width="20" alt="hospital icon" /></span>-->
+                                        <span class="text">Doctors</span>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <ul class="filter__header__params__list js-filter-additional" data-type="clinics">
+                                <span class="close js-filter-params-close">x</span>
+                                <label>Additional for: Clinics</label>
+                                <li class="filter__header__params__item">
+                                    1
+                                </li>
+
+                                <li class="filter__header__params__item">
+                                    2
+                                </li>
+
+                                <li class="filter__header__params__item">
+                                    3
+                                </li>
+                            </ul>
+
+                            <ul class="filter__header__params__list js-filter-additional" data-type="doctors">
+                                <span class="close js-filter-params-close">x</span>
+                                <label>Additional for: Doctors</label>
+                                <li class="filter__header__params__item">
+                                    1
+                                </li>
+
+                                <li class="filter__header__params__item">
+                                    2
+                                </li>
+                            </ul>
+
+                            <!--<select id="filterParamsSelect" name="" class="filter__select filter__params__select">
                                 <option id="show-all" data-type="all" value="all" selected>All</option>
                                 <option id="show-clinics" data-type="clinic" value="clinic">Clinics</option>
                                 <option id="show-doctors" data-type="doctor" value="doctor">Doctors</option>
                                 <option id="show-duty-clinics" data-type="dutyClinic" value="dutyClinic">Duty clinics</option>
                                 <option id="show-ausendienst" data-type="ausendienst" value="ausendienst">Ausendienst</option>
-                            </select>
+                            </select>-->
 
                             <div class="filter__radius__wrap">
                                 <label for="radius" class="filter__radius__label">Radius:&nbsp;</label>
@@ -106,7 +159,7 @@
 
 
                         </div>
-                        <div class="filter__header__open js-toggle-filters-list"><span class="desktop">Additional</span><span class="arrow">&gt;</span><!-- <span class="arrow"></span>--></div>
+                        <!--<div class="filter__header__open js-toggle-filters-list"><span class="desktop">Additional</span><span class="arrow">&gt;</span>&lt;!&ndash; <span class="arrow"></span>&ndash;&gt;</div>-->
                     </div>
 
                     <ul class="filter__header__params__list js-filter-params">

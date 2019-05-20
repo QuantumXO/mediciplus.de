@@ -26,12 +26,12 @@ function initMap() {
     const clearFieldBtnsArr = [].slice.call(clearFieldBtn);
     const filterResultItem = document.getElementsByClassName('filter__result__item'); // all results
     const filterBlock = document.getElementsByClassName('filter__header__inner'); // Search or Direction
-    const filterParams = document.getElementsByClassName('js-filter-params')[0];
+    const filterAdditional = document.getElementsByClassName('js-filter-additional');
     const filterParamsClose = document.getElementsByClassName('js-filter-params-close')[0];
-    const filterParamsBasicBtn = document.getElementsByClassName('js-params-basic-btn'); // Clinic or Doctor
+    const filterParamsBasicBtn = document.getElementsByClassName('js-btn'); // All or Clinic or Doctor
     const filterToggleBtn = document.getElementsByClassName('filter__toggle')[0]; // Toggle filter
     const filterParamsWrap = document.getElementsByClassName('js-filter-params-wrap')[0];
-    const filterToggleListBtn = document.getElementsByClassName('js-toggle-filters-list')[0]; // Toggle additional filter
+    //const filterToggleListBtn = document.getElementsByClassName('js-toggle-filters-list')[0]; // Toggle additional filter
 
     // Direction
     const backToSearchBtn = document.getElementsByClassName('js-to-searching')[0];
@@ -39,6 +39,7 @@ function initMap() {
     const directionFromField = document.getElementById('directionFrom');
     const directionToField = document.getElementById('directionTo');
     const directionFields = document.getElementsByClassName('direction-field'); // both fields
+    const travelTypeBtn = document.getElementsByClassName('js-travel-type-btn'); // both walk & car
     const directionFieldsWrap = document.getElementsByClassName('direction__menu')[0]; // fields wrap
 
     // Google map
@@ -69,7 +70,9 @@ function initMap() {
         allMarkers = [],
         popUpIsActive = null,
         activeMarker,
+        activeFilterBtn,
         activeFilter = 'all',
+        TRAVEL_TYPE = 'DRIVING',
         SEARCH_VALUE = searhField.value || null,
         ACTIVE_RESULT_ITEM_ID = null,
         APP_STATUS = 0, //  0 - search | 1 - direction
@@ -206,14 +209,90 @@ function initMap() {
         document.querySelectorAll('.filter__toggle__inner')[1].classList.toggle('hidden');
     });
 
-    filterToggleListBtn.addEventListener('click', function () {
-        filterParams.classList.toggle('show');
+    document.body.addEventListener('click', function (e) {
+        const target = e.target;
+
+        let filterAdditionalShow = document.querySelector(`.js-filter-additional.show`) || null;
+
+        if(
+            !target.classList.contains('js-btn') &&
+            !target.parentNode.classList.contains('js-btn') &&
+            !target.classList.contains('js-filter-additional') &&
+            !target.parentNode.classList.contains('js-filter-additional')
+
+        ){
+            if(filterAdditionalShow){
+                filterAdditionalShow.classList.remove('show');
+            }
+            //document.querySelector(`.js-btn.active`).classList.remove('active');
+            activeFilterBtn = null;
+        }
     });
 
+    [].slice.call(filterParamsBasicBtn).forEach(function (item) {
+        item.addEventListener('click', function () {
+
+            let additionalWrapCurrent;
+            let itemType = item.getAttribute('data-type');
+            let btnActive = document.querySelector('.js-btn.active');
+
+            if(btnActive){
+                btnActive.classList.remove('active');
+            }
+
+            item.classList.add('active');
+
+            filter(itemType);
+
+            [].slice.call(filterAdditional).forEach(function (additionalWrap) {
+
+                additionalWrap.classList.remove('show');
+
+            });
+
+            additionalWrapCurrent = document.querySelector(`.js-filter-additional[data-type=${itemType}]`) || null;
+
+            if(itemType != activeFilterBtn && itemType != 'all'){
+
+                additionalWrapCurrent.classList.add('show');
+
+                activeFilterBtn = itemType;
+
+            }else{
+
+                activeFilterBtn = null;
+            }
+
+        });
+    });
 
     filterParamsClose.addEventListener('click', function () {
-        filterParams.classList.remove('show');
+        document.querySelector(`.js-filter-additional.show`).classList.remove('show');
+        activeFilterBtn = null;
     });
+
+    function directionFieldsError() {
+
+        console.log('directionFromField.value: ', directionFromField.value);
+
+        if(!directionFromField.value){
+
+            directionFromField.classList.add('error');
+
+        }else{
+            let directionFieldError = document.querySelector('.direction-field.error') || null;
+
+            if(directionFieldError){
+                directionFieldError.classList.remove('error');
+            }
+        }
+    }
+
+    //[].slice.call(directionFields).forEach(function (item) {
+        directionFromField.addEventListener('keyup', function () {
+            directionFieldsError();
+        });
+    //});
 
     [].slice.call(document.querySelectorAll('li.radius__value')).forEach(function (item) {
         let num;
@@ -291,6 +370,10 @@ function initMap() {
                 anchorPoint: new google.maps.Point(0, -29)
             });
 
+            item.addEventListener('keyup', function () {
+                SEARCH_VALUE = this.value;
+            });
+
             autocomplete.addListener('place_changed', function() {
 
                 directionMarker.setVisible(false);
@@ -349,42 +432,43 @@ function initMap() {
 
                     e.preventDefault();
 
-                    durationsArr.forEach(function (item) {
-                        item.innerHTML = '';
-                    });
-
-                    distanceArr.forEach(function (item) {
-                        item.innerHTML = '';
-                    });
-
-
+                    // if Searching
                     if(APP_STATUS == 0){
-
-                        APP_STATUS = 1;
 
                         filterParamsWrap.classList.add('hidden');
                         filterBlock[0].classList.add('hidden');
                         filterBlock[1].classList.remove('hidden');
                         directionFieldsWrap.classList.add('show');
 
+                        APP_STATUS = 1;
                     }
 
                     itemWrap = item.closest('.filter__result__item');
                     itemId = itemWrap.getAttribute('data-item-id');
 
+                    linkAddress = item.getAttribute('data-direction');
+
+                    directionFromField.value = SEARCH_VALUE;
+                    directionToField.value = linkAddress;
+
+                    directionFieldsError();
+
                     if(itemId !== ACTIVE_RESULT_ITEM_ID){
 
-                        linkAddress = item.getAttribute('data-direction');
+                        durationsArr.forEach(function (item) {
+                            item.innerHTML = '';
+                        });
 
-                        directionFromField.value = SEARCH_VALUE;
-
-                        directionToField.value = linkAddress;
+                        distanceArr.forEach(function (item) {
+                            item.innerHTML = '';
+                        });
 
                         //directionsInfoWrap = itemWrap.classList.add('active');
 
                         setActiveResultItem(itemId);
-                    }
 
+                        getDirections();
+                    }
 
 
                 });
@@ -394,6 +478,20 @@ function initMap() {
         }
 
     }
+
+    [].slice.call(travelTypeBtn).forEach(function (item) {
+
+        item.addEventListener('click', function (btn) {
+
+            document.querySelector('.js-travel-type-btn.active').classList.remove('active');
+
+            TRAVEL_TYPE = item.getAttribute('data-type');
+            this.classList.add('active');
+
+            getDirections(TRAVEL_TYPE);
+
+        });
+    });
 
     // Hide directions fields && show
     backToSearchBtn.addEventListener('click', function () {
@@ -407,31 +505,43 @@ function initMap() {
         searhField.value = SEARCH_VALUE ? SEARCH_VALUE : null; // value from direction field
     });
 
-    getDirectionsBtn.addEventListener('click', function () {
+    function getDirections(travelType){
 
-        let itemWrap = document.querySelector('.filter__result__item.active');
+        TRAVEL_TYPE = travelType ? travelType : TRAVEL_TYPE;
 
-        directionFromField.value = SEARCH_VALUE ? SEARCH_VALUE : null; // value from direction field
+        let itemWrap = document.querySelector('.filter__result__item.active') || null;
 
-        directionsService.route({
-            origin: directionFromField.value,
-            destination: directionToField.value,
-            travelMode: 'DRIVING'
-        }, function(response, status) {
-            if (status === 'OK') {
-                directionsDisplay.setDirections(response);
+        // value from direction field
+        directionFromField.value = SEARCH_VALUE ? SEARCH_VALUE : null;
 
-                let point = response.routes[0].legs[0];
+        if(directionFromField.value){
+            directionsService.route({
+                origin: directionFromField.value, // from
+                destination: directionToField.value, // to
+                travelMode: TRAVEL_TYPE // type
+            }, function(response, status) {
+                if (status === 'OK') {
+                    directionsDisplay.setDirections(response);
 
-                itemWrap.querySelector('.js-duration').innerHTML = `Duration:&nbsp;<span class="value">${point.duration.text}</span>`;
-                itemWrap.querySelector('.js-distance').innerHTML = `Distance:&nbsp;<span class="value">${point.distance.text}</span>`;
+                    let point = response.routes[0].legs[0];
 
-            } else {
-                window.alert('Directions request failed due to ' + status);
-            }
-        });
+                    itemWrap.querySelector('.js-duration').innerHTML = `Duration:&nbsp;<span class="value">${point.duration.text}</span>`;
+                    itemWrap.querySelector('.js-distance').innerHTML = `Distance:&nbsp;<span class="value">${point.distance.text}</span>`;
 
-    });
+                } else {
+                    window.alert('Directions request failed due to ' + status);
+                }
+            });
+        }
+
+
+    }
+
+    /*getDirectionsBtn.addEventListener('click', function () {
+
+
+
+    });*/
 
     function setActiveResultItem(itemId) {
 
@@ -640,13 +750,8 @@ function initMap() {
         document.addEventListener('click', function (e) {
             const target = e.target;
 
-            if(
-                target.classList.contains('js-to-center-link') //&&
-                //(!activeMarker || (activeMarker && target.getAttribute('data-marker-id') != activeMarker.id))
-            ){
-
+            if(target.classList.contains('js-to-center-link')){
                 setActiveMarker(target);
-
             }
         });
 
@@ -726,7 +831,6 @@ function initMap() {
         });
     });
 
-
     filterParamsSelect.closest('.jqselect').addEventListener('click', function (e) {
         const target = e.target;
         const type = target.getAttribute('data-type') || null;
@@ -741,15 +845,20 @@ function initMap() {
 
         let locFilterArr = [];
 
+
         if(type == 'all'){
             locFilterArr = locations;
-        }else if(type == 'clinic' || type == 'doctor'){
-            locFilterArr = locations.filter(item => item.type === type);
-        }else if(type == 'dutyClinic'){
+        }else if(type == 'clinics' || type == 'doctors'){
+
+            type = type == 'clinics' ? 'clinic' : 'doctor';
+
+            console.log('filter(type) -> type: ', type);
+            locFilterArr = locations.filter(item => item.type === type );
+        }/*else if(type == 'dutyClinic'){
             locFilterArr = locations.filter(item => item.dutyClinic);
         }else if(type == 'aussendienst'){
             locFilterArr = locations.filter(item => item.aussendienst);
-        }
+        }*/
 
         if(activeFilter !== type){
             removeMarkers();
