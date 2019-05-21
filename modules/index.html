@@ -50,30 +50,30 @@
             <div class="filter__header">
                 <div class="filter__header__search">
                     <div class="filter__header__inner search js-search-block">
-                        <input type="text" id="searchField" class="field search-field" placeholder="Поиск" value="Kiev Pechersk Lavra, улица Лаврская, Киев, Украина" />
+                        <input type="text" id="searchField" class="field search-field" placeholder="Choose starting point..." value="Kiev Pechersk Lavra, Lavrska St, 15, Kyiv, 01015" />
                         <!--<span id="searchFind" class="fas fa-search find-icon js-find"></span>-->
                         <span id="searchClear" class="fas fa-times clear-icon js-clear"></span>
                     </div>
 
                     <div class="filter__header__inner direction js-direction-block hidden">
                         <div class="block">
-                            <input type="text" id="directionFrom" class="field search-field direction-field" placeholder="Укажите пункт отправления..." />
+                            <input type="text" id="directionFrom" class="field search-field direction-field" placeholder="Choose starting point..." />
                             <span id="directionFromClear" class="fas fa-times clear-icon js-clear"></span>
                         </div>
 
                         <div class="block">
-                            <input type="text" id="directionTo" class="field direction-field" placeholder="Укажите пункт назначения..." />
+                            <input type="text" id="directionTo" class="field direction-field" placeholder="Choose destination..." />
                             <span id="directionToClear" class="fas fa-times clear-icon js-clear"></span>
                         </div>
                     </div>
 
                     <div class="direction__menu">
-                        <div class="to-searching js-to-searching">Вернуться к поиску</div>
+                        <div class="to-searching js-to-searching">&#8592;&nbsp;back to search</div>
 
                         <div class="travel-type__inner">
                             <span class="car js-travel-type-btn active" data-type="DRIVING" title="Car"></span>
                             <span class="walk js-travel-type-btn" data-type="WALKING" title="Walk"></span>
-                            <a class="walk js-public-transport" target="_blank" data-type="WALKING" title="Walk"></a>
+                            <a class="public-transport js-public-transport" target="_blank" title="public transport"></a>
                         </div>
                     </div>
 
@@ -145,7 +145,7 @@
                             <div class="filter__radius__wrap">
                                 <label for="radius" class="filter__radius__label">Radius:&nbsp;</label>
 
-                                <select id="radius" name="radius" class="filter__select filter__params__select">
+                                <select id="radius" name="radius" class="filter__select">
                                     <option value="0" class="radius__value">0</option>
                                     <option value="1000" class="radius__value">1 km</option>
                                     <option value="5000" class="radius__value">5 km</option>
@@ -190,9 +190,7 @@
             </div>
 
             <div class="filter__result">
-                <ul class="filter__result__list" id="resultList">
-
-                </ul>
+                <ul class="filter__result__list" id="resultList"></ul>
             </div>
         </div>
 

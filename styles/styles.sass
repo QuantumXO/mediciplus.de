@@ -228,7 +228,8 @@ body
 					justify-content: center
 
 					.car,
-					.walk
+					.walk,
+					.public-transport
 						width: 50px
 						height: 35px
 						display: inline-block
@@ -242,16 +243,24 @@ body
 
 						&:hover,
 						&.active
-							box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4)
+							box-shadow: 0 1px 5px rgba(0, 0, 0, .4)
+
+					.car,
+					.walk
+						margin-right: 10px
 
 					.car
-						margin-right: 10px
 						background: url(./../img/car-icon.png) 50% 50% no-repeat
 						background-size: 70%
 
 					.walk
 						background: url(./../img/walk.png) 50% 50% no-repeat
 						background-size: 50%
+
+					.public-transport
+						background: url(./../img/bus-icon.png) 50% 50% no-repeat
+						background-size: 45%
+
 
 			.to-searching,
 			.get-directions

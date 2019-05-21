@@ -1,13 +1,11 @@
 
 (function($) {
-    $(function() {
 
-        // jQuery Form Styler
-        // http://dimox.name/jquery-form-styler
-         $('.filter__radio').styler();
-         $('.filter__select').styler();
+    // jQuery Form Styler
+    // http://dimox.name/jquery-form-styler
+    $('.filter__radio').styler();
+    $('.filter__select').styler();
 
-    });
 })(jQuery);
 
 function initMap() {
@@ -27,7 +25,7 @@ function initMap() {
     const filterResultItem = document.getElementsByClassName('filter__result__item'); // all results
     const filterBlock = document.getElementsByClassName('filter__header__inner'); // Search or Direction
     const filterAdditional = document.getElementsByClassName('js-filter-additional');
-    const filterParamsClose = document.getElementsByClassName('js-filter-params-close')[0];
+    const filterParamsClose = document.getElementsByClassName('js-filter-params-close');
     const filterParamsBasicBtn = document.getElementsByClassName('js-btn'); // All or Clinic or Doctor
     const filterToggleBtn = document.getElementsByClassName('filter__toggle')[0]; // Toggle filter
     const filterParamsWrap = document.getElementsByClassName('js-filter-params-wrap')[0];
@@ -76,8 +74,7 @@ function initMap() {
         TRAVEL_TYPE = 'DRIVING',
         SEARCH_VALUE = searhField.value || null,
         ACTIVE_RESULT_ITEM_ID = null,
-        APP_STATUS = 0, //  0 - search | 1 - direction
-        statusOfAppIsSearch = true; // Direction or search
+        APP_STATUS = 0; //  0 - search | 1 - direction
 
     let clientMarker,
         clientMarkerRadius;
@@ -86,7 +83,7 @@ function initMap() {
     const locations = [
         {
             id: 0,
-            title: 'ЛОР центр',
+            title: 'Clinic',
             position: {lat: 50.418861, lng: 30.526437},
             icon: {
                 url: hospitalIcon,
@@ -94,7 +91,7 @@ function initMap() {
              },
             schedule: '00:00–00:00',
             type: 'clinic',
-            address: 'вулиця Ковпака, 3, Київ, 02000',
+            address: 'Kovpaka St, 3, Kyiv, 02000',
             lat: 50.418861,
             lng: 30.526437,
             dutyClinic: true,
@@ -102,7 +99,7 @@ function initMap() {
         },
         {
             id: 1,
-            title: 'Киевская городская клиническая больница №17',
+            title: 'Clinic 1',
             position: {lat: 50.428157, lng: 30.527383},
             icon: {
                 url: hospitalIcon,
@@ -110,7 +107,7 @@ function initMap() {
             },
             schedule: '08:00–20:00',
             type: 'clinic',
-            address: '2, вул. Кутузова, Киев, 02000',
+            address: '2, Henerala Almazova St, Kyiv, 02000',
             lat: 50.428157,
             lng: 30.527383,
             dutyClinic: true,
@@ -127,7 +124,7 @@ function initMap() {
             schedule: '08:00–20:00',
             type: 'doctor',
             name: 'Иванов иван иванович',
-            address: '3, вул. Кутузова, Киев, 02000',
+            address: '3, Henerala Almazova St, Kyiv, 02000',
             lat: 50.424270,
             lng: 30.516910,
             dutyClinic: true,
@@ -135,7 +132,7 @@ function initMap() {
         },
         {
             id: 3,
-            title: 'Больница2',
+            title: 'Clinic 2',
             position: {lat: 50.441555, lng: 30.527385},
             icon: {
                 url: hospitalIcon,
@@ -143,7 +140,7 @@ function initMap() {
             },
             schedule: '08:00–20:00',
             type: 'clinic',
-            address: '14, вул. Кутузова, Киев, 02000',
+            address: '14, Henerala Almazova St, Kyiv, 02000',
             lat: 50.441555,
             lng: 30.527385,
             dutyClinic: true,
@@ -151,7 +148,7 @@ function initMap() {
         },
         {
             id: 4,
-            title: 'Больница3',
+            title: 'Clinic 3',
             position: {lat: 50.424160, lng: 30.481633},
             icon: {
                 url: hospitalIcon,
@@ -159,7 +156,7 @@ function initMap() {
             },
             schedule: '08:00–20:00',
             type: 'clinic',
-            address: '14, вул. Кутузова, Киев, 02000',
+            address: '14, Henerala Almazova St, Kyiv, 02000',
             lat: 50.424160,
             lng: 30.481633,
             dutyClinic: false,
@@ -167,7 +164,7 @@ function initMap() {
         },
         {
             id: 5,
-            title: 'Больница4',
+            title: 'Clinic 4',
             position: {lat: 50.445192, lng: 30.516832},
             icon: {
                 url: hospitalIcon,
@@ -175,7 +172,7 @@ function initMap() {
             },
             schedule: '08:00–20:00',
             type: 'clinic',
-            address: '14, вул. Кутузова, Киев, 02000',
+            address: '14, Henerala Almazova St, Kyiv, 02000',
             lat: 50.445192,
             lng: 30.516832,
             dutyClinic: false,
@@ -281,14 +278,16 @@ function initMap() {
         });
     });
 
-    filterParamsClose.addEventListener('click', function () {
-        document.querySelector(`.js-filter-additional.show`).classList.remove('show');
-        activeFilterBtn = null;
+    [].slice.call(filterParamsClose).forEach(function (item) {
+
+        item.addEventListener('click', function () {
+            document.querySelector(`.js-filter-additional.show`).classList.remove('show');
+            activeFilterBtn = null;
+        });
     });
 
-    function directionFieldsError() {
 
-        console.log('directionFromField.value: ', directionFromField.value);
+    function directionFieldsError() {
 
         if(!directionFromField.value){
 
@@ -423,7 +422,6 @@ function initMap() {
 
     }autocompliteFunc();
 
-
     function direction(){
         const directionLink = document.getElementsByClassName('js-direction');
         const directionLinksArr = [].slice.call(directionLink) || null;
@@ -552,12 +550,6 @@ function initMap() {
 
     }
 
-    /*getDirectionsBtn.addEventListener('click', function () {
-
-
-
-    });*/
-
     function setActiveResultItem(itemId) {
 
         const filterResultItemsArr = [].slice.call(filterResultItem);
@@ -576,13 +568,13 @@ function initMap() {
 
     }
 
-    function showMore() {
-        const showMore = document.getElementsByClassName('js-more');
+    function showDetails() {
+        const showDetails = document.getElementsByClassName('js-more');
 
         let markerId,
             marker;
 
-        [].slice.call(showMore).forEach(function (item) {
+        [].slice.call(showDetails).forEach(function (item) {
 
             item.addEventListener('click', function () {
                 markerId = item.getAttribute('data-marker-id');
@@ -663,7 +655,7 @@ function initMap() {
 
         let infoWindowContent = `
             <div class="popUp">
-                <h3>${title}</h3>
+                <h3>${title}&nbsp;<a href="#">to Bitrix24</a></h3>
                 <p>Адрес</p>
                 <p>Медпрофиль контакта или компании</p>
                 <p>Сотрудничество</p>
@@ -703,7 +695,7 @@ function initMap() {
         if(allMarkersLength){
             for(let i = 0; i < allMarkersLength; i++){
 
-                type = markersList[i].type == 'clinic' ? 'Больница' : 'Врач';
+                type = markersList[i].type == 'clinic' ? 'Clinic' : 'Doctor';
 
                 newReultItem = document.createElement('li');
                 newReultItem.classList.add('filter__result__item');
@@ -725,11 +717,11 @@ function initMap() {
                         ${markersList[i].title}
                     </a>
                 </h3>
-                <p class="info">Открыто:&nbsp;<span class="value">${markersList[i].schedule}</span>,&nbsp;<span class="type hospital">${type}</span></p>
+                <p class="info">Open:&nbsp;<span class="value">${markersList[i].schedule}</span>,&nbsp;<span class="type hospital">${type}</span></p>
                 <p class="address">${markersList[i].address}</p>
                 <div class="bottom">
-                    <a href="#" class="direction js-direction" data-direction="${markersList[i].address}">Проложить маршрут</a>
-                    <a href="#" class="more js-more" data-marker-id="${markersList[i].id}">Подробнее</a>
+                    <a href="#" class="direction js-direction" data-direction="${markersList[i].address}">Get direction</a>
+                    <a href="#" class="more js-more" data-marker-id="${markersList[i].id}">Details</a>
                 </div>
                 <div class="directions-info js-directions-info">
                     <div class="js-duration"></div>
@@ -743,7 +735,7 @@ function initMap() {
             resultList.appendChild(resultListFragment);
 
             direction(); // if exist results, we can create direction;
-            showMore(); // if exist results, we can show infoWindow;
+            showDetails(); // if exist results, we can show infoWindow;
 
         }else{
             //resultList.innerHTML = '<li class="filter__result__item">not found</li>';
@@ -804,7 +796,6 @@ function initMap() {
 
         /*const markersList = allMarkers;
 
-
         searchValue = searhField.value.toLowerCase();
 
         let newMarkersList = [];
@@ -860,14 +851,12 @@ function initMap() {
 
         let locFilterArr = [];
 
-
         if(type == 'all'){
             locFilterArr = locations;
         }else if(type == 'clinics' || type == 'doctors'){
 
             type = type == 'clinics' ? 'clinic' : 'doctor';
 
-            console.log('filter(type) -> type: ', type);
             locFilterArr = locations.filter(item => item.type === type );
         }/*else if(type == 'dutyClinic'){
             locFilterArr = locations.filter(item => item.dutyClinic);
