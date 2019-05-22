@@ -75,7 +75,7 @@ function styles() {
 				title  : "Sass Error!"})))
 		.pipe(plugin.if(isProduction, plugin.autoprefixer({ browsers: ['last 16 versions'], cascade: false })))
 		.pipe(gulp.dest(path.build.styles))
-		.pipe(plugin.cssRebaseUrls())
+		/*.pipe(plugin.cssRebaseUrls())*/
 		.pipe(plugin.if(isProduction, plugin.cleancss()))
 		//.pipe(sourcemaps.write())
 		.pipe(plugin.if(isProduction, plugin.criticalCss()))
