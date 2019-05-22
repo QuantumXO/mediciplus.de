@@ -576,8 +576,6 @@ function initMap() {
 
     function toggleStateOfResultItems(itemId){
 
-        console.log('toggleStateOfResultItems()');
-
         const filterResultItemsArr = [].slice.call(filterResultItem);
 
         if(APP_STATUS == 1){
@@ -619,7 +617,7 @@ function initMap() {
             removeMarkers();
         }
 
-        locations.forEach( function( element, i ) {
+        locations.forEach( function(element, i) {
 
             marker = new google.maps.Marker({
                 position: element.position,

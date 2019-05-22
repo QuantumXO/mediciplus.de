@@ -576,8 +576,6 @@ function initMap() {
 
     function toggleStateOfResultItems(itemId){
 
-        console.log('toggleStateOfResultItems()');
-
         const filterResultItemsArr = [].slice.call(filterResultItem);
 
         if(APP_STATUS == 1){

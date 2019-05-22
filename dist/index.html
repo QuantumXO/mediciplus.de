@@ -1,1 +1,201 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="X-UA-Compatible" content="ie=edge"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous"><link rel="stylesheet" href="./css/jquery.formstyler.css"><link rel="stylesheet" href="./css/jquery.formstyler.theme.css"><link rel="stylesheet" href="./css/styles.min.css"><script src="//ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script><title>Map application</title></head><body><div class="container"><div id="filter" class="filter"><div class="filter__toggle" data-status="show"><div class="filter__toggle__inner show"><span class="letter">H</span> <span class="letter">i</span> <span class="letter">d</span> <span class="letter">e</span></div><div class="filter__toggle__inner hidden"><span class="letter">S</span> <span class="letter">h</span> <span class="letter">o</span> <span class="letter">w</span></div></div><div class="close-filter js-close-filter"><img src="//maps.gstatic.com/mapfiles/maps_lite/images/2x/ic_arrow_right_white_24dp.png" width="20" alt="close filter"> <span class="title">close</span> <span class="title">show</span></div><div class="filter__wrap"><div class="filter__header"><div class="filter__header__search"><div class="filter__header__inner search js-search-block"><input type="text" id="searchField" class="field search-field" placeholder="Choose starting point..." value="Kiev Pechersk Lavra, Lavrska St, 15, Kyiv, 01015"> <span id="searchClear" class="fas fa-times clear-icon js-clear"></span></div><div class="filter__header__inner direction js-direction-block hidden"><div class="block"><input type="text" id="directionFrom" class="field search-field direction-field" placeholder="Choose starting point..."> <span id="directionFromClear" class="fas fa-times clear-icon js-clear"></span></div><div class="block"><input type="text" id="directionTo" class="field direction-field" placeholder="Choose destination..."> <span id="directionToClear" class="fas fa-times clear-icon js-clear"></span></div></div><div class="direction__menu"><div class="to-searching js-to-searching">&#8592;&nbsp;back to search</div><div class="travel-type__inner"><span class="car js-travel-type-btn active" data-type="DRIVING" title="Car"></span> <span class="walk js-travel-type-btn" data-type="WALKING" title="Walk"></span> <a class="public-transport js-public-transport" target="_blank" title="public transport"></a></div></div></div><div class="filter__header__params js-filter-params-wrap"><div class="filter__header__params__inner"><div class="btns"><div class="btns__inner"><label class="filter__radius__label">Filters:&nbsp;</label><div class="inner"><div class="btn js-btn active" data-type="all"><span class="text">All</span></div><div class="btn js-btn" data-type="clinics"><span class="text">Clinics</span></div><div class="btn js-btn" data-type="doctors"><span class="text">Doctors</span></div></div></div><ul class="filter__header__params__list js-filter-additional" data-type="clinics"><span class="close js-filter-params-close">x</span> <label>Additional for: Clinics</label><li class="filter__header__params__item">1</li><li class="filter__header__params__item">2</li><li class="filter__header__params__item">3</li></ul><ul class="filter__header__params__list js-filter-additional" data-type="doctors"><span class="close js-filter-params-close">x</span> <label>Additional for: Doctors</label><li class="filter__header__params__item">1</li><li class="filter__header__params__item">2</li></ul><div class="filter__radius__wrap"><label for="radius" class="filter__radius__label">Radius:&nbsp;</label> <select id="radius" name="radius" class="filter__select radius__select"><option value="0" class="radius__value">0</option><option value="1000" class="radius__value">1 km</option><option value="5000" class="radius__value">5 km</option><option value="10000" class="radius__value" selected="selected">10 km</option><option value="50000" class="radius__value">50 km</option><option value="100000" class="radius__value">100 km</option><option value="150000" class="radius__value">150 km</option><option value="200000" class="radius__value">200 km</option></select></div></div></div><ul class="filter__header__params__list js-filter-params"><span class="close js-filter-params-close">x</span><li class="filter__header__params__item js-all">1</li><li class="filter__header__params__item js-clinic">2</li><li class="filter__header__params__item js-doctor">3</li><li class="filter__header__params__item js-duty-Clinic">4</li><li class="filter__header__params__item js-aussendienst">5</li></ul></div></div><div class="filter__result"><ul class="filter__result__list" id="resultList"></ul></div></div></div><div class="map" id="map"></div></div><script src="./js/jquery.formstyler.min.js"></script><script src="./js/main.js"></script><script async defer="defer" src="//maps.googleapis.com/maps/api/js?key=AIzaSyBeVoPDyYZyUq-h735KGeK4OA9-BEuecBg&libraries=places&callback=initMap"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <!--<link rel="stylesheet" href="./css/styles.min.css">-->
+    <link rel="stylesheet" href="./css/jquery.formstyler.css">
+    <link rel="stylesheet" href="./css/jquery.formstyler.theme.css">
+
+
+        <link rel="stylesheet" href="./css/styles.css">
+
+    <!--<script src="//api.bitrix24.com/api/v1/"></script> -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <title>Map application</title>
+
+</head>
+<body>
+
+<div class="container">
+    <div id="filter" class="filter">
+        <div class="filter__toggle" data-status="show">
+            <div class="filter__toggle__inner show">
+                <span class="letter">H</span>
+                <span class="letter">i</span>
+                <span class="letter">d</span>
+                <span class="letter">e</span>
+            </div>
+            <div class="filter__toggle__inner hidden">
+                <span class="letter">S</span>
+                <span class="letter">h</span>
+                <span class="letter">o</span>
+                <span class="letter">w</span>
+            </div>
+        </div>
+
+        <div class="close-filter js-close-filter">
+            <img src="//maps.gstatic.com/mapfiles/maps_lite/images/2x/ic_arrow_right_white_24dp.png" width="20" alt="close filter">
+            <span class="title">close</span>
+            <span class="title">show</span>
+        </div>
+        <div class="filter__wrap">
+            <div class="filter__header">
+                <div class="filter__header__search">
+                    <div class="filter__header__inner search js-search-block">
+                        <input type="text" id="searchField" class="field search-field" placeholder="Choose starting point..." value="Kiev Pechersk Lavra, Lavrska St, 15, Kyiv, 01015" />
+                        <!--<span id="searchFind" class="fas fa-search find-icon js-find"></span>-->
+                        <span id="searchClear" class="fas fa-times clear-icon js-clear"></span>
+                    </div>
+
+                    <div class="filter__header__inner direction js-direction-block hidden">
+                        <div class="block">
+                            <input type="text" id="directionFrom" class="field search-field direction-field" placeholder="Choose starting point..." />
+                            <span id="directionFromClear" class="fas fa-times clear-icon js-clear"></span>
+                        </div>
+
+                        <div class="block">
+                            <input type="text" id="directionTo" class="field direction-field" placeholder="Choose destination..." />
+                            <span id="directionToClear" class="fas fa-times clear-icon js-clear"></span>
+                        </div>
+                    </div>
+
+                    <div class="direction__menu">
+                        <div class="to-searching js-to-searching">&#8592;&nbsp;back to search</div>
+
+                        <div class="travel-type__inner">
+                            <span class="car js-travel-type-btn active" data-type="DRIVING" title="Car"></span>
+                            <span class="walk js-travel-type-btn" data-type="WALKING" title="Walk"></span>
+                            <a class="public-transport js-public-transport" target="_blank" title="public transport"></a>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="filter__header__params js-filter-params-wrap">
+
+                    <div class="filter__header__params__inner">
+
+                        <div class="btns">
+
+                            <div class="btns__inner">
+
+                                <label class="filter__radius__label">Filters:&nbsp;</label>
+
+                                <div class="inner">
+                                    <div class="btn js-btn active" data-type="all">
+                                        <!--<span class="icon"></span>-->
+                                        <span class="text">All</span>
+                                    </div>
+                                    <div class="btn js-btn" data-type="clinics">
+                                        <!--<span class="icon" style="height: 23.47px;"><img src="./img/doctor.png" width="20" alt="doctor icon" /></span>-->
+                                        <span class="text">Clinics</span>
+                                    </div>
+                                    <div class="btn js-btn" data-type="doctors">
+                                        <!--<span class="icon" style="height: 26px;"><img src="./img/hospital.png" width="20" alt="hospital icon" /></span>-->
+                                        <span class="text">Doctors</span>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <ul class="filter__header__params__list js-filter-additional" data-type="clinics">
+                                <span class="close js-filter-params-close">x</span>
+                                <label>Additional for: Clinics</label>
+                                <li class="filter__header__params__item">
+                                    1
+                                </li>
+
+                                <li class="filter__header__params__item">
+                                    2
+                                </li>
+
+                                <li class="filter__header__params__item">
+                                    3
+                                </li>
+                            </ul>
+
+                            <ul class="filter__header__params__list js-filter-additional" data-type="doctors">
+                                <span class="close js-filter-params-close">x</span>
+                                <label>Additional for: Doctors</label>
+                                <li class="filter__header__params__item">
+                                    1
+                                </li>
+
+                                <li class="filter__header__params__item">
+                                    2
+                                </li>
+                            </ul>
+
+                            <!--<select id="filterParamsSelect" name="" class="filter__select filter__params__select">
+                                <option id="show-all" data-type="all" value="all" selected>All</option>
+                                <option id="show-clinics" data-type="clinic" value="clinic">Clinics</option>
+                                <option id="show-doctors" data-type="doctor" value="doctor">Doctors</option>
+                                <option id="show-duty-clinics" data-type="dutyClinic" value="dutyClinic">Duty clinics</option>
+                                <option id="show-ausendienst" data-type="ausendienst" value="ausendienst">Ausendienst</option>
+                            </select>-->
+
+                            <div class="filter__radius__wrap">
+                                <label for="radius" class="filter__radius__label">Radius:&nbsp;</label>
+
+                                <select id="radius" name="radius" class="filter__select radius__select">
+                                    <option value="0" class="radius__value">0</option>
+                                    <option value="1000" class="radius__value">1 km</option>
+                                    <option value="5000" class="radius__value">5 km</option>
+                                    <option value="10000" class="radius__value" selected>10 km</option>
+                                    <option value="50000" class="radius__value">50 km</option>
+                                    <option value="100000" class="radius__value">100 km</option>
+                                    <option value="150000" class="radius__value">150 km</option>
+                                    <option value="200000" class="radius__value">200 km</option>
+                                </select>
+                                <!--<input type="range" id="radius" class="filter__radius__field" value="10" min="0" max="200" step="10" />-->
+                            </div>
+
+
+                        </div>
+                        <!--<div class="filter__header__open js-toggle-filters-list"><span class="desktop">Additional</span><span class="arrow">&gt;</span>&lt;!&ndash; <span class="arrow"></span>&ndash;&gt;</div>-->
+                    </div>
+
+                    <ul class="filter__header__params__list js-filter-params">
+                        <span class="close js-filter-params-close">x</span>
+                        <li class="filter__header__params__item js-all">
+                           1
+                        </li>
+
+                        <li class="filter__header__params__item js-clinic">
+                            2
+                        </li>
+
+                        <li class="filter__header__params__item js-doctor">
+                            3
+                        </li>
+
+                        <li class="filter__header__params__item js-duty-Clinic">
+                            4
+                        </li>
+
+                        <li class="filter__header__params__item js-aussendienst">
+                            5
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <div class="filter__result">
+                <ul class="filter__result__list" id="resultList"></ul>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="map" id="map"></div>
+</div>
+
+<script src="./js/jquery.formstyler.min.js"></script>
+<script src="./js/main.js"></script>
+<script async defer src="//maps.googleapis.com/maps/api/js?key=AIzaSyBeVoPDyYZyUq-h735KGeK4OA9-BEuecBg&libraries=places&callback=initMap"></script>
+</body>
+</html>
