@@ -679,7 +679,7 @@ function initMap() {
 
         let infoWindowContent = `
             <div class="popUp">
-                <h3>${title}&nbsp;<a href="#">to Bitrix24</a></h3>
+                <h3><span style="font-weight: 700;font-size: 17px">${title}</span>&nbsp;|&nbsp;<a href="#">Open</a></h3>
                 <p>Адрес</p>
                 <p>Медпрофиль контакта или компании</p>
                 <p>Сотрудничество</p>

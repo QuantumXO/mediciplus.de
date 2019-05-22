@@ -482,16 +482,27 @@ body
 	&__result
 		flex: 1
 		height: 100%
+		max-height: 568px
 		//margin-top: 10px
-		padding: 0 10px 10px
+		margin-bottom: 10px
+		padding: 0 10px 0
+		overflow-y: scroll
+		position: relative
+
+		//&:after
+			left: 0
+			top: 100%
+			//bottom: 0
+			width: 100%
+			height: 1px
+			content: ''
+			position: absolute
 
 		&__list
 			min-width: 340px
 			max-width: 400px
-			max-height: 568px
 			//max-height: 100vh
 			list-style: none
-			overflow-y: scroll
 
 			@include mobile
 				max-width: 100%
