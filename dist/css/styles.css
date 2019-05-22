@@ -402,15 +402,15 @@ body {
         .filter__header__search .direction__menu .travel-type__inner .walk {
           margin-right: 10px; }
         .filter__header__search .direction__menu .travel-type__inner .car {
-          background: url(/img/car-icon.png) 50% 50% no-repeat;
+          background: url(./../img/car-icon.png) 50% 50% no-repeat;
           -webkit-background-size: 70% 70%;
           background-size: 70%; }
         .filter__header__search .direction__menu .travel-type__inner .walk {
-          background: url(/img/walk.png) 50% 50% no-repeat;
+          background: url(./../img/walk.png) 50% 50% no-repeat;
           -webkit-background-size: 50% 50%;
           background-size: 50%; }
         .filter__header__search .direction__menu .travel-type__inner .public-transport {
-          background: url(/img/bus-icon.png) 50% 50% no-repeat;
+          background: url(./../img/bus-icon.png) 50% 50% no-repeat;
           -webkit-background-size: 45% 45%;
           background-size: 45%; }
     .filter__header__search .to-searching,
