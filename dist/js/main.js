@@ -9,7 +9,59 @@
     });
 })(jQuery);
 
+// Битрикс24
+BX24.init(function(){
+    console.log('Инициализация завершена!', BX24.isAdmin());
+});
 
+console.log('--- Console ---');
+
+BX24.callMethod(
+    "crm.company.fields",
+    {},
+    function(result)
+    {
+        if(result.error())
+            console.error(result.error());
+        else
+            console.dir( result.data());
+    }
+);
+console.log('--- placement.info() ---');
+
+console.log(BX24.placement.info());
+
+console.log('--- userfieldtype.list:  ---');
+BX24.callMethod(
+    'userfieldtype.list',
+    {},
+    function(result)
+    {
+        console.log(result.data());
+    }
+);
+
+//Поиск компании по телефону
+BX24.callMethod(
+    "crm.company.list",
+    {
+        filter: { "INDUSTRY": "Мед.Праксис" },
+        select: [ "ID", "TITLE" ]
+    },
+    function(result)
+    {
+        if(result.error())
+            console.error(result.error());
+        else
+        {
+            console.dir(result.data());
+            if(result.more())
+                result.next();
+        }
+    }
+);
+
+////////////////////////////////////////////////////////////////////////////////
 function initMap() {
 
     // Search
@@ -98,6 +150,7 @@ function initMap() {
             lng: 30.526437,
             dutyClinic: true,
             aussendienst: false,
+            activity: 'Notfallpraxis',
         },
         {
             id: 1,
@@ -114,6 +167,7 @@ function initMap() {
             lng: 30.527383,
             dutyClinic: true,
             aussendienst: false,
+            activity: 'Bereitsschaftdienst',
         },
         {
             id: 2,
@@ -131,6 +185,7 @@ function initMap() {
             lng: 30.516910,
             dutyClinic: true,
             aussendienst: false,
+            activity: 'krankenwahgentransport',
         },
         {
             id: 3,
@@ -147,38 +202,7 @@ function initMap() {
             lng: 30.527385,
             dutyClinic: true,
             aussendienst: true,
-        },
-        {
-            id: 4,
-            title: 'Clinic 3',
-            position: {lat: 50.424160, lng: 30.481633},
-            icon: {
-                url: hospitalIcon,
-                scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
-            },
-            schedule: '08:00–20:00',
-            type: 'clinic',
-            address: '14, Henerala Almazova St, Kyiv, 02000',
-            lat: 50.424160,
-            lng: 30.481633,
-            dutyClinic: false,
-            aussendienst: false,
-        },
-        {
-            id: 5,
-            title: 'Clinic 4',
-            position: {lat: 50.445192, lng: 30.516832},
-            icon: {
-                url: hospitalIcon,
-                scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
-            },
-            schedule: '08:00–20:00',
-            type: 'clinic',
-            address: '14, Henerala Almazova St, Kyiv, 02000',
-            lat: 50.445192,
-            lng: 30.516832,
-            dutyClinic: false,
-            aussendienst: false,
+            activity: 'privatärztlichenotdienst',
         },
     ];
 
@@ -228,12 +252,13 @@ function initMap() {
 
         let filterAdditionalShow = document.querySelector(`.js-filter-additional.show`) || null;
 
+        console.log();
+
         if(
             !target.classList.contains('js-btn') &&
             !target.parentNode.classList.contains('js-btn') &&
             !target.classList.contains('js-filter-additional') &&
-            !target.parentNode.classList.contains('js-filter-additional')
-
+            !target.closest('.js-filter-additional')
         ){
             if(filterAdditionalShow){
                 filterAdditionalShow.classList.remove('show');
@@ -268,12 +293,13 @@ function initMap() {
 
             if(itemType != activeFilterBtn && itemType != 'all'){
 
-                additionalWrapCurrent.classList.add('show');
+                if(additionalWrapCurrent){
+                    additionalWrapCurrent.classList.add('show');
+                }
 
                 activeFilterBtn = itemType;
 
             }else{
-
                 activeFilterBtn = null;
             }
 
@@ -880,11 +906,18 @@ function initMap() {
             type = type == 'clinics' ? 'clinic' : 'doctor';
 
             locFilterArr = locations.filter(item => item.type === type );
-        }/*else if(type == 'dutyClinic'){
-            locFilterArr = locations.filter(item => item.dutyClinic);
-        }else if(type == 'aussendienst'){
-            locFilterArr = locations.filter(item => item.aussendienst);
-        }*/
+        }else if(type == 'notdienst'){
+            locFilterArr = locations.filter(item =>
+                item.activity.toLowerCase() == 'notfallpraxis' || item.activity.toLowerCase() == 'bereitsschaftdienst' );
+        }else if(type == 'taxi'){
+            locFilterArr = locations.filter(item => item.activity.toLowerCase() == 'taxi unternehmer' );
+        }else if(type == 'krankenwahgentransport'){
+            locFilterArr = locations.filter(item => item.activity.toLowerCase() == 'krankenwahgentransport' );
+        }else if(type == 'privatärztlichenotdienst'){
+            locFilterArr = locations.filter(item => item.activity.toLowerCase() == 'privatärztlichenotdienst' );
+        }
+
+
 
         if(activeFilter !== type){
             removeMarkers();

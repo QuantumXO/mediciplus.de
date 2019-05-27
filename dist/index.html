@@ -12,7 +12,7 @@
 
         <link rel="stylesheet" href="./css/styles.css">
 
-    <!--<script src="//api.bitrix24.com/api/v1/"></script> -->
+    <script src="//api.bitrix24.com/api/v1/"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <title>Map application</title>
 
@@ -97,35 +97,91 @@
                                         <!--<span class="icon" style="height: 26px;"><img src="./img/hospital.png" width="20" alt="hospital icon" /></span>-->
                                         <span class="text">Doctors</span>
                                     </div>
+                                    <div class="btn js-btn" data-type="notdienst">
+                                        <!--<span class="icon" style="height: 26px;"><img src="./img/hospital.png" width="20" alt="hospital icon" /></span>-->
+                                        <span class="text">Notdienst</span>
+                                    </div>
+                                    <div class="btn js-btn" data-type="taxi">
+                                        <!--<span class="icon" style="height: 26px;"><img src="./img/hospital.png" width="20" alt="hospital icon" /></span>-->
+                                        <span class="text">Taxi</span>
+                                    </div>
+                                    <div class="btn js-btn" data-type="krankenwahgentransport">
+                                        <!--<span class="icon" style="height: 26px;"><img src="./img/hospital.png" width="20" alt="hospital icon" /></span>-->
+                                        <span class="text">Krankenwahgentransport</span>
+                                    </div>
+                                    <div class="btn js-btn" data-type="privatärztlichenotdienst">
+                                        <!--<span class="icon" style="height: 26px;"><img src="./img/hospital.png" width="20" alt="hospital icon" /></span>-->
+                                        <span class="text">Privatärztlichenotdienst</span>
+                                    </div>
                                 </div>
 
                             </div>
 
                             <ul class="filter__header__params__list js-filter-additional" data-type="clinics">
                                 <span class="close js-filter-params-close">x</span>
-                                <label>Additional for: Clinics</label>
+                                <!--<label>Additional for: Clinics</label>-->
                                 <li class="filter__header__params__item">
-                                    1
+                                    <label for="clinicCooperation">Cooperation (компания): </label>
+                                    <input id="clinicCooperation" type="text" class="filter__text" />
                                 </li>
-
                                 <li class="filter__header__params__item">
-                                    2
+                                    <label for="clinicActivity">Сфера деятельности: </label>
+                                    <select id="clinicActivity" class="filter__select">
+                                        <option value=""></option>
+                                    </select>
                                 </li>
-
                                 <li class="filter__header__params__item">
-                                    3
+                                    <label for="clinicProfile">Медпрофиль компании: </label>
+                                    <input id="clinicProfile" type="text" class="filter__text" />
+                                </li>
+                                <li class="filter__header__params__item">
+                                    <label for="clinicCountry">Страна: </label>
+                                    <select id="clinicCountry" class="filter__select">
+                                        <option value=""></option>
+                                    </select>
                                 </li>
                             </ul>
 
                             <ul class="filter__header__params__list js-filter-additional" data-type="doctors">
                                 <span class="close js-filter-params-close">x</span>
-                                <label>Additional for: Doctors</label>
                                 <li class="filter__header__params__item">
-                                    1
+                                    <label for="doctorCooperation">Cooperation (kontakt): </label>
+                                    <input id="doctorCooperation" type="text" class="filter__text" />
                                 </li>
-
                                 <li class="filter__header__params__item">
-                                    2
+                                    <label for="doctorSex">Пол: </label>
+                                    <select id="doctorSex" class="filter__select">
+                                        <option value="man">муж</option>
+                                        <option value="woman">жен</option>
+                                    </select>
+                                </li>
+                                <li class="filter__header__params__item">
+                                    <label for="doctorActivity">Сфера деятельности (контакт): </label>
+                                    <select id="doctorActivity" class="filter__select">
+                                        <option value=""></option>
+                                    </select>
+                                </li>
+                                <li class="filter__header__params__item">
+                                    <label for="doctorProfile">Профиль Контакт: </label>
+                                    <input id="doctorProfile" type="text" class="filter__text" />
+                                </li>
+                                <li class="filter__header__params__item">
+                                    <label for="doctorStatus">Статус (контакт): </label>
+                                    <input id="doctorStatus" type="text" class="filter__text" />
+                                </li>
+                                <li class="filter__header__params__item">
+                                    <label for="doctorSprache">Sprache: </label>
+                                    <input id="doctorSprache" type="text" class="filter__text" />
+                                </li>
+                                <li class="filter__header__params__item">
+                                    <label for="doctorWochenende">Wochenende (kontakt): </label>
+                                    <input id="doctorWochenende" type="text" class="filter__text" />
+                                </li>
+                                <li class="filter__header__params__item">
+                                    <label for="doctorCountry">Страна: </label>
+                                    <select id="doctorCountry" class="filter__select">
+                                        <option value=""></option>
+                                    </select>
                                 </li>
                             </ul>
 
@@ -193,7 +249,6 @@
 
     <div class="map" id="map"></div>
 </div>
-
 <script src="./js/jquery.formstyler.min.js"></script>
 <script src="./js/main.js"></script>
 <script async defer src="//maps.googleapis.com/maps/api/js?key=AIzaSyBeVoPDyYZyUq-h735KGeK4OA9-BEuecBg&libraries=places&callback=initMap"></script>
