@@ -9,8 +9,7 @@
     <link rel="stylesheet" href="./css/jquery.formstyler.css">
     <link rel="stylesheet" href="./css/jquery.formstyler.theme.css">
 
-
-        <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="./css/styles.css">
 
     <script src="//api.bitrix24.com/api/v1/"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -18,7 +17,7 @@
 
 </head>
 <body>
-
+<?=$data ?>
 <div class="container">
     <div id="filter" class="filter">
         <div class="filter__toggle" data-status="show">
@@ -122,21 +121,21 @@
                                 <!--<label>Additional for: Clinics</label>-->
                                 <li class="filter__header__params__item">
                                     <label for="clinicCooperation">Cooperation (компания): </label>
-                                    <input id="clinicCooperation" type="text" class="filter__text" />
+                                    <select id="clinicCooperation" class="filter__additional filter__select cooperation"><option value="нет">нет</option><option value="В процессе договорённости">В процессе договорённости</option><option value="Отказались от сотрудничества">Отказались от сотрудничества</option><option value="Сотрудничаем">Сотрудничаем</option><option value="Приостановили сотрудничество">Приостановили сотрудничество</option></select>
                                 </li>
                                 <li class="filter__header__params__item">
                                     <label for="clinicActivity">Сфера деятельности: </label>
-                                    <select id="clinicActivity" class="filter__select">
+                                    <select id="clinicActivity" class="filter__additional filter__select activity">
                                         <option value=""></option>
                                     </select>
                                 </li>
                                 <li class="filter__header__params__item">
                                     <label for="clinicProfile">Медпрофиль компании: </label>
-                                    <input id="clinicProfile" type="text" class="filter__text" />
+                                    <select id="clinicProfile" class="filter__additional filter__select profile"><option value="Терапевт">Терапевт</option><option value="Внутренняя медицина">Внутренняя медицина</option><option value="Гастроэнтерология">Гастроэнтерология</option><option value="Гематология">Гематология</option><option value="Гинекология">Гинекология</option><option value="Дерматология">Дерматология</option><option value="Детская неврология">Детская неврология</option><option value="Диагностика">Диагностика</option><option value="Кардиология">Кардиология</option><option value="Кардиохирургия">Кардиохирургия</option><option value="Неврология">Неврология</option><option value="Нейрохирургия">Нейрохирургия</option><option value="Нефрология">Нефрология</option><option value="Общая хирургия">Общая хирургия</option><option value="Онкология">Онкология</option><option value="Ортопедия">Ортопедия</option><option value="Офтальмология">Офтальмология</option><option value="Пластическая хирургия">Пластическая хирургия</option><option value="Пульмонология">Пульмонология</option><option value="Радиология">Радиология</option><option value="Ревматология">Ревматология</option><option value="Сосудистая Хирургия">Сосудистая Хирургия</option><option value="Стамотология">Стамотология</option><option value="Травмотология">Травмотология</option><option value="Урология">Урология</option><option value="Ухо-горло-нос">Ухо-горло-нос</option><option value="Физиотерапия">Физиотерапия</option><option value="Челюстно-лицевая хирургия">Челюстно-лицевая хирургия</option><option value="Эндокринология">Эндокринология</option><option value="Мамология">Мамология</option><option value="Реабилитация">Реабилитация</option><option value="Педиатрия">Педиатрия</option><option value="Практолог">Практолог</option></select>
                                 </li>
                                 <li class="filter__header__params__item">
                                     <label for="clinicCountry">Страна: </label>
-                                    <select id="clinicCountry" class="filter__select">
+                                    <select id="clinicCountry" class="filter__additional filter__select country">
                                         <option value=""></option>
                                     </select>
                                 </li>
@@ -146,40 +145,42 @@
                                 <span class="close js-filter-params-close">x</span>
                                 <li class="filter__header__params__item">
                                     <label for="doctorCooperation">Cooperation (kontakt): </label>
-                                    <input id="doctorCooperation" type="text" class="filter__text" />
+                                    <select id="doctorCooperation" class="filter__additional filter__select cooperation"></select>
                                 </li>
                                 <li class="filter__header__params__item">
                                     <label for="doctorSex">Пол: </label>
-                                    <select id="doctorSex" class="filter__select">
+                                    <select id="doctorSex" class="filter__additional filter__select">
                                         <option value="man">муж</option>
                                         <option value="woman">жен</option>
                                     </select>
                                 </li>
                                 <li class="filter__header__params__item">
                                     <label for="doctorActivity">Сфера деятельности (контакт): </label>
-                                    <select id="doctorActivity" class="filter__select">
+                                    <select id="doctorActivity" class="filter__additional filter__select activity">
                                         <option value=""></option>
                                     </select>
                                 </li>
                                 <li class="filter__header__params__item">
                                     <label for="doctorProfile">Профиль Контакт: </label>
-                                    <input id="doctorProfile" type="text" class="filter__text" />
+                                    <select id="doctorProfile" class="filter__additional filter__select profile">
+                                        <option value=""></option>
+                                    </select>
                                 </li>
                                 <li class="filter__header__params__item">
                                     <label for="doctorStatus">Статус (контакт): </label>
-                                    <input id="doctorStatus" type="text" class="filter__text" />
+                                    <input id="doctorStatus" type="text" class="filter__additional filter__text status" />
                                 </li>
                                 <li class="filter__header__params__item">
                                     <label for="doctorSprache">Sprache: </label>
-                                    <input id="doctorSprache" type="text" class="filter__text" />
+                                    <input id="doctorSprache" type="text" class="filter__additional filter__text sprache" />
                                 </li>
                                 <li class="filter__header__params__item">
                                     <label for="doctorWochenende">Wochenende (kontakt): </label>
-                                    <input id="doctorWochenende" type="text" class="filter__text" />
+                                    <input id="doctorWochenende" type="text" class="filter__additional filter__text" />
                                 </li>
                                 <li class="filter__header__params__item">
                                     <label for="doctorCountry">Страна: </label>
-                                    <select id="doctorCountry" class="filter__select">
+                                    <select id="doctorCountry" class="filter__additional filter__select country">
                                         <option value=""></option>
                                     </select>
                                 </li>
@@ -213,29 +214,6 @@
                         </div>
                         <!--<div class="filter__header__open js-toggle-filters-list"><span class="desktop">Additional</span><span class="arrow">&gt;</span>&lt;!&ndash; <span class="arrow"></span>&ndash;&gt;</div>-->
                     </div>
-
-                    <ul class="filter__header__params__list js-filter-params">
-                        <span class="close js-filter-params-close">x</span>
-                        <li class="filter__header__params__item js-all">
-                           1
-                        </li>
-
-                        <li class="filter__header__params__item js-clinic">
-                            2
-                        </li>
-
-                        <li class="filter__header__params__item js-doctor">
-                            3
-                        </li>
-
-                        <li class="filter__header__params__item js-duty-Clinic">
-                            4
-                        </li>
-
-                        <li class="filter__header__params__item js-aussendienst">
-                            5
-                        </li>
-                    </ul>
                 </div>
 
             </div>

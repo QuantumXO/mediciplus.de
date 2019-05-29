@@ -1,52 +1,16 @@
-(function($) {
-    $(function() {
 
-        // jQuery Form Styler
-        // http://dimox.name/jquery-form-styler
-        $('.filter__radio').styler();
-        $('.filter__select').styler();
+/// GLOBAL VARIABLES \\\
 
-    });
-})(jQuery);
+let ACTIVITY_ARR = [];
+const ITERATION_SELECT_NUM = 8;
+
+///////////
 
 // Битрикс24
-BX24.init(function(){
-    console.log('Инициализация завершена!', BX24.isAdmin());
-});
-
-console.log('--- Console ---');
-
-BX24.callMethod(
-    "crm.company.fields",
-    {},
-    function(result)
+/*BX24.callMethod(
+    "crm.company.userfield.list",
     {
-        if(result.error())
-            console.error(result.error());
-        else
-            console.dir( result.data());
-    }
-);
-console.log('--- placement.info() ---');
-
-console.log(BX24.placement.info());
-
-console.log('--- userfieldtype.list:  ---');
-BX24.callMethod(
-    'userfieldtype.list',
-    {},
-    function(result)
-    {
-        console.log(result.data());
-    }
-);
-
-//Поиск компании по телефону
-BX24.callMethod(
-    "crm.company.list",
-    {
-        filter: { "INDUSTRY": "Мед.Праксис" },
-        select: [ "ID", "TITLE" ]
+        order: { "SORT": "ASC" }
     },
     function(result)
     {
@@ -54,12 +18,150 @@ BX24.callMethod(
             console.error(result.error());
         else
         {
-            console.dir(result.data());
-            if(result.more())
-                result.next();
+            //console.log(`crm.company.userfield.list : `, result.data());
+
+            return result;
         }
     }
-);
+);*/
+
+/*const getFieldsIndustry = function(){
+    BX24.callMethod(
+        "crm.status.list",
+        {
+            order: { "SORT": "ASC" },
+            filter: {
+                "ENTITY_ID": 'INDUSTRY'
+            }
+        },
+        function(result) {
+            if(result.error()){
+                console.error(result.error());
+            }else {
+                result = result.data();
+                let newArr = [];
+                let obj = {};
+
+                result.forEach(function(item){
+                    newArr.push(item.NAME);
+                });
+
+                result = {
+                    'FIELD_NAME' : 'industry',
+                    'LIST' : newArr,
+                };
+
+                setOptions(result);
+            }
+        }
+    );
+};
+
+const getCompanyUserfieldValues = function(FIELD_NAME){
+
+    let valuesList;
+
+    BX24.callMethod(
+        "crm.company.userfield.list",
+        {
+            order: { "SORT": "ASC" },
+            filter: { "FIELD_NAME": FIELD_NAME }
+        },
+        function(result)
+        {
+            if(result.error())
+                console.error(result.error());
+            else
+            {
+                let name;
+
+                if(FIELD_NAME == 'UF_CRM_1438258999'){
+                    FIELD_NAME = 'cooperation';
+                }else if(FIELD_NAME == 'UF_CRM_1387031615'){
+                    FIELD_NAME = 'profile';
+                }else if(FIELD_NAME == 'UF_CRM_1402932716'){
+                    FIELD_NAME = 'country';
+                }
+
+                result = {
+                    'FIELD_NAME' : FIELD_NAME,
+                    'LIST' : result.data()[0].LIST,
+                };
+
+                console.log(`crm.company.userfield.list -> ${FIELD_NAME}: `, result);
+
+                setOptions(result);
+                //return result;
+            }
+        }
+    );
+};*/
+/*
+const ACTIVITY = getFieldsIndustry('industry'); // Сфера деятельности
+const COOPERATIONS = getCompanyUserfieldValues('UF_CRM_1438258999'); //Cooperation
+const PROFILES = getCompanyUserfieldValues("UF_CRM_1387031615"); // Мед. Профиль Компании
+const COUNTRIES = getCompanyUserfieldValues("UF_CRM_1402932716"); // country*/
+
+let iteration = 0;
+/*function setOptions(item){
+
+    const name = item.FIELD_NAME;
+    const list = item.LIST;
+
+    if(list){
+        const countrtSelect = document.querySelectorAll('select.country');
+        const cooperationSelect = document.querySelectorAll('select.cooperation');
+        const profileSelect = document.querySelectorAll('select.profile');
+        const activitySelect = document.querySelectorAll('select.activity');
+
+        let itemValue;
+        const fragment = document.createDocumentFragment();
+
+        function mapping(node){
+
+            //console.log('node.length', node.length);
+
+
+            for(let i = 0; i < node.length; i++){
+
+                list.forEach(function(item){
+                    let newOption = document.createElement('option');
+
+                    if(name == 'industry'){
+                        itemValue = item;
+                    }else{
+                        itemValue = item.VALUE;
+                    }
+
+                    newOption.innerHTML = itemValue;
+                    newOption.value = itemValue;
+                    fragment.appendChild(newOption);
+
+                });
+
+                node[i].appendChild(fragment);
+                console.log('node[i]: ', node[i].appendChild(fragment));
+                iteration++;
+            }
+
+            if(iteration == ITERATION_SELECT_NUM){
+                $('.filter__select').styler();
+            }
+        }
+
+        if(name == 'country'){
+            mapping(countrtSelect);
+        }else if(name == 'cooperation'){
+            mapping(cooperationSelect);
+        }else if(name == 'profile'){
+            mapping(profileSelect);
+        }else if(name == 'industry'){
+            mapping(activitySelect);
+        }
+
+    }
+}*/
+
 
 ////////////////////////////////////////////////////////////////////////////////
 function initMap() {
@@ -131,7 +233,9 @@ function initMap() {
         APP_STATUS = 0; //  0 - search | 1 - direction
 
     let clientMarker,
-        clientMarkerRadius;
+        clientMarkerRadius,
+        FILTER_CONDITIONS,
+        LOCATIONS_FILTERED;
 
     const map = new google.maps.Map(document.getElementById('map'), options);
     const locations = [
@@ -142,7 +246,7 @@ function initMap() {
             icon: {
                 url: hospitalIcon,
                 scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
-             },
+            },
             schedule: '00:00–00:00',
             type: 'clinic',
             address: 'Kovpaka St, 3, Kyiv, 02000',
@@ -211,10 +315,27 @@ function initMap() {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    (function($) {
+        $(function() {
+
+            // jQuery Form Styler
+            // http://dimox.name/jquery-form-styler
+            $('.filter__radio').styler();
+            $('.filter__select').styler({
+                onSelectClosed: function(){
+                    console.log('this: ', $(this).find('.jq-selectbox__select-text')[0].innerHTML);
+                    console.log('LOCATIONS_FILTERED: ', LOCATIONS_FILTERED);
+                }
+            });
+
+        });
+    })(jQuery);
+
+
     /*searchFindBtn.addEventListener('click', function () {
-        searhField.focus();
-        autocompliteFunc();
-    });*/
+     searhField.focus();
+     autocompliteFunc();
+     });*/
 
     if(SEARCH_VALUE){
         searchField.value = SEARCH_VALUE;
@@ -331,9 +452,9 @@ function initMap() {
     }
 
     //[].slice.call(directionFields).forEach(function (item) {
-        directionFromField.addEventListener('keyup', function () {
-            directionFieldsError();
-        });
+    directionFromField.addEventListener('keyup', function () {
+        directionFieldsError();
+    });
     //});
 
     [].slice.call(document.querySelectorAll('li.radius__value')).forEach(function (item) {
@@ -349,14 +470,14 @@ function initMap() {
     });
 
     /*filterRadius.addEventListener('input', function () {
-        let value = +this.value;
+     let value = +this.value;
 
-        document.getElementsByClassName('filter__radius__value')[0].innerHTML =  value;
+     document.getElementsByClassName('filter__radius__value')[0].innerHTML =  value;
 
-        RADIUS = +value*1000;
+     RADIUS = +value*1000;
 
-        geocodeAddress(geocoder, map, RADIUS);
-    });*/
+     geocodeAddress(geocoder, map, RADIUS);
+     });*/
 
 
     function geocodeAddress() {
@@ -423,19 +544,19 @@ function initMap() {
                 let place = autocomplete.getPlace();
 
                 /*if (!place.geometry) {
-                    // User entered the name of a Place that was not suggested and
-                    // pressed the Enter key, or the Place Details request failed.
-                    window.alert("No details available for input: '" + place.name + "'");
-                    return;
-                }
-*/
+                 // User entered the name of a Place that was not suggested and
+                 // pressed the Enter key, or the Place Details request failed.
+                 window.alert("No details available for input: '" + place.name + "'");
+                 return;
+                 }
+                 */
                 // If the place has a geometry, then present it on a map.
                 /*if (place.geometry.viewport) {
-                    map.fitBounds(place.geometry.viewport);
-                }else {
-                    map.setCenter(place.geometry.location);
-                    map.setZoom(17);  // Why 17? Because it looks good.
-                }*/
+                 map.fitBounds(place.geometry.viewport);
+                 }else {
+                 map.setCenter(place.geometry.location);
+                 map.setZoom(17);  // Why 17? Because it looks good.
+                 }*/
 
                 SEARCH_VALUE = item.value || null;
 
@@ -602,6 +723,8 @@ function initMap() {
 
     function toggleStateOfResultItems(itemId){
 
+        console.log('toggleStateOfResultItems()');
+
         const filterResultItemsArr = [].slice.call(filterResultItem);
 
         if(APP_STATUS == 1){
@@ -703,7 +826,7 @@ function initMap() {
 
         let infoWindowContent = `
             <div class="popUp">
-                <h3><span style="font-weight: 700;font-size: 17px">${title}</span>&nbsp;|&nbsp;<a href="#">Open</a></h3>
+                <h3>${title}&nbsp;<a href="#">to Bitrix24</a></h3>
                 <p>Адрес</p>
                 <p>Медпрофиль контакта или компании</p>
                 <p>Сотрудничество</p>
@@ -844,32 +967,32 @@ function initMap() {
 
         /*const markersList = allMarkers;
 
-        searchValue = searhField.value.toLowerCase();
+         searchValue = searhField.value.toLowerCase();
 
-        let newMarkersList = [];
+         let newMarkersList = [];
 
-        if(searchValue){
+         if(searchValue){
 
-            markersList.forEach(function(item) {
-                let {address, title, name} = item;
+         markersList.forEach(function(item) {
+         let {address, title, name} = item;
 
-                name = name ? name.toLowerCase() : null;
-                title = title ? title.toLowerCase() : null;
-                address = address ? address.toLowerCase() : null;
+         name = name ? name.toLowerCase() : null;
+         title = title ? title.toLowerCase() : null;
+         address = address ? address.toLowerCase() : null;
 
-                if( address.match(searchValue) ||
-                    title.match(searchValue) ||
-                    (name && name.match(searchValue))
-                ){
-                    newMarkersList.push(item);
-                }
-            });
+         if( address.match(searchValue) ||
+         title.match(searchValue) ||
+         (name && name.match(searchValue))
+         ){
+         newMarkersList.push(item);
+         }
+         });
 
-        }else{
-            newMarkersList = allMarkers;
-        }
+         }else{
+         newMarkersList = allMarkers;
+         }
 
-        renderList(newMarkersList);*/
+         renderList(newMarkersList);*/
     }
 
     clearFieldBtnsArr.forEach(function (item) {
@@ -886,14 +1009,14 @@ function initMap() {
     });
 
     /*filterParamsSelect.closest('.radius__select').addEventListener('click', function (e) {
-        const target = e.target;
-        const type = target.getAttribute('data-type') || null;
+     const target = e.target;
+     const type = target.getAttribute('data-type') || null;
 
-        if(type){
-            filter(type);
-            map.setZoom(defaultZoom);
-        }
-    });*/
+     if(type){
+     filter(type);
+     map.setZoom(defaultZoom);
+     }
+     });*/
 
     function filter(type) {
 
@@ -906,6 +1029,7 @@ function initMap() {
             type = type == 'clinics' ? 'clinic' : 'doctor';
 
             locFilterArr = locations.filter(item => item.type === type );
+
         }else if(type == 'notdienst'){
             locFilterArr = locations.filter(item =>
                 item.activity.toLowerCase() == 'notfallpraxis' || item.activity.toLowerCase() == 'bereitsschaftdienst' );
@@ -917,7 +1041,11 @@ function initMap() {
             locFilterArr = locations.filter(item => item.activity.toLowerCase() == 'privatärztlichenotdienst' );
         }
 
+        LOCATIONS_FILTERED = locFilterArr;
 
+        FILTER_CONDITIONS = {
+            type: type,
+        };
 
         if(activeFilter !== type){
             removeMarkers();
