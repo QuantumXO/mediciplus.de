@@ -76,7 +76,7 @@ function initMap() {
         clientMarkerRadius;
 
     const map = new google.maps.Map(document.getElementById('map'), options);
-    const locations = [
+    let LOCATIONS = [
         {
             id: 0,
             title: 'Clinic',
@@ -150,10 +150,18 @@ function initMap() {
         },
     ];
 
-    const defaultLocations = locations;
+    const dataURL = '/map/feed/map_feed.json';
+    const defaultLocations = LOCATIONS;
+
     const jqStylerConfig = {
         onSelectClosed: function() {
-            getAddParams($(this));
+
+            const $this = $(this);
+
+            if(!$this.hasClass('radius__select')){
+                getAddParams($(this));
+            }
+
         }
     };
 
@@ -199,6 +207,60 @@ function initMap() {
 
         });
 
+
+        function getData(){
+
+            /*fetch(dataURL)
+             .then(response => {
+             if(response.status == 200){
+             return response.json();
+             }
+             })
+             .then(function(data) {
+
+             data.forEach(function(item, i){
+
+             let lat,
+             lng,
+             type,
+             icon,
+             position;
+
+             if(!item.TYPE){
+             item.TYPE = 'clinic';
+
+             }
+
+             if(item.TYPE == 'clinic'){
+             item.ICON = {
+             url: hospitalIcon,
+             scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
+             };
+
+             }else{
+             item.ICON = {
+             url: doctorIcon,
+             scaledSize: new google.maps.Size(doctorIconWidth, doctorIconHeight)
+             };
+             }
+
+             item.POSITION = position;
+             item.LAT = position.LAT;
+             item.LNG = position.LNG;
+
+             });
+
+             LOCATIONS = data;
+
+             console.log('getData() -> LOCATIONS: ', LOCATIONS);
+
+             setMarkers(LOCATIONS, animationDrop); // first init of markers
+
+             })
+             */
+        }getData();
+
+
     }custom();
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -241,16 +303,16 @@ function initMap() {
                     result = result.data();
 
 
-                    let newArr = []
+                    let newArr = [];
                     let obj = {};
                     result = result.forEach(function(item){
-                        newArr.push(item.STATUS_ID);
+                        newArr.push(item.NAME);
                     });
 
                     result = {
                         'FIELD_NAME' : 'industry',
                         'LIST' : newArr,
-                    }
+                    };
 
                     console.log(`result : `, result);
                     setOptions(result);
@@ -532,7 +594,7 @@ function initMap() {
                     strokeOpacity: 0.3,
                     strokeWeight: 1,
                     fillColor: '#00B1DA',
-                    fillOpacity: 0.35,
+                    fillOpacity: 0.20,
                     map: map,
                     center: results[0].geometry.location,
                     radius: RADIUS // in meters
@@ -792,13 +854,13 @@ function initMap() {
 
     }
 
-    function setMarkers(locations, animation){
+    function setMarkers(LOCATIONS, animation){
 
         if(allMarkers){
             removeMarkers();
         }
 
-        locations.forEach( function( element, i ) {
+        LOCATIONS.forEach( function( element, i ) {
 
             marker = new google.maps.Marker({
                 position: element.position,
@@ -837,7 +899,7 @@ function initMap() {
         renderList(allMarkers); // renders list of markers
     }
 
-    setMarkers(locations, animationDrop); // first init of markers
+    setMarkers(LOCATIONS, animationDrop); // first init of markers
 
     function removeMarkers(){
 
@@ -1014,12 +1076,18 @@ function initMap() {
 
     function getAddParams(item, value){
 
-        const emptyValue = '&nbsp;';
+        const emptyValue = "&nbsp;";
 
         let paramName;
 
         if(value){
-            FILTER_PARAMS[item] = value; //  INDUSTRY
+
+            if(value != emptyValue){
+                FILTER_PARAMS[item] = value; //  INDUSTRY
+
+            }else{
+                FILTER_PARAMS[item] = null;
+            }
 
         }else{
             item = item[0];
@@ -1028,8 +1096,8 @@ function initMap() {
             paramName = item.closest('li.filter__header__params__item').querySelector('[data-param]').getAttribute('data-param');
 
             if(value != emptyValue){
-
                 FILTER_PARAMS[paramName] = value;
+
             }else{
                 FILTER_PARAMS[paramName] = null;
             }
@@ -1041,7 +1109,7 @@ function initMap() {
 
     function filter(type, addParams) {
 
-        let locFilterArr = locations;
+        let locFilterArr = LOCATIONS;
         let filterParamsKeys = [];
 
         if(!addParams){
@@ -1051,7 +1119,7 @@ function initMap() {
         FILTER_PARAMS.type = type;
 
         if(FILTER_PARAMS.type == 'all'){
-            locFilterArr = locations;
+            locFilterArr = LOCATIONS;
         }else if(FILTER_PARAMS.type == 'clinics' || FILTER_PARAMS.type == 'doctors'){
 
             filterParamsKeys = Object.keys(FILTER_PARAMS);
@@ -1060,10 +1128,7 @@ function initMap() {
 
             filterParamsKeys.forEach(function(key){
 
-                console.log('key: ', key);
-                console.log('FILTER_PARAMS[key]: ', FILTER_PARAMS[key]);
-
-                if(FILTER_PARAMS[key] != null){
+                if(FILTER_PARAMS[key] != null ){
                     locFilterArr = locFilterArr.filter(item => {
 
                         if(key == 'type'){
@@ -1079,18 +1144,15 @@ function initMap() {
 
             });
 
-
-            console.log('locFilterArr: ', locFilterArr);
-
         }else if(FILTER_PARAMS.type == 'notdienst'){
-            locFilterArr = locations.filter(item =>
+            locFilterArr = LOCATIONS.filter(item =>
                 item.activity.toLowerCase() == 'notfallpraxis' || item.activity.toLowerCase() == 'bereitsschaftdienst' );
         }else if(FILTER_PARAMS.type == 'taxi'){
-            locFilterArr = locations.filter(item => item.activity.toLowerCase() == 'taxi unternehmer' );
+            locFilterArr = LOCATIONS.filter(item => item.activity.toLowerCase() == 'taxi unternehmer' );
         }else if(FILTER_PARAMS.type == 'krankenwahgentransport'){
-            locFilterArr = locations.filter(item => item.activity.toLowerCase() == 'krankenwahgentransport' );
+            locFilterArr = LOCATIONS.filter(item => item.activity.toLowerCase() == 'krankenwahgentransport' );
         }else if(FILTER_PARAMS.type == 'privatärztlichenotdienst'){
-            locFilterArr = locations.filter(item => item.activity.toLowerCase() == 'privatärztlichenotdienst' );
+            locFilterArr = LOCATIONS.filter(item => item.activity.toLowerCase() == 'privatärztlichenotdienst' );
         }
 
         //if(activeFilter !== type){
