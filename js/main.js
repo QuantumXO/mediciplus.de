@@ -58,7 +58,7 @@ function initMap() {
 
     const ITERATION_SELECT_NUM = 8;
 
-    let ACTIVITY_ARR = [];
+    let industry_ARR = [];
     let marker,
         RADIUS = 10000,
         allMarkers = [],
@@ -92,7 +92,7 @@ function initMap() {
             //lng: 30.526437,
             dutyClinic: true,
             aussendienst: false,
-            activity: 'Notfallpraxis',
+            industry: 'Notfallpraxis',
             cooperation: 'В процессе договорённости',
         },
         {
@@ -110,7 +110,7 @@ function initMap() {
             //lng: 30.527383,
             dutyClinic: true,
             aussendienst: false,
-            activity: 'Bereitsschaftdienst',
+            industry: 'Bereitsschaftdienst',
             cooperation: 'Сотрудничаем',
         },
         {
@@ -129,7 +129,7 @@ function initMap() {
             //lng: 30.516910,
             dutyClinic: true,
             aussendienst: false,
-            activity: 'krankenwahgentransport',
+            industry: 'krankenwahgentransport',
         },
         {
             id: 3,
@@ -146,11 +146,12 @@ function initMap() {
             //lng: 30.527385,
             dutyClinic: true,
             aussendienst: true,
-            activity: 'privatärztlichenotdienst',
+            industry: 'privatärztlichenotdienst',
         },
     ];
 
     const dataURL = '/map/feed/map_feed.json';
+    const BxCompanyURL = 'https://test.portal.mediciplus.de/crm/company/details/';
     const defaultLocations = LOCATIONS;
 
     const jqStylerConfig = {
@@ -171,6 +172,8 @@ function initMap() {
 // Custom
     function custom(){
 
+        $('.radius__select').styler();
+
         document.body.addEventListener('click', function(e){
 
             const target = e.target;
@@ -183,18 +186,17 @@ function initMap() {
             ){
                 wrap.classList.add('show');
 
-
                 if(target.nodeName == 'LI'){
 
                     let arr = [];
                     const selected = target.closest('ul').querySelectorAll('li.selected');
 
                     for(let i = 0; i < selected.length; i++){
-                        console.log('selected[i]: ', selected[i].innerHTML);
+                        //console.log('selected[i]: ', selected[i].innerHTML);
                         arr.push(selected[i].innerHTML);
                     }
 
-                    getAddParams('activity', arr);
+                    getAddParams('industry', arr);
 
                 }
 
@@ -207,65 +209,81 @@ function initMap() {
 
         });
 
-
         function getData(){
 
-            /*fetch(dataURL)
-             .then(response => {
-             if(response.status == 200){
-             return response.json();
-             }
-             })
-             .then(function(data) {
+            fetch(dataURL)
+                .then(response => {
+                    if(response.status == 200){
+                        return response.json();
+                    }
+                })
+                .then(function(data) {
 
-             data.forEach(function(item, i){
+                    console.log('getData() -> data: ', data);
+                    if(data){
+                        data.forEach(function(item, i){
 
-             let lat,
-             lng,
-             type,
-             icon,
-             position;
+                            let lat,
+                                lng,
+                                type,
+                                icon,
+                                position;
 
-             if(!item.TYPE){
-             item.TYPE = 'clinic';
+                            if(!item.TYPE){
+                                item.TYPE = 'clinic';
 
-             }
+                            }
 
-             if(item.TYPE == 'clinic'){
-             item.ICON = {
-             url: hospitalIcon,
-             scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
-             };
+                            if(item.TYPE == 'clinic'){
+                                item.ICON = {
+                                    url: hospitalIcon,
+                                    scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
+                                };
 
-             }else{
-             item.ICON = {
-             url: doctorIcon,
-             scaledSize: new google.maps.Size(doctorIconWidth, doctorIconHeight)
-             };
-             }
+                            }else{
+                                item.ICON = {
+                                    url: doctorIcon,
+                                    scaledSize: new google.maps.Size(doctorIconWidth, doctorIconHeight)
+                                };
+                            }
 
-             item.POSITION = position;
-             item.LAT = position.LAT;
-             item.LNG = position.LNG;
+                            item.LAT = item.LAT || 0;
+                            item.LNG = item.LNG || 0;
 
-             });
+                            lat = item.LAT;
+                            lng = item.LNG;
 
-             LOCATIONS = data;
+                            item.POSITION = {lat: lat, lng: lng};
 
-             console.log('getData() -> LOCATIONS: ', LOCATIONS);
+                            item.SCHEDULE = item.SCHEDULE || null;
+                            item.STATUS = item.STATUS || null;
+                            //em.PHONE_FAX = item.PHONE_FAX || null;
+                            //em.PHONE_MOBILE = item.PHONE_MOBILE || null;
+                            //em.PHONE_WORK = item.PHONE_WORK || null;
+                            //em.WOCHENENDE = item.WOCHENENDE || null;
+                            //em.COOPERATION = item.COOPERATION || null;
+                            //em.MED_PROFILE = item.MED_PROFILE || null;
 
-             setMarkers(LOCATIONS, animationDrop); // first init of markers
+                        });
 
-             })
-             */
+                        LOCATIONS = data;
+
+                        //console.log('getData() -> LOCATIONS: ', LOCATIONS);
+
+                        setMarkers(LOCATIONS, animationDrop); // first init of markers
+                    }
+
+                });
+
         }getData();
-
 
     }custom();
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // Битрикс24
+
+    BX24.fitWindow(); // Resize frame
 
     BX24.callMethod(
         "crm.company.userfield.list",
@@ -294,14 +312,11 @@ function initMap() {
                     "ENTITY_ID": 'INDUSTRY'
                 }
             },
-            function(result)
-            {
-                if(result.error())
+            function(result){
+                if(result.error()){
                     console.error(result.error());
-                else
-                {
+                }else{
                     result = result.data();
-
 
                     let newArr = [];
                     let obj = {};
@@ -314,7 +329,7 @@ function initMap() {
                         'LIST' : newArr,
                     };
 
-                    console.log(`result : `, result);
+                    //console.log(`result : `, result);
                     setOptions(result);
                 }
             }
@@ -331,12 +346,11 @@ function initMap() {
                 order: { "SORT": "ASC" },
                 filter: { "FIELD_NAME": FIELD_NAME }
             },
-            function(result)
-            {
-                if(result.error())
+            function(result){
+                if(result.error()){
                     console.error(result.error());
-                else
-                {
+
+                }else{
                     let name;
 
                     if(FIELD_NAME == 'UF_CRM_1438258999'){
@@ -359,12 +373,13 @@ function initMap() {
         );
     };
 
-    const ACTIVITY = getFieldsIndustry('industry'); // Сфера деятельности
+    const industry = getFieldsIndustry('industry'); // Сфера деятельности
     const COOPERATIONS = getCompanyUserfieldValues('UF_CRM_1438258999'); //Cooperation
     const PROFILES = getCompanyUserfieldValues("UF_CRM_1387031615"); // Мед. Профиль Компании
     const COUNTRIES = getCompanyUserfieldValues("UF_CRM_1402932716"); // country
 
     let iteration = 0;
+
     function setOptions(item){
 
         const name = item.FIELD_NAME;
@@ -374,7 +389,7 @@ function initMap() {
             const countrtSelect = document.querySelectorAll('select.country');
             const cooperationSelect = document.querySelectorAll('select.cooperation');
             const profileSelect = document.querySelectorAll('select.profile');
-            const activitySelect = document.querySelectorAll('select.activity');
+            const industrySelect = document.querySelectorAll('select.industry');
 
             let itemValue;
             const fragment = document.createDocumentFragment();
@@ -391,6 +406,7 @@ function initMap() {
 
                         if(name == 'industry'){
                             itemValue = item;
+
                         }else{
                             itemValue = item.VALUE;
                         }
@@ -417,7 +433,7 @@ function initMap() {
             }else if(name == 'profile'){
                 mapping(profileSelect);
             }else if(name == 'industry'){
-                mapping(activitySelect);
+                mapping(industrySelect);
             }
 
         }
@@ -455,7 +471,6 @@ function initMap() {
 
         e.target.href=`//google.ru/maps/dir/?api=1&origin=${from}&destination=${to}&travelmode=DRIVING`;
 
-        //this.unbind(e);
         this.click();
     });
 
@@ -463,8 +478,6 @@ function initMap() {
         const target = e.target;
 
         let filterAdditionalShow = document.querySelector(`.js-filter-additional.show`) || null;
-
-        console.log();
 
         if(
             !target.classList.contains('js-btn') &&
@@ -493,7 +506,6 @@ function initMap() {
 
             item.classList.add('active');
 
-
             [].slice.call(filterAdditional).forEach(function (additionalWrap) {
 
                 additionalWrap.classList.remove('show');
@@ -513,7 +525,6 @@ function initMap() {
                 }
 
                 activeFilterBtn = itemType;
-
 
             }else{
                 activeFilterBtn = null;
@@ -561,7 +572,7 @@ function initMap() {
 
             num = target.innerHTML + '000';
             num = +num.replace(/ km/gi, '');
-            console.log('this: ', num);
+            //console.log('this: ', num);
             RADIUS = num;
             geocodeAddress(geocoder, map, RADIUS);
         }
@@ -570,7 +581,6 @@ function initMap() {
 
 
     function geocodeAddress() {
-
 
         let address = SEARCH_VALUE;
 
@@ -634,24 +644,8 @@ function initMap() {
 
                 let place = autocomplete.getPlace();
 
-                /*if (!place.geometry) {
-                 // User entered the name of a Place that was not suggested and
-                 // pressed the Enter key, or the Place Details request failed.
-                 window.alert("No details available for input: '" + place.name + "'");
-                 return;
-                 }
-                 */
-                // If the place has a geometry, then present it on a map.
-                /*if (place.geometry.viewport) {
-                 map.fitBounds(place.geometry.viewport);
-                 }else {
-                 map.setCenter(place.geometry.location);
-                 map.setZoom(17);  // Why 17? Because it looks good.
-                 }*/
-
                 SEARCH_VALUE = item.value || null;
 
-                //directionMarker.setPosition(place.geometry.location);
                 directionMarker.setVisible(true);
 
                 geocodeAddress(geocoder, map);
@@ -681,7 +675,6 @@ function initMap() {
             directionLinksArr.forEach(function (item, i) {
 
                 item.addEventListener('click', function (e) {
-
                     e.preventDefault();
 
                     // if Searching (== 0)
@@ -716,11 +709,7 @@ function initMap() {
                             item.innerHTML = '';
                         });
 
-                        //directionsInfoWrap = itemWrap.classList.add('active');
-
-
                         setActiveResultItem(itemId);
-
 
                         getDirections();
                     }
@@ -728,11 +717,8 @@ function initMap() {
                     toggleStateOfResultItems(itemId);
 
                 });
-
             });
-
         }
-
     }
 
     [].slice.call(travelTypeBtn).forEach(function (item) {
@@ -812,12 +798,9 @@ function initMap() {
 
         ACTIVE_RESULT_ITEM_ID = itemId;
 
-
     }
 
     function toggleStateOfResultItems(itemId){
-
-        console.log('toggleStateOfResultItems()');
 
         const filterResultItemsArr = [].slice.call(filterResultItem);
 
@@ -830,7 +813,6 @@ function initMap() {
                 item.classList.remove('hide');
             });
         }
-
     }
 
     function showDetails() {
@@ -851,7 +833,6 @@ function initMap() {
                 renderPopUp(marker);
             });
         });
-
     }
 
     function setMarkers(LOCATIONS, animation){
@@ -860,22 +841,31 @@ function initMap() {
             removeMarkers();
         }
 
+        //console.log('setMarkers() -> LOCATIONS: ', LOCATIONS);
+
         LOCATIONS.forEach( function( element, i ) {
 
             marker = new google.maps.Marker({
-                position: element.position,
                 map: map,
                 animation: animation,
-                title: element.title,
-                icon: element.icon,
-                type: element.type,
-                schedule: element.schedule,
-                address: element.address,
-                lat: element.position.lat,
-                lng: element.position.lng,
-                id: element.id,
-                name: element.name || null,
-                //animation: google.maps.Animation.BOUNCE,
+                id: element.ID,
+                position: element.POSITION,
+                title: element.TITLE,
+                icon: element.ICON,
+                type: element.TYPE,
+                schedule: element.SCHEDULE,
+                address: element.ADDRESS,
+                lat: element.LAT,
+                lng: element.LNG,
+                status: element.STATUS,
+                med_profile: element.MED_PROFILE,
+                industry: element.INDUSTRY,
+                wochenede: element.WOCHENENDE,
+                cooperation: element.COOPERATION,
+                phone_fax: element.PHONE_FAX,
+                phone_mobile: element.PHONE_MOBILE,
+                phone_work: element.PHONE_WORK,
+                name: element.NAME || null,
             });
 
             allMarkers.push(marker);
@@ -895,7 +885,6 @@ function initMap() {
             });
 
         });
-
         renderList(allMarkers); // renders list of markers
     }
 
@@ -916,25 +905,45 @@ function initMap() {
             popUpIsActive.close();
         }
 
-        const {title, type} = item; // item data
+        let {title, type, address, schedule, id, phone_work, phone_fax, phone_mobile, cooperation, status, sex, med_profile, wochenende, ausendienst} = item; // item data
+        let med_profiles = '';
+        let profile;
+
+        if(med_profile){
+
+            for(let i = 0; i < med_profile.length; i++){
+
+                if(i != (med_profile.length - 1)){
+                    profile = med_profile[i] + ',&nbsp;';
+
+                }else{
+                    profile = med_profile[i];
+
+                }
+
+                med_profiles += profile;
+            }
+
+        }else{
+            med_profile = null;
+
+        }
 
         let infoWindowContent = `
           <div class="popUp">
-              <h3>${title}&nbsp;<a href="#">to Bitrix24</a></h3>
-              <p>Адрес</p>
-              <p>Медпрофиль контакта или компании</p>
-              <p>Сотрудничество</p>
-              <p>Wochenende ( компания и контакт)</p>
-              <p>Wochenende ( компания и контакт)</p>
-              <p>Ausendienst ( только для контактов)</p>
-              <p>Статус компании или контакта</p>
-              <p>Телефон раб</p>
-              <p>Факс</p>
-              <p>Мобильный (под вопросом)</p>
-              ${type == 'doctor' ? '<p>Пол (муж или жен)</p>' : ''}
+              <h3 style="font-weight: 700;">${title}&nbsp;<a href="${BxCompanyURL}${id}/" target="_blank">Open</a></h3>
+              <p>Addess:&nbsp;${address}</p>
+              ${med_profile ? '<p>Медпрофиль:&nbsp;' + med_profiles + '</p>' : ''}
+              ${cooperation ? '<p>Cooperation:&nbsp;' + cooperation + '</p>' : ''}
+              ${wochenende != null ? '<p>Wochenende:&nbsp;' + wochenende + '</p>' : ''}
+              ${ausendienst != null ? '<p>Ausendienst:&nbsp;' + ausendienst + '</p>' : ''}
+              ${status != null ? '<p>Status:&nbsp;' + status + '</p>' : ''}
+              ${phone_work ? '<p>Work:&nbsp;<a href="tel:' + phone_work + '">' + phone_work + '</a></p>' : ''}
+              ${phone_fax ? '<p>Fax:&nbsp;' + phone_fax + '</p>' : ''}
+              ${phone_mobile ? '<p>Mobile:&nbsp;<a href="tel:' + phone_mobile + '">' + phone_mobile + '</a></p>' : ''}
+              ${type == 'doctor' && sex ? '<p>Пол (муж или жен)</p>' : ''}
           </div>
-
-      `;
+        `;
 
         const infoWindow = new google.maps.InfoWindow({
             content: infoWindowContent
@@ -943,7 +952,6 @@ function initMap() {
         infoWindow.open(map, item);
 
         popUpIsActive = infoWindow;
-
     }
 
     function renderList(markersList){
@@ -956,6 +964,8 @@ function initMap() {
             type;
 
         resultList.innerHTML = ''; // Clear list
+
+        //console.log('renderList(markersList): ', markersList);
 
         if(allMarkersLength){
             for(let i = 0; i < allMarkersLength; i++){
@@ -971,28 +981,28 @@ function initMap() {
                 }
 
                 newReultItem.innerHTML = `
-              <h3 class="title">
-                  <a 
-                      href="#" 
-                      class="to-center-link js-to-center-link" 
-                      data-lat="${markersList[i].lat}" 
-                      data-lng="${markersList[i].lng}"
-                      data-marker-id="${markersList[i].id}"
-                  >
-                      ${markersList[i].title}
-                  </a>
-              </h3>
-              <p class="info">Open:&nbsp;<span class="value">${markersList[i].schedule}</span>,&nbsp;<span class="type hospital">${type}</span></p>
-              <p class="address">${markersList[i].address}</p>
-              <div class="bottom">
-                  <a href="#" class="direction js-direction" data-direction="${markersList[i].address}">Get direction</a>
-                  <a href="#" class="more js-more" data-marker-id="${markersList[i].id}">Details</a>
-              </div>
-              <div class="directions-info js-directions-info">
-                  <div class="js-duration"></div>
-                  <div class="distance js-distance"></div>
-              </div>
-          `;
+                  <h3 class="title">
+                      <a 
+                          href="#"
+                          class="to-center-link js-to-center-link" 
+                          data-lat="${markersList[i].lat}" 
+                          data-lng="${markersList[i].lng}"
+                          data-marker-id="${markersList[i].id}"
+                      >
+                          ${markersList[i].title}
+                      </a>
+                  </h3>
+                  <p class="info">${markersList[i].schedule ? 'Open:&nbsp;<span class="value">'  +markersList[i].schedule + '</span>,&nbsp;' : ''}<span class="type hospital">${type}</span></p>
+                  <p class="address">${markersList[i].address}</p>
+                  <div class="bottom">
+                      <a href="#" class="direction js-direction" data-direction="${markersList[i].address}">Get direction</a>
+                      <a href="#" class="more js-more" data-marker-id="${markersList[i].id}">Details</a>
+                  </div>
+                  <div class="directions-info js-directions-info">
+                      <div class="js-duration"></div>
+                      <div class="distance js-distance"></div>
+                  </div>
+               `;
 
                 resultListFragment.appendChild(newReultItem);
             }
@@ -1006,7 +1016,6 @@ function initMap() {
             //resultList.innerHTML = '<li class="filter__result__item">not found</li>';
             resultList.innerHTML = 'not found';
         }
-
     }
 
     function linkToCenterItem(map){
@@ -1050,16 +1059,10 @@ function initMap() {
                     activeMarker = allMarkers[i];
                 }
             }
-
         }
-
     }
 
     linkToCenterItem(map);
-
-    function search() {
-
-    }
 
     clearFieldBtnsArr.forEach(function (item) {
         item.addEventListener('click', function () {
@@ -1083,7 +1086,7 @@ function initMap() {
         if(value){
 
             if(value != emptyValue){
-                FILTER_PARAMS[item] = value; //  INDUSTRY
+                FILTER_PARAMS[item] = value; // INDUSTRY
 
             }else{
                 FILTER_PARAMS[item] = null;
@@ -1111,6 +1114,7 @@ function initMap() {
 
         let locFilterArr = LOCATIONS;
         let filterParamsKeys = [];
+        let itemKey;
 
         if(!addParams){
             FILTER_PARAMS = {};
@@ -1118,8 +1122,12 @@ function initMap() {
 
         FILTER_PARAMS.type = type;
 
+        //console.log('FILTER_PARAMS: ', FILTER_PARAMS);
+        console.log('locFilterArr: ', locFilterArr);
+
         if(FILTER_PARAMS.type == 'all'){
             locFilterArr = LOCATIONS;
+
         }else if(FILTER_PARAMS.type == 'clinics' || FILTER_PARAMS.type == 'doctors'){
 
             filterParamsKeys = Object.keys(FILTER_PARAMS);
@@ -1129,14 +1137,27 @@ function initMap() {
             filterParamsKeys.forEach(function(key){
 
                 if(FILTER_PARAMS[key] != null ){
+
                     locFilterArr = locFilterArr.filter(item => {
 
-                        if(key == 'type'){
+                        itemKey = item[key.toUpperCase()];
 
-                            return item.type == type;
+                        if(key == 'type'){
+                            return item.TYPE == type;
+
+                        }else if(key == 'med_profile'){
+
+                            if(itemKey && itemKey.indexOf(FILTER_PARAMS[key]) != -1){
+                                return item;
+
+                            }else{
+                                return;
+
+                            }
+
 
                         }else{
-                            return item[key] == FILTER_PARAMS[key];
+                            return itemKey == FILTER_PARAMS[key];
                         }
 
                     });
@@ -1146,20 +1167,22 @@ function initMap() {
 
         }else if(FILTER_PARAMS.type == 'notdienst'){
             locFilterArr = LOCATIONS.filter(item =>
-                item.activity.toLowerCase() == 'notfallpraxis' || item.activity.toLowerCase() == 'bereitsschaftdienst' );
+                item.INDUSTRY && (item.INDUSTRY.toLowerCase() == 'notfallpraxis' || item.INDUSTRY.toLowerCase() == 'bereitsschaftdienst') );
+
         }else if(FILTER_PARAMS.type == 'taxi'){
-            locFilterArr = LOCATIONS.filter(item => item.activity.toLowerCase() == 'taxi unternehmer' );
+            locFilterArr = LOCATIONS.filter(item => item.INDUSTRY && item.INDUSTRY.toLowerCase() == 'taxi unternehmer' );
+
         }else if(FILTER_PARAMS.type == 'krankenwahgentransport'){
-            locFilterArr = LOCATIONS.filter(item => item.activity.toLowerCase() == 'krankenwahgentransport' );
+            locFilterArr = LOCATIONS.filter(item => item.INDUSTRY && item.INDUSTRY.toLowerCase() == 'krankenwahgentransport' );
+
         }else if(FILTER_PARAMS.type == 'privatärztlichenotdienst'){
-            locFilterArr = LOCATIONS.filter(item => item.activity.toLowerCase() == 'privatärztlichenotdienst' );
+            locFilterArr = LOCATIONS.filter(item => item.INDUSTRY && item.INDUSTRY.toLowerCase() == 'privatärztlichenotdienst' );
         }
 
         //if(activeFilter !== type){
 
         removeMarkers();
         setMarkers(locFilterArr, animationDrop);
-        search();
 
         activeFilter = type;
         //}

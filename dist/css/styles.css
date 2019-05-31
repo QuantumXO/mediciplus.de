@@ -102,6 +102,7 @@ body {
       line-height: 32px;
       cursor: pointer; }
       .jq-select-multiple ul li:hover {
+        color: #ffffff;
         background: #08C; }
   .jq-select-multiple.show {
     height: auto !important; }
@@ -112,6 +113,7 @@ select {
 
 body {
   font-size: 16px;
+  min-height: 750px;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
 
 .container {
@@ -703,7 +705,9 @@ body {
           display: -webkit-box;
           display: -webkit-flex;
           display: -ms-flexbox;
-          display: flex; }
+          display: flex;
+          max-height: 787px;
+          overflow-y: auto; }
         .filter__header__params__list label {
           padding: 0 10px; }
         .filter__header__params__list .close {
@@ -856,4 +860,4 @@ body {
   -webkit-flex: 1;
   -ms-flex: 1;
   flex: 1;
-  height: 693px; }
+  height: 950px; }
