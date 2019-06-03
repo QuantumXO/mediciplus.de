@@ -1,15 +1,5 @@
-(function($) {
-    $(function() {
 
-        // jQuery Form Styler
-        // http://dimox.name/jquery-form-styler
-        $('.filter__radio').styler();
-        $('.filter__select').styler();
-
-    });
-})(jQuery);
-
-
+////////////////////////////////////////////////////////////////////////////////
 function initMap() {
 
     // Search
@@ -47,7 +37,7 @@ function initMap() {
     const defaultZoom = 11;
     const geocoder = new google.maps.Geocoder();
     const directionsService = new google.maps.DirectionsService;
-    const directionsDisplay = new google.maps.DirectionsRenderer;
+    let directionsDisplay = new google.maps.DirectionsRenderer;
     const hospitalIcon = "./img/hospital.png";
     const hospitalIconWidth = 26;
     const hospitalIconHeight = 33.8;
@@ -66,6 +56,9 @@ function initMap() {
     const animationDrop = google.maps.Animation.DROP;
     const animationBounce= google.maps.Animation.BOUNCE;
 
+    const ITERATION_SELECT_NUM = 8;
+
+    let industry_ARR = [];
     let marker,
         RADIUS = 10000,
         allMarkers = [],
@@ -79,10 +72,19 @@ function initMap() {
         APP_STATUS = 0; //  0 - search | 1 - direction
 
     let clientMarker,
-        clientMarkerRadius;
+        FILTER_PARAMS = {
+            type: 'All',
+            radius: RADIUS
+        },
+        clientMarkerRadius,
+        CLIENT_ADDRESS,
+        CLIENT_LAT,
+        CLIENT_LNG;
+
+    var CLIENT_LOCATION;
 
     const map = new google.maps.Map(document.getElementById('map'), options);
-    const locations = [
+    let LOCATIONS = [
         {
             id: 0,
             title: 'Clinic',
@@ -90,30 +92,16 @@ function initMap() {
             icon: {
                 url: hospitalIcon,
                 scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
-             },
+            },
             schedule: '00:00–00:00',
             type: 'clinic',
             address: 'Kovpaka St, 3, Kyiv, 02000',
-            lat: 50.418861,
-            lng: 30.526437,
+            //lat: 50.418861,
+            //lng: 30.526437,
             dutyClinic: true,
             aussendienst: false,
-        },
-        {
-            id: 1,
-            title: 'Clinic 1',
-            position: {lat: 50.428157, lng: 30.527383},
-            icon: {
-                url: hospitalIcon,
-                scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
-            },
-            schedule: '08:00–20:00',
-            type: 'clinic',
-            address: '2, Henerala Almazova St, Kyiv, 02000',
-            lat: 50.428157,
-            lng: 30.527383,
-            dutyClinic: true,
-            aussendienst: false,
+            industry: 'Notfallpraxis',
+            cooperation: 'В процессе договорённости',
         },
         {
             id: 2,
@@ -127,70 +115,374 @@ function initMap() {
             type: 'doctor',
             name: 'Иванов иван иванович',
             address: '3, Henerala Almazova St, Kyiv, 02000',
-            lat: 50.424270,
-            lng: 30.516910,
+            //lat: 50.424270,
+            //lng: 30.516910,
             dutyClinic: true,
             aussendienst: false,
-        },
-        {
-            id: 3,
-            title: 'Clinic 2',
-            position: {lat: 50.441555, lng: 30.527385},
-            icon: {
-                url: hospitalIcon,
-                scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
-            },
-            schedule: '08:00–20:00',
-            type: 'clinic',
-            address: '14, Henerala Almazova St, Kyiv, 02000',
-            lat: 50.441555,
-            lng: 30.527385,
-            dutyClinic: true,
-            aussendienst: true,
-        },
-        {
-            id: 4,
-            title: 'Clinic 3',
-            position: {lat: 50.424160, lng: 30.481633},
-            icon: {
-                url: hospitalIcon,
-                scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
-            },
-            schedule: '08:00–20:00',
-            type: 'clinic',
-            address: '14, Henerala Almazova St, Kyiv, 02000',
-            lat: 50.424160,
-            lng: 30.481633,
-            dutyClinic: false,
-            aussendienst: false,
-        },
-        {
-            id: 5,
-            title: 'Clinic 4',
-            position: {lat: 50.445192, lng: 30.516832},
-            icon: {
-                url: hospitalIcon,
-                scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
-            },
-            schedule: '08:00–20:00',
-            type: 'clinic',
-            address: '14, Henerala Almazova St, Kyiv, 02000',
-            lat: 50.445192,
-            lng: 30.516832,
-            dutyClinic: false,
-            aussendienst: false,
+            industry: 'krankenwahgentransport',
         },
     ];
 
-    const defaultLocations = locations;
+    const dataURL = '/map/feed/map_feed.json';
+    const BxCompanyURL = 'https://test.portal.mediciplus.de/crm/company/details/';
+    const defaultLocations = LOCATIONS;
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    const jqStylerConfig = {
+        onSelectClosed: function() {
 
-    /*searchFindBtn.addEventListener('click', function () {
-        searhField.focus();
-        autocompliteFunc();
-    });*/
+            const $this = $(this);
+
+            if(!$this.hasClass('radius__select')){
+                getAddParams($(this));
+            }
+
+        }
+    };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Custom
+    function custom(){
+
+        $('.radius__select').styler();
+
+        document.body.addEventListener('click', function(e){
+
+            const target = e.target;
+            const multiSelect = document.querySelectorAll('.jq-select-multiple');
+            const wrap = e.target.parentNode.parentNode;
+
+            if(
+                wrap.classList.contains('jq-select-multiple') ||
+                target.closest('.jq-select-multiple')
+            ){
+                wrap.classList.add('show');
+
+                if(target.nodeName == 'LI'){
+
+                    let arr = [];
+                    const selected = target.closest('ul').querySelectorAll('li.selected');
+
+                    for(let i = 0; i < selected.length; i++){
+                        //console.log('selected[i]: ', selected[i].innerHTML);
+                        arr.push(selected[i].innerHTML);
+                    }
+
+                    getAddParams('industry', arr);
+
+                }
+
+            }else{
+                [].slice.call(multiSelect).forEach(function(item){
+                    item.classList.remove('show');
+                });
+
+            }
+
+        });
+
+
+    }custom();
+
+    async function getClientLocation(){
+
+        CLIENT_ADDRESS = searhField.value.replace(/ /gi, '+') || null;
+
+        const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${CLIENT_ADDRESS}&key=AIzaSyBeVoPDyYZyUq-h735KGeK4OA9-BEuecBg&libraries`);
+        const data = await response.json();
+
+        if(data.status == 'OK'){
+
+            CLIENT_LAT = +data.results[0].geometry.location.lat;
+            CLIENT_LNG = +data.results[0].geometry.location.lng;
+
+            await getData();
+
+        }else{
+            console.log('getClientLocation() -> error: ', data);
+        }
+
+    }getClientLocation();
+
+    function getData(){
+
+        fetch(dataURL)
+            .then(response => {
+                if(response.status == 200){
+                    return response.json();
+                }
+            })
+            .then(function(data) {
+
+                //console.log('getData() -> data: ', data);
+
+                if(data){
+
+                    CLIENT_ADDRESS = searhField.value || null;
+
+                    data.forEach(function(item, i){
+
+                        let lat,
+                            lng,
+                            type,
+                            icon,
+                            distance,
+                            position;
+
+                        if(item.INDUSTRY == 'NOTPROFIT'){ // Клиника [Мед. Клиника]
+                            item.TYPE = 'clinic';
+                        }else if(item.INDUSTRY == '3'){ // Доктор [Мед. Ассистанс]
+                            item.TYPE = 'doctor';
+                        }else {
+                            item.TYPE = 'undefined';
+                        }
+
+                        if(item.TYPE == 'clinic'){
+                            item.ICON = {
+                                url: hospitalIcon,
+                                scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
+                            };
+
+                        }else{
+                            item.ICON = {
+                                url: doctorIcon,
+                                scaledSize: new google.maps.Size(doctorIconWidth, doctorIconHeight)
+                            };
+                        }
+
+                        item.LAT = item.LAT || 0;
+                        item.LNG = item.LNG || 0;
+
+                        lat = item.LAT
+                        lng = item.LNG;
+
+                        item.POSITION = {lat: lat, lng: lng};
+
+                        distance = getDistanceFromLatLonInKm(+CLIENT_LAT, +CLIENT_LNG, +lat, +lng);
+
+                        item.STATUS = item.STATUS || null;
+                        item.SCHEDULE = item.SCHEDULE || null;
+                        item.DISTANCE = Math.round(distance);
+                        //em.PHONE_FAX = item.PHONE_FAX || null;
+                        //em.PHONE_MOBILE = item.PHONE_MOBILE || null;
+                        //em.PHONE_WORK = item.PHONE_WORK || null;
+                        //em.WOCHENENDE = item.WOCHENENDE || null;
+                        //em.COOPERATION = item.COOPERATION || null;
+                        //em.MED_PROFILE = item.MED_PROFILE || null;
+
+                    });
+
+                    LOCATIONS = data;
+
+                    //console.log('getData() -> LOCATIONS: ', LOCATIONS);
+
+                    filter(FILTER_PARAMS.type, FILTER_PARAMS);
+
+                    //setMarkers(LOCATIONS, animationDrop); // first init of markers
+                }
+
+            });
+
+    }
+
+    function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+        var R = 6371; // Radius of the earth in km
+        var dLat = deg2rad(lat2-lat1);  // deg2rad below
+        var dLon = deg2rad(lon2-lon1);
+        var a =
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        var d = R * c; // Distance in km
+
+        //console.log(`lat1: ${lat1}, lon1: ${lon1}, lat2: ${lat2}, lon2: ${lon2}, `);
+
+        return d;
+    }
+
+    function deg2rad(deg) {
+        return deg * (Math.PI/180)
+    }
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+// Битрикс24
+
+    BX24.fitWindow(); // Resize frame
+
+    BX24.callMethod(
+        "crm.company.userfield.list",
+        {
+            order: { "SORT": "ASC" }
+        },
+        function(result){
+
+            if(result.error())
+                console.error(result.error());
+            else{
+
+                //console.log(`crm.company.userfield.list : `, result.data());
+                return result;
+            }
+        }
+    );
+
+    const getFieldsIndustry = function(){
+        BX24.callMethod(
+            "crm.status.list",
+            {
+                order: { "SORT": "ASC" },
+                filter: {
+                    "ENTITY_ID": 'INDUSTRY'
+                }
+            },
+            function(result){
+                if(result.error()){
+                    console.error(result.error());
+                }else{
+                    result = result.data();
+
+                    let newArr = [];
+                    let obj = {};
+
+                    result.forEach(function(item){
+                        newArr.push({
+                            ID: item.STATUS_ID,
+                            VALUE: item.NAME
+                        });
+                    });
+
+                    result = {
+                        'FIELD_NAME' : 'industry',
+                        'LIST' : newArr,
+                    };
+
+                    //console.log(`result : `, result);
+
+                    setOptions(result);
+                }
+            }
+        );
+    };
+
+    const getCompanyUserfieldValues = function(FIELD_NAME){
+
+        let valuesList;
+
+        BX24.callMethod(
+            "crm.company.userfield.list",
+            {
+                order: { "SORT": "ASC" },
+                filter: { "FIELD_NAME": FIELD_NAME }
+            },
+            function(result){
+                if(result.error()){
+                    console.error(result.error());
+
+                }else{
+
+                    //console.log(`result.data() : `, result.data()[0].LIST);
+
+                    let name,
+                        list = [];
+
+                    if(FIELD_NAME == 'UF_CRM_1438258999'){
+                        FIELD_NAME = 'cooperation';
+                    }else if(FIELD_NAME == 'UF_CRM_1387031615'){
+                        FIELD_NAME = 'profile';
+                    }else if(FIELD_NAME == 'UF_CRM_1402932716'){
+                        FIELD_NAME = 'country';
+                    }
+
+                    result.data()[0].LIST.forEach(function(item){
+
+                        list.push({
+                            ID: item.ID,
+                            VALUE: item.VALUE
+                        });
+                    });
+
+                    result = {
+                        FIELD_NAME : FIELD_NAME,
+                        LIST : list
+                    };
+
+                    //console.log('result: ', result);
+
+                    setOptions(result);
+                    //return result;
+                }
+            }
+        );
+    };
+
+    const industry = getFieldsIndustry('industry'); // Сфера деятельности
+    const COOPERATIONS = getCompanyUserfieldValues('UF_CRM_1438258999'); //Cooperation
+    const PROFILES = getCompanyUserfieldValues("UF_CRM_1387031615"); // Мед. Профиль Компании
+    const COUNTRIES = getCompanyUserfieldValues("UF_CRM_1402932716"); // country
+
+    let iteration = 0;
+
+    function setOptions(item){
+
+        const name = item.FIELD_NAME;
+        const list = item.LIST;
+
+        if(list){
+            const countrtSelect = document.querySelectorAll('select.country');
+            const cooperationSelect = document.querySelectorAll('select.cooperation');
+            const profileSelect = document.querySelectorAll('select.profile');
+            const industrySelect = document.querySelectorAll('select.industry');
+
+            let itemValue,
+                itemId;
+            const fragment = document.createDocumentFragment();
+
+            function mapping(node){
+
+                for(let i = 0; i < node.length; i++){
+
+                    list.forEach(function(item){
+                        let newOption = document.createElement('option');
+
+                        itemValue = item.VALUE;
+                        itemId = item.ID;
+
+                        newOption.innerHTML = itemValue;
+                        newOption.value = itemValue;
+                        newOption.setAttribute('data-value', itemId);
+                        fragment.appendChild(newOption);
+
+                    });
+
+                    node[i].appendChild(fragment);
+                    iteration++;
+                }
+
+                if(iteration == ITERATION_SELECT_NUM){
+                    $('.filter__select').styler(jqStylerConfig);
+                }
+            }
+
+            if(name == 'country'){
+                mapping(countrtSelect);
+            }else if(name == 'cooperation'){
+                mapping(cooperationSelect);
+            }else if(name == 'profile'){
+                mapping(profileSelect);
+            }else if(name == 'industry'){
+                mapping(industrySelect);
+            }
+
+        }
+    }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Map init
 
     if(SEARCH_VALUE){
         searchField.value = SEARCH_VALUE;
@@ -219,7 +511,6 @@ function initMap() {
 
         e.target.href=`//google.ru/maps/dir/?api=1&origin=${from}&destination=${to}&travelmode=DRIVING`;
 
-        //this.unbind(e);
         this.click();
     });
 
@@ -232,8 +523,7 @@ function initMap() {
             !target.classList.contains('js-btn') &&
             !target.parentNode.classList.contains('js-btn') &&
             !target.classList.contains('js-filter-additional') &&
-            !target.parentNode.classList.contains('js-filter-additional')
-
+            !target.closest('.js-filter-additional')
         ){
             if(filterAdditionalShow){
                 filterAdditionalShow.classList.remove('show');
@@ -256,8 +546,6 @@ function initMap() {
 
             item.classList.add('active');
 
-            filter(itemType);
-
             [].slice.call(filterAdditional).forEach(function (additionalWrap) {
 
                 additionalWrap.classList.remove('show');
@@ -266,17 +554,24 @@ function initMap() {
 
             additionalWrapCurrent = document.querySelector(`.js-filter-additional[data-type=${itemType}]`) || null;
 
+            if(itemType != btnActive.getAttribute('data-type')){
+                filter(itemType, null);
+            }
+
             if(itemType != activeFilterBtn && itemType != 'all'){
 
-                additionalWrapCurrent.classList.add('show');
+                if(additionalWrapCurrent){
+                    additionalWrapCurrent.classList.add('show');
+                }
 
                 activeFilterBtn = itemType;
 
             }else{
-
                 activeFilterBtn = null;
             }
 
+
+            directionsDisplay.setMap(null);
         });
     });
 
@@ -304,36 +599,44 @@ function initMap() {
         }
     }
 
-    //[].slice.call(directionFields).forEach(function (item) {
-        directionFromField.addEventListener('keyup', function () {
-            directionFieldsError();
-        });
-    //});
-
-    [].slice.call(document.querySelectorAll('li.radius__value')).forEach(function (item) {
-        let num;
-
-        item.addEventListener('click', function () {
-            num = this.innerHTML + '000';
-            num = +num.replace(/ km/gi, '');
-            console.log('this: ', num);
-            RADIUS = num;
-            geocodeAddress(geocoder, map, RADIUS);
-        })
+    directionFromField.addEventListener('keyup', function () {
+        directionFieldsError();
     });
 
-    /*filterRadius.addEventListener('input', function () {
-        let value = +this.value;
 
-        document.getElementsByClassName('filter__radius__value')[0].innerHTML =  value;
+    document.body.addEventListener('click', function(e){
+        const target = e.target;
 
-        RADIUS = +value*1000;
+        let num;
 
-        geocodeAddress(geocoder, map, RADIUS);
-    });*/
+        if(target.nodeName == 'LI' && target.classList.contains('radius__value')){
+
+            num = target.innerHTML + '000';
+            num = +num.replace(/ km/gi, '');
+            //console.log('this: ', num);
+
+            if(num != 0){
+                RADIUS = num;
+
+                geocodeAddress();
+
+            }else{
+
+                RADIUS = 100000000000;
+                geocodeAddress();
+            }
+
+
+            FILTER_PARAMS.radius = RADIUS;
+
+            filter(FILTER_PARAMS.type, FILTER_PARAMS);
+        }
+
+    });
 
 
     function geocodeAddress() {
+
         let address = SEARCH_VALUE;
 
         geocoder.geocode({'address': address}, function(results, status) {
@@ -356,8 +659,8 @@ function initMap() {
                     strokeOpacity: 0.3,
                     strokeWeight: 1,
                     fillColor: '#00B1DA',
-                    fillOpacity: 0.35,
-                    map: map,
+                    fillOpacity: 0.20,
+                    map: RADIUS != 100000000000 ? map : null,
                     center: results[0].geometry.location,
                     radius: RADIUS // in meters
                 });
@@ -366,6 +669,7 @@ function initMap() {
                 alert('Geocode was not successful for the following reason: ' + status);
             }
         });
+
     }
 
     function autocompliteFunc() {
@@ -396,24 +700,10 @@ function initMap() {
 
                 let place = autocomplete.getPlace();
 
-                /*if (!place.geometry) {
-                    // User entered the name of a Place that was not suggested and
-                    // pressed the Enter key, or the Place Details request failed.
-                    window.alert("No details available for input: '" + place.name + "'");
-                    return;
-                }
-*/
-                // If the place has a geometry, then present it on a map.
-                /*if (place.geometry.viewport) {
-                    map.fitBounds(place.geometry.viewport);
-                }else {
-                    map.setCenter(place.geometry.location);
-                    map.setZoom(17);  // Why 17? Because it looks good.
-                }*/
-
                 SEARCH_VALUE = item.value || null;
 
-                //directionMarker.setPosition(place.geometry.location);
+                getClientLocation();
+
                 directionMarker.setVisible(true);
 
                 geocodeAddress(geocoder, map);
@@ -443,10 +733,9 @@ function initMap() {
             directionLinksArr.forEach(function (item, i) {
 
                 item.addEventListener('click', function (e) {
-
                     e.preventDefault();
 
-                    // if Searching (== 0)
+                    // if Searching (APP_STATUS == 0)
                     if(APP_STATUS == 0){
 
                         filterParamsWrap.classList.add('hidden');
@@ -459,41 +748,35 @@ function initMap() {
 
                     itemWrap = item.closest('.filter__result__item');
                     itemId = itemWrap.getAttribute('data-item-id');
-
                     linkAddress = item.getAttribute('data-direction');
 
                     directionFromField.value = SEARCH_VALUE;
                     directionToField.value = linkAddress;
 
+                    itemWrap.classList.add('active');
+
                     directionFieldsError();
 
-                    if(itemId !== ACTIVE_RESULT_ITEM_ID){
+                    //if(itemId !== ACTIVE_RESULT_ITEM_ID){
 
-                        durationsArr.forEach(function (item) {
-                            item.innerHTML = '';
-                        });
+                    durationsArr.forEach(function (item) {
+                        item.innerHTML = '';
+                    });
 
-                        distanceArr.forEach(function (item) {
-                            item.innerHTML = '';
-                        });
+                    distanceArr.forEach(function (item) {
+                        item.innerHTML = '';
+                    });
 
-                        //directionsInfoWrap = itemWrap.classList.add('active');
+                    setActiveResultItem(itemId);
 
-
-                        setActiveResultItem(itemId);
-
-
-                        getDirections();
-                    }
+                    getDirections();
+                    //}
 
                     toggleStateOfResultItems(itemId);
 
                 });
-
             });
-
         }
-
     }
 
     [].slice.call(travelTypeBtn).forEach(function (item) {
@@ -517,11 +800,16 @@ function initMap() {
         filterBlock[1].classList.add('hidden');
         directionFieldsWrap.classList.remove('show');
 
+        document.querySelector('.filter__result__item.active').classList.remove('active');
+
         APP_STATUS = 0; // search
 
         searhField.value = SEARCH_VALUE ? SEARCH_VALUE : null; // value from direction field
 
         toggleStateOfResultItems();
+
+        getDirections();
+
     });
 
     function getDirections(travelType){
@@ -533,13 +821,16 @@ function initMap() {
         // value from direction field
         directionFromField.value = SEARCH_VALUE ? SEARCH_VALUE : null;
 
-        if(directionFromField.value){
+        if(APP_STATUS != 0 && directionFromField.value ){
+
             directionsService.route({
                 origin: directionFromField.value, // from
                 destination: directionToField.value, // to
                 travelMode: TRAVEL_TYPE // type
             }, function(response, status) {
                 if (status === 'OK') {
+
+                    directionsDisplay.setMap(map);
                     directionsDisplay.setDirections(response);
 
                     let point = response.routes[0].legs[0];
@@ -551,6 +842,10 @@ function initMap() {
                     window.alert('Directions request failed due to ' + status);
                 }
             });
+        }else{
+
+            directionsDisplay.setMap(null);
+            //directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true});
         }
 
     }
@@ -571,12 +866,9 @@ function initMap() {
 
         ACTIVE_RESULT_ITEM_ID = itemId;
 
-
     }
 
     function toggleStateOfResultItems(itemId){
-
-        console.log('toggleStateOfResultItems()');
 
         const filterResultItemsArr = [].slice.call(filterResultItem);
 
@@ -589,7 +881,6 @@ function initMap() {
                 item.classList.remove('hide');
             });
         }
-
     }
 
     function showDetails() {
@@ -610,31 +901,39 @@ function initMap() {
                 renderPopUp(marker);
             });
         });
-
     }
 
-    function setMarkers(locations, animation){
+    function setMarkers(LOCATIONS, animation){
 
         if(allMarkers){
             removeMarkers();
         }
 
-        locations.forEach( function( element, i ) {
+        //console.log('setMarkers() -> LOCATIONS: ', LOCATIONS);
+
+        LOCATIONS.forEach( function( element, i ) {
 
             marker = new google.maps.Marker({
-                position: element.position,
                 map: map,
                 animation: animation,
-                title: element.title,
-                icon: element.icon,
-                type: element.type,
-                schedule: element.schedule,
-                address: element.address,
-                lat: element.lat,
-                lng: element.lng,
-                id: element.id,
-                name: element.name || null,
-                //animation: google.maps.Animation.BOUNCE,
+                id: element.ID,
+                position: element.POSITION,
+                title: element.TITLE,
+                icon: element.ICON,
+                type: element.TYPE,
+                schedule: element.SCHEDULE,
+                address: element.ADDRESS,
+                lat: element.LAT,
+                lng: element.LNG,
+                status: element.STATUS,
+                med_profile: element.MED_PROFILE,
+                industry: element.INDUSTRY,
+                wochenede: element.WOCHENENDE,
+                cooperation: element.COOPERATION,
+                phone_fax: element.PHONE_FAX,
+                phone_mobile: element.PHONE_MOBILE,
+                phone_work: element.PHONE_WORK,
+                name: element.NAME || null,
             });
 
             allMarkers.push(marker);
@@ -654,11 +953,10 @@ function initMap() {
             });
 
         });
-
         renderList(allMarkers); // renders list of markers
     }
 
-    setMarkers(locations, animationDrop); // first init of markers
+    setMarkers(LOCATIONS, animationDrop); // first init of markers
 
     function removeMarkers(){
 
@@ -675,24 +973,44 @@ function initMap() {
             popUpIsActive.close();
         }
 
-        const {title, type} = item; // item data
+        let {title, type, address, schedule, id, phone_work, phone_fax, phone_mobile, cooperation, status, sex, med_profile, wochenende, ausendienst} = item; // item data
+        let med_profiles = '';
+        let profile;
+
+        if(med_profile){
+
+            for(let i = 0; i < med_profile.length; i++){
+
+                if(i != (med_profile.length - 1)){
+                    profile = med_profile[i] + ',&nbsp;';
+
+                }else{
+                    profile = med_profile[i];
+
+                }
+
+                med_profiles += profile;
+            }
+
+        }else{
+            med_profile = null;
+
+        }
 
         let infoWindowContent = `
-            <div class="popUp">
-                <h3>${title}&nbsp;<a href="#">to Bitrix24</a></h3>
-                <p>Адрес</p>
-                <p>Медпрофиль контакта или компании</p>
-                <p>Сотрудничество</p>
-                <p>Wochenende ( компания и контакт)</p>
-                <p>Wochenende ( компания и контакт)</p>
-                <p>Ausendienst ( только для контактов)</p>
-                <p>Статус компании или контакта</p>
-                <p>Телефон раб</p>
-                <p>Факс</p>
-                <p>Мобильный (под вопросом)</p>
-                ${type == 'doctor' ? '<p>Пол (муж или жен)</p>' : ''}
-            </div>
-                
+          <div class="popUp">
+              <h3 style="font-weight: 700;">${title}&nbsp;<a href="${BxCompanyURL}${id}/" target="_blank">Open</a></h3>
+              <p>Addess:&nbsp;${address}</p>
+              ${med_profile ? '<p>Медпрофиль:&nbsp;' + med_profiles + '</p>' : ''}
+              ${cooperation ? '<p>Cooperation:&nbsp;' + cooperation + '</p>' : ''}
+              ${wochenende != null ? '<p>Wochenende:&nbsp;' + wochenende + '</p>' : ''}
+              ${ausendienst != null ? '<p>Ausendienst:&nbsp;' + ausendienst + '</p>' : ''}
+              ${status != null ? '<p>Status:&nbsp;' + status + '</p>' : ''}
+              ${phone_work ? '<p>Work:&nbsp;<a href="tel:' + phone_work + '">' + phone_work + '</a></p>' : ''}
+              ${phone_fax ? '<p>Fax:&nbsp;' + phone_fax + '</p>' : ''}
+              ${phone_mobile ? '<p>Mobile:&nbsp;<a href="tel:' + phone_mobile + '">' + phone_mobile + '</a></p>' : ''}
+              ${type == 'doctor' && sex ? '<p>Пол (муж или жен)</p>' : ''}
+          </div>
         `;
 
         const infoWindow = new google.maps.InfoWindow({
@@ -702,7 +1020,6 @@ function initMap() {
         infoWindow.open(map, item);
 
         popUpIsActive = infoWindow;
-
     }
 
     function renderList(markersList){
@@ -715,6 +1032,8 @@ function initMap() {
             type;
 
         resultList.innerHTML = ''; // Clear list
+
+        //console.log('renderList(markersList): ', markersList);
 
         if(allMarkersLength){
             for(let i = 0; i < allMarkersLength; i++){
@@ -730,28 +1049,28 @@ function initMap() {
                 }
 
                 newReultItem.innerHTML = `
-                <h3 class="title">
-                    <a 
-                        href="#" 
-                        class="to-center-link js-to-center-link" 
-                        data-lat="${markersList[i].lat}" 
-                        data-lng="${markersList[i].lng}"
-                        data-marker-id="${markersList[i].id}"
-                    >
-                        ${markersList[i].title}
-                    </a>
-                </h3>
-                <p class="info">Open:&nbsp;<span class="value">${markersList[i].schedule}</span>,&nbsp;<span class="type hospital">${type}</span></p>
-                <p class="address">${markersList[i].address}</p>
-                <div class="bottom">
-                    <a href="#" class="direction js-direction" data-direction="${markersList[i].address}">Get direction</a>
-                    <a href="#" class="more js-more" data-marker-id="${markersList[i].id}">Details</a>
-                </div>
-                <div class="directions-info js-directions-info">
-                    <div class="js-duration"></div>
-                    <div class="distance js-distance"></div>
-                </div>
-            `;
+                  <h3 class="title">
+                      <a 
+                          href="#"
+                          class="to-center-link js-to-center-link" 
+                          data-lat="${markersList[i].lat}" 
+                          data-lng="${markersList[i].lng}"
+                          data-marker-id="${markersList[i].id}"
+                      >
+                          ${markersList[i].title}
+                      </a>
+                  </h3>
+                  <p class="info">${markersList[i].schedule ? 'Open:&nbsp;<span class="value">'  + markersList[i].schedule + '</span>,&nbsp;' : ''}<span class="type hospital">${type}</span></p>
+                  <p class="address">${markersList[i].address}</p>
+                  <div class="bottom">
+                      <a href="#" class="direction js-direction" data-direction="${markersList[i].address}">Get direction</a>
+                      <a href="#" class="more js-more" data-marker-id="${markersList[i].id}">Details</a>
+                  </div>
+                  <div class="directions-info js-directions-info">
+                      <div class="js-duration"></div>
+                      <div class="distance js-distance"></div>
+                  </div>
+               `;
 
                 resultListFragment.appendChild(newReultItem);
             }
@@ -765,7 +1084,6 @@ function initMap() {
             //resultList.innerHTML = '<li class="filter__result__item">not found</li>';
             resultList.innerHTML = 'not found';
         }
-
     }
 
     function linkToCenterItem(map){
@@ -809,44 +1127,10 @@ function initMap() {
                     activeMarker = allMarkers[i];
                 }
             }
-
         }
-
     }
 
     linkToCenterItem(map);
-
-    function search() {
-
-        /*const markersList = allMarkers;
-
-        searchValue = searhField.value.toLowerCase();
-
-        let newMarkersList = [];
-
-        if(searchValue){
-
-            markersList.forEach(function(item) {
-                let {address, title, name} = item;
-
-                name = name ? name.toLowerCase() : null;
-                title = title ? title.toLowerCase() : null;
-                address = address ? address.toLowerCase() : null;
-
-                if( address.match(searchValue) ||
-                    title.match(searchValue) ||
-                    (name && name.match(searchValue))
-                ){
-                    newMarkersList.push(item);
-                }
-            });
-
-        }else{
-            newMarkersList = allMarkers;
-        }
-
-        renderList(newMarkersList);*/
-    }
 
     clearFieldBtnsArr.forEach(function (item) {
         item.addEventListener('click', function () {
@@ -861,40 +1145,132 @@ function initMap() {
         });
     });
 
-    /*filterParamsSelect.closest('.radius__select').addEventListener('click', function (e) {
-        const target = e.target;
-        const type = target.getAttribute('data-type') || null;
+    function getAddParams(item, value){
 
-        if(type){
-            filter(type);
-            map.setZoom(defaultZoom);
+        const emptyValue = "&nbsp;";
+
+        let paramName;
+
+        if(value){
+
+            if(value != emptyValue){
+                FILTER_PARAMS[item] = value; // INDUSTRY
+
+            }else{
+                FILTER_PARAMS[item] = null;
+            }
+
+        }else{
+            item = item[0];
+
+            //value = item.getElementsByClassName('jq-selectbox__select-text')[0].innerHTML;
+            value = item.querySelector('li.selected').getAttribute('data-value');
+
+            console.log('value: ', value);
+
+            paramName = item.closest('li.filter__header__params__item').querySelector('[data-param]').getAttribute('data-param');
+
+            if(value != emptyValue){
+                FILTER_PARAMS[paramName] = value;
+
+            }else{
+                FILTER_PARAMS[paramName] = null;
+            }
         }
-    });*/
 
-    function filter(type) {
+        filter(FILTER_PARAMS.type, FILTER_PARAMS);
 
-        let locFilterArr = [];
+    }
 
-        if(type == 'all'){
-            locFilterArr = locations;
-        }else if(type == 'clinics' || type == 'doctors'){
+    function filter(type, addParams) {
 
-            type = type == 'clinics' ? 'clinic' : 'doctor';
+        let locFilterArr = LOCATIONS;
+        let filterParamsKeys = [];
+        let itemKey;
 
-            locFilterArr = locations.filter(item => item.type === type );
-        }/*else if(type == 'dutyClinic'){
-            locFilterArr = locations.filter(item => item.dutyClinic);
-        }else if(type == 'aussendienst'){
-            locFilterArr = locations.filter(item => item.aussendienst);
-        }*/
-
-        if(activeFilter !== type){
-            removeMarkers();
-            setMarkers(locFilterArr, animationDrop);
-            search();
-
-            activeFilter = type;
+        if(!addParams){
+            FILTER_PARAMS = {};
         }
+
+        FILTER_PARAMS.radius = RADIUS;
+        FILTER_PARAMS.type = type.toLowerCase();
+
+
+        console.log('FILTER_PARAMS: ', FILTER_PARAMS);
+
+        locFilterArr = locFilterArr.filter(item => {
+
+            return item.DISTANCE <= FILTER_PARAMS.radius / 1000;
+
+        });
+
+        if(FILTER_PARAMS.type == 'all'){
+
+            locFilterArr = locFilterArr.filter(item => item.TYPE == 'clinic' || item.TYPE == 'doctor'); // locFilterArr = LOCATIONS;
+
+            console.log('locFilterArr: ', locFilterArr);
+
+        }else if(FILTER_PARAMS.type == 'clinics' || FILTER_PARAMS.type == 'doctors'){
+
+            filterParamsKeys = Object.keys(FILTER_PARAMS);
+
+            type = FILTER_PARAMS.type == 'clinics' ? 'clinic' : 'doctor';
+
+            filterParamsKeys.forEach(function(key){
+
+                if(FILTER_PARAMS[key] != null ){
+
+                    locFilterArr = locFilterArr.filter(item => {
+
+                        itemKey = item[key.toUpperCase()];
+
+                        if(key == 'type'){
+                            return item.TYPE == type;
+
+                        }else if(key == 'med_profile'){
+
+                            if(itemKey && itemKey.indexOf(FILTER_PARAMS[key]) != -1){
+                                return item;
+
+                            }else{
+                                return;
+                            }
+
+                        }else if(key != 'radius'){
+                            return itemKey == FILTER_PARAMS[key];
+
+                        }else{
+
+                            // if 'radius'
+                            return item;
+                        }
+
+                    });
+                }
+
+            });
+
+        }else if(FILTER_PARAMS.type == 'notdienst'){
+            locFilterArr = locFilterArr.filter(item =>
+                item.INDUSTRY && (item.INDUSTRY.toLowerCase() == 17 || item.INDUSTRY.toLowerCase() == 14) );
+
+        }else if(FILTER_PARAMS.type == 'taxi'){
+            locFilterArr = locFilterArr.filter(item => item.INDUSTRY && item.INDUSTRY.toLowerCase() == 21 );
+
+        }else if(FILTER_PARAMS.type == 'krankenwahgentransport'){
+            locFilterArr = locFilterArr.filter(item => item.INDUSTRY && item.INDUSTRY.toLowerCase() == 18 );
+
+        }else if(FILTER_PARAMS.type == 'privatärztlichenotdienst'){
+            locFilterArr = locFilterArr.filter(item => item.INDUSTRY && item.INDUSTRY.toLowerCase() == 22 );
+        }
+
+        //if(activeFilter !== type){
+
+        removeMarkers();
+        setMarkers(locFilterArr, animationDrop);
+
+        activeFilter = type;
+        //}
 
     }
 
