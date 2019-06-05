@@ -784,7 +784,12 @@ body {
     -ms-flex: 1;
     flex: 1;
     height: 100%;
-    padding: 0 10px 10px; }
+    padding: 0 10px 10px;
+    overflow: hidden; }
+    .filter__result__counter {
+      margin-top: 10px;
+      line-height: 1;
+      text-align: right; }
     .filter__result__list {
       min-width: 340px;
       max-width: 400px;

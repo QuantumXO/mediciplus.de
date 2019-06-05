@@ -195,7 +195,7 @@ function initMap() {
 
         const select = $('select.filter__select')
 
-        select.select2();
+        select.select2({minimumResultsForSearch: -1});
 
         select.on('select2:select', function(e){
             let data = e.params.data;
@@ -241,7 +241,7 @@ function initMap() {
             })
             .then(function(data) {
 
-                //console.log('getData() -> data: ', data);
+                console.log('getData() -> data: ', data);
 
                 if(data){
 
@@ -429,7 +429,6 @@ function initMap() {
                         FIELD_NAME = 'status';
                     }
 
-
                     result.data()[0].LIST.forEach(function(item){
 
                         list.push({
@@ -456,7 +455,6 @@ function initMap() {
                         STATUSES_LIST = result.LIST;
 
                     }
-
 
                     //console.log('result: ', result);
 
@@ -897,7 +895,7 @@ function initMap() {
             });
         }else{
 
-            directionsDisplay.setMap(null);
+            directionsDisplay.set('directions', null);
             //directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true});
         }
 
@@ -1137,7 +1135,21 @@ function initMap() {
         if(allMarkersLength){
             for(let i = 0; i < allMarkersLength; i++){
 
-                type = markersList[i].type == 'clinic' ? 'Clinic' : 'practice';
+                switch (markersList[i].type){
+                    case 'clinic':
+                        type = 'Clinic';
+                        break;
+
+                    case 'practice':
+                        type = 'Practice';
+                        break;
+
+                    case 'doctor':
+                        type = 'Doctor';
+                        break;
+                }
+
+                //type = markersList[i].type == 'clinic' ? 'Clinic' : 'Practice';
 
                 newReultItem = document.createElement('li');
                 newReultItem.classList.add('filter__result__item');
@@ -1328,15 +1340,28 @@ function initMap() {
 
         if(FILTER_PARAMS.type == 'all'){
 
-            locFilterArr = locFilterArr.filter(item => item.TYPE == 'clinic' || item.TYPE == 'practice'); // locFilterArr = LOCATIONS;
+            locFilterArr = locFilterArr.filter(item => item.TYPE == 'clinic' || item.TYPE == 'practice' || item.TYPE == 'doctor'); // locFilterArr = LOCATIONS;
 
             //console.log('locFilterArr: ', locFilterArr);
 
-        }else if(FILTER_PARAMS.type == 'clinics' || FILTER_PARAMS.type == 'practice'){
+        }else if(FILTER_PARAMS.type == 'clinics' || FILTER_PARAMS.type == 'practice' || FILTER_PARAMS.type == 'doctors'){
 
             filterParamsKeys = Object.keys(FILTER_PARAMS);
 
-            type = FILTER_PARAMS.type == 'clinics' ? 'clinic' : 'practice';
+            switch (FILTER_PARAMS.type){
+                case 'clinics':
+                    type = 'clinic';
+                    break;
+
+                case 'practice':
+                    type = 'practice';
+                    break;
+
+                case 'doctors':
+                    type = 'doctor';
+                    break;
+            }
+
 
             filterParamsKeys.forEach(function(key){
 
@@ -1362,7 +1387,6 @@ function initMap() {
                             return itemKey == FILTER_PARAMS[key];
 
                         }else{
-
                             // if 'radius'
                             return item;
                         }

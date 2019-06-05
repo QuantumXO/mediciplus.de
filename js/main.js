@@ -9,7 +9,8 @@ function initMap() {
 
     // Filter
     const filterWrap = document.getElementById('filter');
-    const filterRadius= document.getElementById('radius');
+    const filterRadius = document.getElementById('radius');
+    const filterResultCounter = document.querySelector('.filter__result__counter .value');
     const filterParamsSelect = document.getElementsByClassName('filter__params__select')[0];
     const closeFilterMobBtn = document.getElementsByClassName('js-close-filter')[0];
     const clearFieldBtn = document.getElementsByClassName('js-clear'); // all clear btns
@@ -195,7 +196,7 @@ function initMap() {
 
         const select = $('select.filter__select')
 
-        select.select2();
+        select.select2({minimumResultsForSearch: -1});
 
         select.on('select2:select', function(e){
             let data = e.params.data;
@@ -241,7 +242,7 @@ function initMap() {
             })
             .then(function(data) {
 
-                //console.log('getData() -> data: ', data);
+                console.log('getData() -> data: ', data);
 
                 if(data){
 
@@ -1411,6 +1412,8 @@ function initMap() {
         }
 
         //if(activeFilter !== type){
+
+        filterResultCounter.innerHTML = locFilterArr.length;
 
         removeMarkers();
         setMarkers(locFilterArr, animationDrop);
