@@ -1,4 +1,21 @@
-
+/*{
+ "ID": "549",
+ "TITLE": "",
+ "SEX": "45",
+ "ADDRESS": "ул. Айманова 68А Алматы Казахстан ",
+ "LAT": 43.2469713,
+ "LNG": 76.89651049999999,
+ "TYPE_ID": "SUPPLIER",
+ "INDUSTRY": "3",
+ "MED_PROFILE": [
+ 141
+ ],
+ "COOPERATION": "1216",
+ "STATUS_ID": [],
+ "PHONE_WORK": "+49 211 35 23 22",
+ "PHONE_FAX": "+49 211 935 77 70",
+ "PHONE_MOBILE": null
+ },*/
 ////////////////////////////////////////////////////////////////////////////////
 function initMap() {
 
@@ -59,6 +76,12 @@ function initMap() {
 
     const ITERATION_SELECT_NUM = 7;
 
+
+    const SEX_LIST = [
+        {ID: 45, VALUE: "Мужской"},
+        {ID: 47, VALUE: "Женский"},
+    ];
+
     let industry_ARR = [];
     let marker,
         RADIUS = 10000,
@@ -75,7 +98,9 @@ function initMap() {
         MED_PROFILES_LIST,
         COOPERATIONS_LIST,
         COUNTRY_LIST,
-        STATUSES_LIST;
+        STATUSES_COMPANY_LIST,
+        STATUSES_CONTACT_LIST,
+        LANGUAGES_LIST;
 
     let clientMarker,
         FILTER_PARAMS = {
@@ -129,7 +154,6 @@ function initMap() {
 
     const map = new google.maps.Map(document.getElementById('map'), options);
     const dataURL = '/map/feed/map_feed.json';
-    const BxCompanyURL = '/crm/company/details/';
     const defaultLocations = LOCATIONS;
 
     const jqStylerConfig = {
@@ -158,26 +182,44 @@ function initMap() {
         document.body.addEventListener('click', function(e){
 
             const target = e.target;
-            const multiSelect = document.querySelectorAll('.jq-select-multiple');
+            const multiSelect = document.querySelectorAll('.select2-results__options[aria-multiselectable="true"]');
             const wrap = e.target.parentNode.parentNode;
 
+            let isRemoveBtn = 0;
+
             if(
-                wrap.classList.contains('jq-select-multiple') ||
-                target.closest('.jq-select-multiple')
+                (wrap && wrap.classList.contains('select2-results__options')) ||
+                target.closest('.select2-results__options[aria-multiselectable="true"]') ||
+                target.closest('.select2-selection__choice__remove') ||
+                target.classList.contains('select2-selection__choice__remove')
+
             ){
-                wrap.classList.add('show');
+                wrap && wrap.classList.add('show');
 
-                if(target.nodeName == 'LI'){
+                if(target.classList.contains('select2-selection__choice__remove')){
+                    isRemoveBtn = 1;
+                }
 
+                console.log('click');
+
+                if(target.nodeName == 'LI' || isRemoveBtn){
+                    let data;
                     let arr = [];
-                    const selected = target.closest('ul').querySelectorAll('li.selected');
+                    const regExpId = /[0-9]*$/gm;
+                    const selected = document.querySelectorAll('li[aria-selected="true"]');
+
+                    //console.log('selected: ', selected);
 
                     for(let i = 0; i < selected.length; i++){
-                        //console.log('selected[i]: ', selected[i].innerHTML);
-                        arr.push(selected[i].innerHTML);
+                        arr.push(+selected[i].getAttribute('data-select2-id').match(regExpId)[0]);
                     }
 
-                    getAddParams('industry', arr);
+                    data = {
+                        name: 'med_profile',
+                        value: arr.length ? arr : null,
+                    }
+
+                    getAddParams(data);
 
                 }
 
@@ -199,15 +241,18 @@ function initMap() {
         select.select2({minimumResultsForSearch: -1});
 
         select.on('select2:select', function(e){
-            let data = e.params.data;
 
-            data = {
-                name: e.target.getAttribute('data-param'),
-                value: data.id,
-                title: data.text,
-            };
+            if(e.target.getAttribute('data-param') != 'med_profile'){
+                let data = e.params.data;
+                data = {
+                    name: e.target.getAttribute('data-param'),
+                    value: data.id,
+                    title: data.text,
+                };
 
-            getAddParams(data);
+                getAddParams(data);
+            }
+
         });
 
     }initSelect2();
@@ -242,7 +287,7 @@ function initMap() {
             })
             .then(function(data) {
 
-                console.log('getData() -> data: ', data);
+                //console.log('getData() -> data: ', data);
 
                 if(data){
 
@@ -257,10 +302,12 @@ function initMap() {
                             distance,
                             position;
 
-                        if(item.INDUSTRY == 'NOTPROFIT'){ // Клиника [Мед. Клиника]
+                        if(item.INDUSTRY == 'NOTPROFIT' && !item.SEX){ // Клиника [Мед. Клиника]
                             item.TYPE = 'clinic';
-                        }else if(item.INDUSTRY == '3'){ // Доктор [Мед. Ассистанс]
+                        }else if(item.INDUSTRY == '3' && !item.SEX){ // Доктор [Мед. Ассистанс]
                             item.TYPE = 'practice';
+                        }else if(item.SEX){
+                            item.TYPE = 'doctor';
                         }else {
                             item.TYPE = 'undefined';
                         }
@@ -288,21 +335,16 @@ function initMap() {
 
                         distance = getDistanceFromLatLonInKm(+CLIENT_LAT, +CLIENT_LNG, +lat, +lng);
 
+                        item.SEX = item.SEX || null;
                         item.STATUS = item.STATUS || null;
                         item.SCHEDULE = item.SCHEDULE || null;
                         item.DISTANCE = Math.round(distance);
-                        //em.PHONE_FAX = item.PHONE_FAX || null;
-                        //em.PHONE_MOBILE = item.PHONE_MOBILE || null;
-                        //em.PHONE_WORK = item.PHONE_WORK || null;
-                        //em.WOCHENENDE = item.WOCHENENDE || null;
-                        //em.COOPERATION = item.COOPERATION || null;
-                        //em.MED_PROFILE = item.MED_PROFILE || null;
 
                     });
 
                     LOCATIONS = data;
 
-                    //console.log('getData() -> LOCATIONS: ', LOCATIONS);
+                    console.log('getData() -> LOCATIONS: ', LOCATIONS);
 
                     filter(FILTER_PARAMS.type, FILTER_PARAMS);
 
@@ -310,19 +352,18 @@ function initMap() {
                 }
 
             });
-
     }
 
     function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-        var R = 6371; // Radius of the earth in km
-        var dLat = deg2rad(lat2-lat1);  // deg2rad below
-        var dLon = deg2rad(lon2-lon1);
-        var a =
+        let R = 6371; // Radius of the earth in km
+        let dLat = deg2rad(lat2-lat1);  // deg2rad below
+        let dLon = deg2rad(lon2-lon1);
+        let a =
             Math.sin(dLat/2) * Math.sin(dLat/2) +
             Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
             Math.sin(dLon/2) * Math.sin(dLon/2);
-        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        var d = R * c; // Distance in km
+        let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        let d = R * c; // Distance in km
 
         //console.log(`lat1: ${lat1}, lon1: ${lon1}, lat2: ${lat2}, lon2: ${lon2}, `);
 
@@ -340,7 +381,7 @@ function initMap() {
     // Resize frame
     BX24.fitWindow();
 
-    // Get userfield.list
+    // Get company.userfield.list
     BX24.callMethod(
         "crm.company.userfield.list",
         {
@@ -399,12 +440,72 @@ function initMap() {
         );
     };
 
-    const getCompanyUserfieldValues = function(FIELD_NAME){
+    BX24.callMethod(
+        "crm.contact.company.fields",
+        {},
+        function(result)
+        {
+            if(result.error())
+                console.error(result.error());
+            else{
 
-        let valuesList;
+                //console.log('crm.contact.company.fields: ', result.data());
+            }
+        }
+    );
+
+
+    BX24.callMethod(
+        "crm.company.fields",
+        {},
+        function(result)
+        {
+            if(result.error())
+                console.error(result.error());
+            else{
+                //console.log('crm.company.fields:', result.data());
+            }
+        }
+    );
+
+    BX24.callMethod(
+        "crm.contact.userfield.list",
+        {
+            order: { "SORT": "ASC" }
+        },
+        function(result)
+        {
+            if(result.error())
+                console.error(result.error());
+            else
+            {
+                //console.log('crm.contact.userfield.list: ', result.data());
+            }
+        }
+    );
+
+    BX24.callMethod(
+        "crm.contact.fields",
+        {},
+        function(result)
+        {
+            if(result.error())
+                console.error(result.error());
+            else {
+                //console.log('crm.contact.fields: ', result.data());
+            }
+        }
+    );
+
+    const getCompanyUserfieldValues = function(FIELD_NAME, type){
+
+        let valuesList,
+            listURL;
+
+        listURL = type == 'company' ? "crm.company.userfield.list" : "crm.contact.userfield.list"
 
         BX24.callMethod(
-            "crm.company.userfield.list",
+            listURL,
             {
                 order: { "SORT": "ASC" },
                 filter: { "FIELD_NAME": FIELD_NAME }
@@ -427,7 +528,13 @@ function initMap() {
                     }else if(FIELD_NAME == 'UF_CRM_1402932716'){
                         FIELD_NAME = 'country';
                     }else if(FIELD_NAME == 'UF_CRM_1415786182'){
-                        FIELD_NAME = 'status';
+                        FIELD_NAME = 'status_company';
+                    }else if(FIELD_NAME == 'UF_CRM_1433940616'){
+                        FIELD_NAME = 'language';
+                    }else if(FIELD_NAME == 'UF_CRM_1553940316'){
+                        FIELD_NAME = 'wochenede_company';
+                    }else if(FIELD_NAME == 'UF_CRM_1388085826'){
+                        FIELD_NAME = 'status_contact';
                     }
 
                     result.data()[0].LIST.forEach(function(item){
@@ -452,8 +559,19 @@ function initMap() {
                     }else if(FIELD_NAME == 'country'){
                         COUNTRY_LIST = result.LIST;
 
-                    }else if(FIELD_NAME == 'status'){
-                        STATUSES_LIST = result.LIST;
+                    }else if(FIELD_NAME == 'status_company'){
+                        STATUSES_COMPANY_LIST = result.LIST;
+
+                    }else if(FIELD_NAME == 'language'){
+                        //console.log('result: ', result);
+                        LANGUAGES_LIST = result.LIST;
+
+                    }else if(FIELD_NAME == 'wochenede_company'){
+                        //LANGUAGES_LIST = result.LIST;
+
+                    }else if(FIELD_NAME == 'status_contact'){
+                        STATUSES_CONTACT_LIST = result.LIST;
+                        //console.log('STATUSES_CONTACT_LIST: ', STATUSES_CONTACT_LIST);
 
                     }
 
@@ -466,11 +584,19 @@ function initMap() {
         );
     };
 
+    //UF_CRM_1425472914 -- Auserdinst (contact)
+    //UF_CRM_1388085826 -- Status (contact) // crm.contact.userfield.list
+    //UF_CRM_1553940264 -- wochenede (contact)
+    //UF_CRM_1553940316 -- wochenede (company)
+
     const industry = getFieldsIndustry('industry'); // Сфера деятельности
-    const COOPERATIONS = getCompanyUserfieldValues('UF_CRM_1438258999'); //Cooperation
-    const PROFILES = getCompanyUserfieldValues("UF_CRM_1387031615"); // Мед. Профиль Компании
-    const COUNTRIES = getCompanyUserfieldValues("UF_CRM_1402932716"); // country
-    const STATUSES = getCompanyUserfieldValues("UF_CRM_1415786182"); // status
+    const COOPERATIONS = getCompanyUserfieldValues('UF_CRM_1438258999', 'company'); //Cooperation
+    const PROFILES = getCompanyUserfieldValues("UF_CRM_1387031615", 'company'); // Мед. Профиль Компании
+    const COUNTRIES = getCompanyUserfieldValues("UF_CRM_1402932716", 'company'); // country
+    const STATUSES_COMPANY = getCompanyUserfieldValues("UF_CRM_1415786182", 'company'); // status (company)
+    const STATUSES_CONTACT = getCompanyUserfieldValues("UF_CRM_1388085826", 'contact'); // status
+    //const WOCHENEDE_COMPANY = getCompanyUserfieldValues("UF_CRM_1553940316", 'company'); // wochenede (company)
+    const SPRACHE = getCompanyUserfieldValues("UF_CRM_1433940616", 'contact'); // sprache
 
     let iteration = 0;
 
@@ -484,7 +610,9 @@ function initMap() {
             const cooperationSelect = document.querySelectorAll('select.cooperation');
             const profileSelect = document.querySelectorAll('select.profile');
             const industrySelect = document.querySelectorAll('select.industry');
-            const statusSelect = document.querySelectorAll('select.status');
+            const statusSelectContact = document.querySelectorAll('select#doctorStatus');
+            const statusSelectCompany = document.querySelectorAll('select#clinicStatus');
+            const languageSelect = document.querySelectorAll('select.sprache');
 
             let itemValue,
                 itemId;
@@ -511,7 +639,6 @@ function initMap() {
                     iteration++;
                 }
 
-
                 if(iteration == ITERATION_SELECT_NUM){
                     //$('.filter__select').styler(jqStylerConfig);
                     //initSelect2();
@@ -526,10 +653,13 @@ function initMap() {
                 mapping(profileSelect);
             }else if(name == 'industry'){
                 mapping(industrySelect);
-            }else if(name == 'status'){
-                mapping(statusSelect);
+            }else if(name == 'status_company'){
+                mapping(statusSelectCompany);
+            }else if(name == 'language'){
+                mapping(languageSelect);
+            }else if(name == 'status_contact'){
+                mapping(statusSelectContact);
             }
-
         }
     }
 
@@ -577,7 +707,10 @@ function initMap() {
             !target.classList.contains('js-btn') &&
             !target.parentNode.classList.contains('js-btn') &&
             !target.classList.contains('js-filter-additional') &&
-            !target.closest('.js-filter-additional')
+            !target.closest('.js-filter-additional') &&
+            !target.classList.contains('select2-results__options') &&
+            !target.closest('.select2-results__options') &&
+            !target.closest('.select2-selection__choice__remove')
         ){
             if(filterAdditionalShow){
                 filterAdditionalShow.classList.remove('show');
@@ -977,6 +1110,7 @@ function initMap() {
                 address: element.ADDRESS,
                 lat: element.LAT,
                 lng: element.LNG,
+                sex: element.SEX,
                 status: element.STATUS,
                 med_profile: element.MED_PROFILE,
                 industry: element.INDUSTRY,
@@ -1039,7 +1173,11 @@ function initMap() {
                     break;
 
                 case 'status':
-                    title = STATUSES_LIST.filter(item => item.ID == id)[0].VALUE;
+                    title = STATUSES_COMPANY_LIST.filter(item => item.ID == id)[0].VALUE;
+                    break;
+
+                case 'sex':
+                    title = SEX_LIST.filter(item => item.ID == id)[0].VALUE;
                     break;
 
             }
@@ -1051,13 +1189,20 @@ function initMap() {
 
     function renderPopUp(item) {
 
-        console.log('renderPopUp()');
+        //console.log('renderPopUp()');
 
         let {title, type, address, schedule, id, phone_work, phone_fax, phone_mobile, cooperation, status, sex, med_profile, wochenende, ausendienst} = item; // item data
         let med_profiles = '';
         let profile;
+        let BxItemURL;
 
-        if(med_profile.length){
+        if(type != 'doctor'){
+            BxItemURL = '/crm/company/details/';
+        }else{
+            BxItemURL = '/crm/contact/details/';
+        }
+
+        if(med_profile.length && !sex){
 
             med_profile = med_profile.map(item => {
                 return getTitleFromId('med_profile', item);
@@ -1090,10 +1235,14 @@ function initMap() {
             status = getTitleFromId('status', status);
         }
 
+        if(sex){
+            sex = getTitleFromId('sex', sex);
+        }
+
 
         let infoWindowContent = `
           <div class="popUp">
-              <h3 style="font-weight: 700;"><a href="${BxCompanyURL}${id}/" target="_blank">${title}</a></h3>
+              <h3 style="font-weight: 700;"><a href="${BxItemURL}${id}/" target="_blank">${title}</a></h3>
               <p>Addess:&nbsp;${address}</p>
               ${med_profile ? '<p>Медпрофиль:&nbsp;' + med_profiles + '</p>' : ''}
               ${cooperation ? '<p>Cooperation:&nbsp;' + cooperation + '</p>' : ''}
@@ -1103,7 +1252,7 @@ function initMap() {
               ${phone_work ? '<p>Work:&nbsp;<a href="tel:' + phone_work + '">' + phone_work + '</a></p>' : ''}
               ${phone_fax ? '<p>Fax:&nbsp;' + phone_fax + '</p>' : ''}
               ${phone_mobile ? '<p>Mobile:&nbsp;<a href="tel:' + phone_mobile + '">' + phone_mobile + '</a></p>' : ''}
-              ${type == 'practice' && sex ? '<p>Пол (муж или жен)</p>' : ''}
+              ${type == 'doctor' && sex ? '<p>Sex:&nbsp;' + sex + '</p>' : ''}
           </div>
         `;
 
@@ -1262,27 +1411,9 @@ function initMap() {
         const emptyValue = "default"; //"-- Выберите --"
         const paramName = param.name;
         const paramValue = param.value;
-        const paramTitle = param.text;
+        const paramTitle = param.text || null;
 
         console.log('param: ', param);
-
-        /*if(value){
-
-         if(value != emptyValue){
-         FILTER_PARAMS[item] = value; // INDUSTRY
-
-         }else{
-         FILTER_PARAMS[item] = null;
-         }
-
-         }else{*/
-        //item = item[0];
-
-        //value = item.getElementsByClassName('jq-selectbox__select-text')[0].innerHTML;
-        //value = item.querySelector('li.selected').getAttribute('data-value');
-
-        //paramName = item.closest('li.filter__header__params__item').querySelector('[data-param]').getAttribute('data-param');
-
 
         if(paramName == 'radius'){
 
@@ -1308,14 +1439,9 @@ function initMap() {
             }
 
         }
-
-
-        //}
-
         //console.log('paramValue: ', paramValue);
 
         filter(FILTER_PARAMS.type, FILTER_PARAMS);
-
     }
 
     function filter(type, addParams) {
@@ -1363,10 +1489,9 @@ function initMap() {
                     break;
             }
 
-
             filterParamsKeys.forEach(function(key){
 
-                if(FILTER_PARAMS[key] != null ){
+                if(FILTER_PARAMS[key] != null){
 
                     locFilterArr = locFilterArr.filter(item => {
 
@@ -1377,14 +1502,24 @@ function initMap() {
 
                         }else if(key == 'med_profile'){
 
-                            if(itemKey && itemKey.indexOf(FILTER_PARAMS[key]) != -1){
-                                return item;
+                            let result;
 
-                            }else{
-                                return;
-                            }
+                            FILTER_PARAMS[key].forEach(function(paramKey){
+
+                                //console.log('paramKey: ', paramKey);
+
+                                if(itemKey && itemKey.indexOf(paramKey) != -1){
+
+                                    result = item || null;
+                                    return item;
+
+                                }
+                            });
+
+                            return result;
 
                         }else if(key != 'radius'){
+
                             return itemKey == FILTER_PARAMS[key];
 
                         }else{
@@ -1393,10 +1528,12 @@ function initMap() {
                         }
 
                     });
+
                 }
 
             });
 
+            // Дежурная клиника
         }else if(FILTER_PARAMS.type == 'notdienst'){
             locFilterArr = locFilterArr.filter(item =>
                 item.INDUSTRY && (item.INDUSTRY.toLowerCase() == 17 || item.INDUSTRY.toLowerCase() == 14) );

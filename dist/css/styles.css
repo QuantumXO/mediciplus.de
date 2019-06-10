@@ -784,7 +784,7 @@ body {
     -ms-flex: 1;
     flex: 1;
     height: 100%;
-    padding: 0 10px 10px;
+    padding: 0 10px;
     overflow: hidden; }
     .filter__result__counter {
       margin-top: 10px;
@@ -793,7 +793,7 @@ body {
     .filter__result__list {
       min-width: 340px;
       max-width: 400px;
-      max-height: 658px;
+      max-height: 100%;
       list-style: none;
       overflow-y: scroll; }
       @media (max-width: 560px) {
@@ -808,6 +808,7 @@ body {
         background-color: #9b9c9e;
         cursor: pointer; }
     .filter__result__item {
+      margin-bottom: 10px;
       padding: 10px;
       background-color: #ffffff;
       border: 1px solid #f2f3f4;
@@ -827,8 +828,6 @@ body {
             margin-top: 5px; }
           .filter__result__item.active .directions-info .value {
             font-weight: 700; }
-      .filter__result__item:not(:last-child) {
-        margin-bottom: 10px; }
       .filter__result__item .to-center-link {
         color: #000;
         font-size: 15px;

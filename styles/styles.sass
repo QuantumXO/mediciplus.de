@@ -2,43 +2,6 @@
 @import "reset"
 @import "config"
 
-.jq-checkbox.checked
-	.jq-checkbox__div
-		width: 9px
-		height: 5px
-		margin: 3px 0 0 2px
-.jq-radio
-	border: 0
-	background-color: #fff
-
-	&.checked
-		border: 0
-
-		.jq-radio__div
-			width: 14px
-			height: 14px
-			margin: 0
-			box-shadow: none
-			background-color: $colorBlue
-	&.focused
-		border: 0
-
-.jq-selectbox__dropdown
-	margin: 0
-	overflow: hidden
-
-	ul
-		max-height: 176px
-		overflow-y: scroll
-
-.jq-selectbox
-	width: 100%
-
-	&.focused
-		.jq-selectbox__select
-			border: 1px solid #CCC
-			border-bottom-color: #B3B3B3
-
 
 .select2-container 
 	height: 32px
@@ -78,12 +41,35 @@
 	padding: 5px 10px 6px
 	color: #231F20
 
-.select2-container--default .select2-results__option[aria-selected=true] 
-	color: #ffffff
-	background-color: #A3ABB1
+.select2-container--default
+	.select2-results__option[aria-selected=true]
+		color: #ffffff
+		background-color: #A3ABB1
 
-.select2-container--default .select2-results__option--highlighted[aria-selected]
-	background-color: #5897fb !important
+	.select2-results__option--highlighted[aria-selected]
+		background-color: #5897fb !important
+
+	.select2-selection--multiple
+		/*padding-bottom: 5px*/
+		display: flex
+		align-items: center
+		justify-content: flex-start
+		border: 0
+
+		.select2-selection__choice
+			margin: 2.5px 5px 2.5px 0
+
+
+li.multiple .select2-container
+	height: auto
+	padding: 0
+
+
+.select2-container--default .select2-selection--multiple,
+.select2-container--default.select2-container--focus .select2-selection--multiple
+	border: 0
+	background: transparent
+
 
 
 input,
@@ -565,7 +551,7 @@ body
 		flex: 1
 		height: 100%
 		//margin-top: 10px
-		padding: 0 10px 10px
+		padding: 0 10px
 		overflow: hidden
 
 		&__counter
@@ -576,7 +562,7 @@ body
 		&__list
 			min-width: 340px
 			max-width: 400px
-			max-height: 658px //568px
+			max-height: 100% // 658px //568px
 			//max-height: 100vh
 			list-style: none
 			overflow-y: scroll
@@ -598,6 +584,7 @@ body
 				//outline: 1px solid slategrey
 
 		&__item
+			margin-bottom: 10px
 			padding: 10px
 			background-color: #ffffff
 			border: 1px solid #f2f3f4
@@ -625,8 +612,7 @@ body
 			&:hover
 				//background-color: rgba(#fff, .9)
 
-			&:not(:last-child)
-				margin-bottom: 10px
+			//&:not(:last-child)
 
 			.to-center-link
 				color: #000

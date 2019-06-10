@@ -143,9 +143,9 @@
                                          <option value="default">-- Выберите --</option>
                                      </select>
                                  </li>-->
-                                <li class="filter__header__params__item">
+                                <li class="filter__header__params__item multiple">
                                     <label for="clinicProfile">Медпрофиль компании: </label>
-                                    <select id="clinicProfile" class="filter__select profile" data-param="med_profile">
+                                    <select id="clinicProfile" class="filter__select profile" data-param="med_profile" multiple>
                                         <option value="default">-- Выберите --</option>
                                     </select>
                                 </li>
@@ -155,9 +155,50 @@
                                         <option value="default">-- Выберите --</option>
                                     </select>
                                 </li>
+                                <li class="filter__header__params__item">
+                                    <label for="clinicStatus">Статус: </label>
+                                    <select id="clinicStatus" class="filter__select status" data-param="status">
+                                        <option value="default">-- Выберите --</option>
+                                    </select>
+                                </li>
                             </ul>
 
                             <ul class="filter__header__params__list js-filter-additional" data-type="practice">
+                                <span class="close js-filter-params-close">x</span>
+                                <!--<label>Additional for: Clinics</label>-->
+                                <li class="filter__header__params__item">
+                                    <label for="practiceCooperation">Cooperation (компания): </label>
+                                    <select id="practiceCooperation" class="filter__select cooperation" data-param="cooperation">
+                                        <option value="default">-- Выберите --</option>
+                                    </select>
+                                </li>
+                                <!-- <li class="filter__header__params__item">
+                                     <label for="clinicIndustry">Сфера деятельности: </label>
+                                     <select id="clinicIndustry" class="filter__select industry" data-param="industry" multiple>
+                                         <option value="default">-- Выберите --</option>
+                                     </select>
+                                 </li>-->
+                                <li class="filter__header__params__item multiple">
+                                    <label for="practiceProfile">Медпрофиль компании: </label>
+                                    <select id="practiceProfile" class="filter__select profile" data-param="med_profile" multiple>
+                                        <option value="default">-- Выберите --</option>
+                                    </select>
+                                </li>
+                                <li class="filter__header__params__item">
+                                    <label for="practiceCountry">Страна: </label>
+                                    <select id="practiceCountry" class="filter__select country" data-param="country">
+                                        <option value="default">-- Выберите --</option>
+                                    </select>
+                                </li>
+                                <li class="filter__header__params__item">
+                                    <label for="practiceStatus">Статус: </label>
+                                    <select id="practiceStatus" class="filter__select status" data-param="status">
+                                        <option value="default">-- Выберите --</option>
+                                    </select>
+                                </li>
+                            </ul>
+
+                            <ul class="filter__header__params__list js-filter-additional" data-type="doctors">
                                 <span class="close js-filter-params-close">x</span>
                                 <li class="filter__header__params__item">
                                     <label for="doctorCooperation">Cooperation (kontakt): </label>
@@ -169,8 +210,8 @@
                                     <label for="doctorSex">Пол: </label>
                                     <select id="doctorSex" class="filter__select sex" data-param="sex">
                                         <option value="default">-- Выберите --</option>
-                                        <option value="man">мужской</option>
-                                        <option value="woman">женский</option>
+                                        <option value="45">мужской</option>
+                                        <option value="47">женский</option>
                                     </select>
                                 </li>
                                 <!--<li class="filter__header__params__item">
@@ -193,11 +234,17 @@
                                 </li>
                                 <li class="filter__header__params__item">
                                     <label for="doctorSprache">Sprache: </label>
-                                    <input id="doctorSprache" type="text" class="filter__text sprache" data-param="sprache" />
+                                    <select id="doctorSprache" type="text" class="filter__select sprache" data-param="sprache" >
+                                        <option value="default">-- Выберите --</option>
+                                    </select>
                                 </li>
                                 <li class="filter__header__params__item">
                                     <label for="doctorWochenende">Wochenende (kontakt): </label>
-                                    <input id="doctorWochenende" type="text" class="filter__text wochenende" data-param="wochenende" />
+                                    <select id="doctorWochenende" type="text" class="filter__select wochenende" data-param="wochenende" >
+                                        <option value="default">-- Выберите --</option>
+                                        <option value="1">Да</option>
+                                        <option value="0">Нет</option>
+                                    </select>
                                 </li>
                                 <li class="filter__header__params__item">
                                     <label for="doctorCountry">Страна: </label>
