@@ -36,7 +36,7 @@ function initMap() {
     const filterBlock = document.getElementsByClassName('filter__header__inner'); // Search or Direction
     const filterAdditional = document.getElementsByClassName('js-filter-additional');
     const filterParamsClose = document.getElementsByClassName('js-filter-params-close');
-    const filterParamsBasicBtn = document.getElementsByClassName('js-btn'); // All or Clinic or practice
+    const filterParamsBasicBtn = document.getElementsByClassName('js-btn'); // All or Clinic or praxis
     const filterToggleBtn = document.getElementsByClassName('filter__toggle')[0]; // Toggle filter
     const filterParamsWrap = document.getElementsByClassName('js-filter-params-wrap')[0];
     //const filterToggleListBtn = document.getElementsByClassName('js-toggle-filters-list')[0]; // Toggle additional filter
@@ -95,8 +95,10 @@ function initMap() {
         ACTIVE_RESULT_ITEM_ID = null,
         APP_STATUS = 0, //  0 - search | 1 - direction
         INDUSTRY_LIST,
-        MED_PROFILES_LIST,
-        COOPERATIONS_LIST,
+        MED_PROFILES_COMPANY_LIST,
+        MED_PROFILES_CONTACT_LIST,
+        COOPERATIONS_COMPANY_LIST,
+        COOPERATIONS_CONTACT_LIST,
         COUNTRY_LIST,
         STATUSES_COMPANY_LIST,
         STATUSES_CONTACT_LIST,
@@ -113,44 +115,7 @@ function initMap() {
         CLIENT_LNG;
     let CLIENT_LOCATION;
 
-    let LOCATIONS = [
-        {
-            id: 0,
-            title: 'Clinic',
-            position: {lat: 50.418861, lng: 30.526437},
-            icon: {
-                url: hospitalIcon,
-                scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
-            },
-            schedule: '00:00–00:00',
-            type: 'clinic',
-            address: 'Kovpaka St, 3, Kyiv, 02000',
-            //lat: 50.418861,
-            //lng: 30.526437,
-            dutyClinic: true,
-            aussendienst: false,
-            industry: 'Notfallpraxis',
-            cooperation: 'В процессе договорённости',
-        },
-        {
-            id: 2,
-            title: 'practice',
-            position: {lat: 50.424270, lng: 30.516910},
-            icon: {
-                url: doctorIcon,
-                scaledSize: new google.maps.Size(doctorIconWidth, doctorIconHeight)
-            },
-            schedule: '08:00–20:00',
-            type: 'practice',
-            name: 'Иванов иван иванович',
-            address: '3, Henerala Almazova St, Kyiv, 02000',
-            //lat: 50.424270,
-            //lng: 30.516910,
-            dutyClinic: true,
-            aussendienst: false,
-            industry: 'krankenwahgentransport',
-        },
-    ];
+    let LOCATIONS;
 
     const map = new google.maps.Map(document.getElementById('map'), options);
     const dataURL = '/map/feed/map_feed.json';
@@ -161,9 +126,6 @@ function initMap() {
         onSelectClosed: function() {
 
             const $this = $(this);
-
-            console.log('$this: ', $this);
-
             if(!$this.hasClass('radius__select')){
                 //getAddParams($(this));
             }
@@ -200,7 +162,7 @@ function initMap() {
                     isRemoveBtn = 1;
                 }
 
-                console.log('click');
+                //console.log('click');
 
                 if(target.nodeName == 'LI' || isRemoveBtn){
                     let data;
@@ -304,10 +266,13 @@ function initMap() {
 
                         if(item.INDUSTRY == 'NOTPROFIT' && !item.SEX){ // Клиника [Мед. Клиника]
                             item.TYPE = 'clinic';
+
                         }else if(item.INDUSTRY == '3' && !item.SEX){ // Доктор [Мед. Ассистанс]
-                            item.TYPE = 'practice';
+                            item.TYPE = 'praxis';
+
                         }else if(item.SEX){
                             item.TYPE = 'doctor';
+
                         }else {
                             item.TYPE = 'undefined';
                         }
@@ -315,13 +280,18 @@ function initMap() {
                         if(item.TYPE == 'clinic'){
                             item.ICON = {
                                 url: hospitalIcon,
-                                scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight)
+                                scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight),
                             };
 
                         }else{
                             item.ICON = {
-                                url: doctorIcon,
-                                scaledSize: new google.maps.Size(doctorIconWidth, doctorIconHeight)
+                                //url: doctorIcon,
+                                //scaledSize: new google.maps.Size(doctorIconWidth, doctorIconHeight),
+                                path: "M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zM104 424c0 13.3 10.7 24 24 24s24-10.7 24-24-10.7-24-24-24-24 10.7-24 24zm216-135.4v49c36.5 7.4 64 39.8 64 78.4v41.7c0 7.6-5.4 14.2-12.9 15.7l-32.2 6.4c-4.3.9-8.5-1.9-9.4-6.3l-3.1-15.7c-.9-4.3 1.9-8.6 6.3-9.4l19.3-3.9V416c0-62.8-96-65.1-96 1.9v26.7l19.3 3.9c4.3.9 7.1 5.1 6.3 9.4l-3.1 15.7c-.9 4.3-5.1 7.1-9.4 6.3l-31.2-4.2c-7.9-1.1-13.8-7.8-13.8-15.9V416c0-38.6 27.5-70.9 64-78.4v-45.2c-2.2.7-4.4 1.1-6.6 1.9-18 6.3-37.3 9.8-57.4 9.8s-39.4-3.5-57.4-9.8c-7.4-2.6-14.9-4.2-22.6-5.2v81.6c23.1 6.9 40 28.1 40 53.4 0 30.9-25.1 56-56 56s-56-25.1-56-56c0-25.3 16.9-46.5 40-53.4v-80.4C48.5 301 0 355.8 0 422.4v44.8C0 491.9 20.1 512 44.8 512h358.4c24.7 0 44.8-20.1 44.8-44.8v-44.8c0-72-56.8-130.3-128-133.8z",
+                                anchor: new google.maps.Point(0,0),
+                                fillColor: 'red',
+                                fillOpacity: 1,
+                                scale: .07
                             };
                         }
 
@@ -521,22 +491,6 @@ function initMap() {
                     let name,
                         list = [];
 
-                    if(FIELD_NAME == 'UF_CRM_1438258999'){
-                        FIELD_NAME = 'cooperation';
-                    }else if(FIELD_NAME == 'UF_CRM_1387031615'){
-                        FIELD_NAME = 'profile';
-                    }else if(FIELD_NAME == 'UF_CRM_1402932716'){
-                        FIELD_NAME = 'country';
-                    }else if(FIELD_NAME == 'UF_CRM_1415786182'){
-                        FIELD_NAME = 'status_company';
-                    }else if(FIELD_NAME == 'UF_CRM_1433940616'){
-                        FIELD_NAME = 'language';
-                    }else if(FIELD_NAME == 'UF_CRM_1553940316'){
-                        FIELD_NAME = 'wochenede_company';
-                    }else if(FIELD_NAME == 'UF_CRM_1388085826'){
-                        FIELD_NAME = 'status_contact';
-                    }
-
                     result.data()[0].LIST.forEach(function(item){
 
                         list.push({
@@ -545,35 +499,51 @@ function initMap() {
                         });
                     });
 
+                    if(FIELD_NAME == 'UF_CRM_1438258999'){
+                        FIELD_NAME = 'cooperation';
+                        COOPERATIONS_COMPANY_LIST = list;
+
+                    }else if(FIELD_NAME == 'UF_CRM_1387031615'){
+                        FIELD_NAME = 'profile';
+                        MED_PROFILES_COMPANY_LIST = list;
+
+                    }else if(FIELD_NAME == 'UF_CRM_1402932716'){
+                        FIELD_NAME = 'country';
+                        COUNTRY_LIST = list;
+
+                    }else if(FIELD_NAME == 'UF_CRM_1415786182'){
+                        FIELD_NAME = 'status_company';
+                        STATUSES_COMPANY_LIST = list;
+
+                    }else if(FIELD_NAME == 'UF_CRM_1433940616'){
+                        FIELD_NAME = 'language';
+                        //console.log('result: ', result);
+                        LANGUAGES_LIST = list;
+
+                    }else if(FIELD_NAME == 'UF_CRM_1553940316'){
+                        FIELD_NAME = 'wochenede_company';
+
+                    }else if(FIELD_NAME == 'UF_CRM_1388085826'){
+                        FIELD_NAME = 'status_contact';
+                        STATUSES_CONTACT_LIST = list;
+                        //console.log('STATUSES_CONTACT_LIST: ', STATUSES_CONTACT_LIST);
+
+                    }else if(FIELD_NAME == 'UF_CRM_1438259138'){
+                        FIELD_NAME = 'cooperation_contact';
+                        COOPERATIONS_CONTACT_LIST = list;
+                        //console.log('COOPERATIONS_CONTACT_LIST: ', COOPERATIONS_CONTACT_LIST);
+
+                    }else if(FIELD_NAME == 'UF_CRM_1387029485'){
+                        FIELD_NAME = 'profile_contact';
+                        MED_PROFILES_CONTACT_LIST = list;
+                        //console.log('MED_PROFILES_CONTACT_LIST: ', MED_PROFILES_CONTACT_LIST);
+
+                    }
+
                     result = {
                         FIELD_NAME : FIELD_NAME,
                         LIST : list
                     };
-
-                    if(FIELD_NAME == 'cooperation'){
-                        COOPERATIONS_LIST = result.LIST;
-
-                    }else if(FIELD_NAME == 'profile'){
-                        MED_PROFILES_LIST = result.LIST;
-
-                    }else if(FIELD_NAME == 'country'){
-                        COUNTRY_LIST = result.LIST;
-
-                    }else if(FIELD_NAME == 'status_company'){
-                        STATUSES_COMPANY_LIST = result.LIST;
-
-                    }else if(FIELD_NAME == 'language'){
-                        //console.log('result: ', result);
-                        LANGUAGES_LIST = result.LIST;
-
-                    }else if(FIELD_NAME == 'wochenede_company'){
-                        //LANGUAGES_LIST = result.LIST;
-
-                    }else if(FIELD_NAME == 'status_contact'){
-                        STATUSES_CONTACT_LIST = result.LIST;
-                        //console.log('STATUSES_CONTACT_LIST: ', STATUSES_CONTACT_LIST);
-
-                    }
 
                     //console.log('result: ', result);
 
@@ -584,6 +554,7 @@ function initMap() {
         );
     };
 
+    //UF_CRM_1387031615 -- Мед. Профиль (company)
     //UF_CRM_1425472914 -- Auserdinst (contact)
     //UF_CRM_1388085826 -- Status (contact) // crm.contact.userfield.list
     //UF_CRM_1553940264 -- wochenede (contact)
@@ -591,7 +562,9 @@ function initMap() {
 
     const industry = getFieldsIndustry('industry'); // Сфера деятельности
     const COOPERATIONS = getCompanyUserfieldValues('UF_CRM_1438258999', 'company'); //Cooperation
+    const COOPERATIONS_CONTACT = getCompanyUserfieldValues('UF_CRM_1438259138', 'contact'); //Cooperation (contact)
     const PROFILES = getCompanyUserfieldValues("UF_CRM_1387031615", 'company'); // Мед. Профиль Компании
+    const PROFILES_CONTACT = getCompanyUserfieldValues("UF_CRM_1387029485", 'contact'); // Мед. Профиль (contact)
     const COUNTRIES = getCompanyUserfieldValues("UF_CRM_1402932716", 'company'); // country
     const STATUSES_COMPANY = getCompanyUserfieldValues("UF_CRM_1415786182", 'company'); // status (company)
     const STATUSES_CONTACT = getCompanyUserfieldValues("UF_CRM_1388085826", 'contact'); // status
@@ -789,36 +762,6 @@ function initMap() {
     directionFromField.addEventListener('keyup', function () {
         directionFieldsError();
     });
-
-
-    /*document.body.addEventListener('click', function(e){
-     const target = e.target;
-
-     let num;
-
-     if(target.nodeName == 'LI' && target.classList.contains('radius__value')){
-
-     num = target.innerHTML + '000';
-     num = +num.replace(/ km/gi, '');
-     //console.log('this: ', num);
-
-     if(num != 0){
-     RADIUS = num;
-
-     }else{
-
-     RADIUS = 100000000000;
-     }
-
-     geocodeAddress();
-
-     FILTER_PARAMS.radius = RADIUS;
-
-     filter(FILTER_PARAMS.type, FILTER_PARAMS);
-     }
-
-     });*/
-
 
     function geocodeAddress() {
 
@@ -1158,29 +1101,48 @@ function initMap() {
         allMarkers = [];
     }
 
-    function getTitleFromId(listType, id){
+    function getTitleFromId(listType, id, opt){
         let title,
-            newArr;
+            newArr,
+            result;
 
         if(id){
             switch (listType){
                 case 'med_profile':
-                    title = MED_PROFILES_LIST.filter(item => item.ID == id)[0].VALUE;
+
+                    if(opt && opt == 'contact'){
+                        result = MED_PROFILES_CONTACT_LIST.filter(item => item.ID == id)[0];
+
+                    }else{
+                        result = MED_PROFILES_COMPANY_LIST.filter(item => item.ID == id)[0];
+                    }
+
                     break;
 
                 case 'cooperation':
-                    title = COOPERATIONS_LIST.filter(item => item.ID == id)[0].VALUE;
+
+                    if(opt && opt == 'contact'){
+                        result = COOPERATIONS_CONTACT_LIST.filter(item => item.ID == id)[0];
+
+                    }else{
+                        result = COOPERATIONS_COMPANY_LIST.filter(item => item.ID == id)[0];
+                    }
+
                     break;
 
                 case 'status':
-                    title = STATUSES_COMPANY_LIST.filter(item => item.ID == id)[0].VALUE;
+                    result = STATUSES_COMPANY_LIST.filter(item => item.ID == id)[0];
+
                     break;
 
                 case 'sex':
-                    title = SEX_LIST.filter(item => item.ID == id)[0].VALUE;
+                    result = SEX_LIST.filter(item => item.ID == id)[0];
+
                     break;
 
             }
+
+            title = result ? result.VALUE : null;
         }
 
 
@@ -1189,7 +1151,7 @@ function initMap() {
 
     function renderPopUp(item) {
 
-        //console.log('renderPopUp()');
+        console.log('renderPopUp() -> item', item);
 
         let {title, type, address, schedule, id, phone_work, phone_fax, phone_mobile, cooperation, status, sex, med_profile, wochenende, ausendienst} = item; // item data
         let med_profiles = '';
@@ -1202,41 +1164,42 @@ function initMap() {
             BxItemURL = '/crm/contact/details/';
         }
 
-        if(med_profile.length && !sex){
+        if(med_profile.length){
+
 
             med_profile = med_profile.map(item => {
-                return getTitleFromId('med_profile', item);
+                return getTitleFromId('med_profile', item, !sex ? 'clinic' : 'contact');
 
             });
 
             for(let i = 0; i < med_profile.length; i++){
 
-                if(i != (med_profile.length - 1)){
-                    profile = med_profile[i] + ',&nbsp;';
+                if(med_profile[i]){
+                    if(i != (med_profile.length - 1)){
+                        profile = med_profile[i] + ',&nbsp;';
 
-                }else{
-                    profile = med_profile[i];
+                    }else{
+                        profile = med_profile[i];
 
+                    }
+
+                    med_profiles += profile;
                 }
 
-                med_profiles += profile;
             }
-
-        }else{
-            med_profile = null;
 
         }
 
         if(cooperation){
-            cooperation = getTitleFromId('cooperation', cooperation);
+            cooperation = getTitleFromId('cooperation', cooperation, !sex ? 'clinic' : 'contact');
         }
 
         if(status){
-            status = getTitleFromId('status', status);
+            status = getTitleFromId('status', status, null);
         }
 
         if(sex){
-            sex = getTitleFromId('sex', sex);
+            sex = getTitleFromId('sex', sex, null);
         }
 
 
@@ -1244,7 +1207,7 @@ function initMap() {
           <div class="popUp">
               <h3 style="font-weight: 700;"><a href="${BxItemURL}${id}/" target="_blank">${title}</a></h3>
               <p>Addess:&nbsp;${address}</p>
-              ${med_profile ? '<p>Медпрофиль:&nbsp;' + med_profiles + '</p>' : ''}
+              ${med_profiles ? '<p>Медпрофиль:&nbsp;' + med_profiles + '</p>' : ''}
               ${cooperation ? '<p>Cooperation:&nbsp;' + cooperation + '</p>' : ''}
               ${wochenende != null ? '<p>Wochenende:&nbsp;' + wochenende + '</p>' : ''}
               ${ausendienst != null ? '<p>Ausendienst:&nbsp;' + ausendienst + '</p>' : ''}
@@ -1290,8 +1253,8 @@ function initMap() {
                         type = 'Clinic';
                         break;
 
-                    case 'practice':
-                        type = 'Practice';
+                    case 'praxis':
+                        type = 'Praxis';
                         break;
 
                     case 'doctor':
@@ -1299,7 +1262,7 @@ function initMap() {
                         break;
                 }
 
-                //type = markersList[i].type == 'clinic' ? 'Clinic' : 'Practice';
+                //type = markersList[i].type == 'clinic' ? 'Clinic' : 'Praxis';
 
                 newReultItem = document.createElement('li');
                 newReultItem.classList.add('filter__result__item');
@@ -1467,11 +1430,11 @@ function initMap() {
 
         if(FILTER_PARAMS.type == 'all'){
 
-            locFilterArr = locFilterArr.filter(item => item.TYPE == 'clinic' || item.TYPE == 'practice' || item.TYPE == 'doctor'); // locFilterArr = LOCATIONS;
+            locFilterArr = locFilterArr.filter(item => item.TYPE == 'clinic' || item.TYPE == 'praxis' || item.TYPE == 'doctor'); // locFilterArr = LOCATIONS;
 
             //console.log('locFilterArr: ', locFilterArr);
 
-        }else if(FILTER_PARAMS.type == 'clinics' || FILTER_PARAMS.type == 'practice' || FILTER_PARAMS.type == 'doctors'){
+        }else if(FILTER_PARAMS.type == 'clinics' || FILTER_PARAMS.type == 'praxis' || FILTER_PARAMS.type == 'doctors'){
 
             filterParamsKeys = Object.keys(FILTER_PARAMS);
 
@@ -1480,8 +1443,8 @@ function initMap() {
                     type = 'clinic';
                     break;
 
-                case 'practice':
-                    type = 'practice';
+                case 'praxis':
+                    type = 'praxis';
                     break;
 
                 case 'doctors':

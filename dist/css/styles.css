@@ -60,39 +60,6 @@ body {
   width: 100%;
   height: 100%; }
 
-.jq-checkbox.checked .jq-checkbox__div {
-  width: 9px;
-  height: 5px;
-  margin: 3px 0 0 2px; }
-
-.jq-radio {
-  border: 0;
-  background-color: #fff; }
-  .jq-radio.checked {
-    border: 0; }
-    .jq-radio.checked .jq-radio__div {
-      width: 14px;
-      height: 14px;
-      margin: 0;
-      -webkit-box-shadow: none;
-      box-shadow: none;
-      background-color: #00b1da; }
-  .jq-radio.focused {
-    border: 0; }
-
-.jq-selectbox__dropdown {
-  margin: 0;
-  overflow: hidden; }
-  .jq-selectbox__dropdown ul {
-    max-height: 176px;
-    overflow-y: scroll; }
-
-.jq-selectbox {
-  width: 100%; }
-  .jq-selectbox.focused .jq-selectbox__select {
-    border: 1px solid #CCC;
-    border-bottom-color: #B3B3B3; }
-
 .select2-container {
   height: 32px;
   max-width: 340px;
@@ -137,6 +104,33 @@ body {
 
 .select2-container--default .select2-results__option--highlighted[aria-selected] {
   background-color: #5897fb !important; }
+
+.select2-container--default .select2-selection--multiple {
+  /*padding-bottom: 5px*/
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+  border: 0; }
+  .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    margin: 2.5px 5px 2.5px 0; }
+
+li.multiple .select2-container {
+  height: auto;
+  padding: 0; }
+
+.select2-container--default .select2-selection--multiple,
+.select2-container--default.select2-container--focus .select2-selection--multiple {
+  border: 0;
+  background: transparent; }
 
 input,
 select {
@@ -810,6 +804,7 @@ body {
     .filter__result__item {
       margin-bottom: 10px;
       padding: 10px;
+      overflow: hidden;
       background-color: #ffffff;
       border: 1px solid #f2f3f4;
       -webkit-transition: background-color .2s ease-in-out;

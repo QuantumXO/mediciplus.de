@@ -25,8 +25,19 @@
 
 </head>
 <body>
+<script>
+    function add_card(){
+
+        BX24.callMethod('placement.bind',
+            { PLACEMENT: 'CRM_COMPANY_DETAIL_TAB',
+                HANDLER: 'https://test.portal.mediciplus.de/map/index.php',
+                TITLE: 'Карта'
+            });
+    }
+</script>
+<!--     <a href="javascript:add_card()">Add</a> -->
 <?=$data ?>
-<div class="container">
+<div id="appContainer" class="container">
     <div id="filter" class="filter">
         <div class="filter__toggle" data-status="show">
             <div class="filter__toggle__inner show">
@@ -52,7 +63,7 @@
             <div class="filter__header">
                 <div class="filter__header__search">
                     <div class="filter__header__inner search js-search-block">
-                        <input type="text" id="searchField" class="field search-field" placeholder="Choose starting point..." value="Kiev Pechersk Lavra, Lavrska St, 15, Kyiv, 01015" />
+                        <input type="text" id="searchField" class="field search-field" placeholder="Choose starting point..." value="München" />
                         <!--<span id="searchFind" class="fas fa-search find-icon js-find"></span>-->
                         <span id="searchClear" class="fas fa-times clear-icon js-clear"></span>
                     </div>
@@ -100,9 +111,9 @@
                                         <!--<span class="icon" style="height: 23.47px;"><img src="./img/doctor.png" width="20" alt="doctor icon" /></span>-->
                                         <span class="text">Clinics</span>
                                     </div>
-                                    <div class="btn js-btn" data-type="practice">
+                                    <div class="btn js-btn" data-type="praxis">
                                         <!--<span class="icon" style="height: 26px;"><img src="./img/hospital.png" width="20" alt="hospital icon" /></span>-->
-                                        <span class="text">Practice</span>
+                                        <span class="text">Praxis</span>
                                     </div>
                                     <div class="btn js-btn" data-type="doctors">
                                         <!--<span class="icon" style="height: 26px;"><img src="./img/hospital.png" width="20" alt="hospital icon" /></span>-->
@@ -133,8 +144,8 @@
                                 <!--<label>Additional for: Clinics</label>-->
                                 <li class="filter__header__params__item">
                                     <label for="clinicCooperation">Cooperation (компания): </label>
-                                    <select id="clinicCooperation" class="filter__select cooperation" data-param="cooperation">
-                                        <option value="default">-- Выберите --</option>
+                                    <select id="clinicCooperation" class="filter__select cooperation cooperation--company" data-param="cooperation">
+                                        <option value="default" selected>-- Выберите --</option>
                                     </select>
                                 </li>
                                 <!-- <li class="filter__header__params__item">
@@ -145,31 +156,31 @@
                                  </li>-->
                                 <li class="filter__header__params__item multiple">
                                     <label for="clinicProfile">Медпрофиль компании: </label>
-                                    <select id="clinicProfile" class="filter__select profile" data-param="med_profile" multiple>
+                                    <select id="clinicProfile" class="filter__select profile profile--company" data-param="med_profile" multiple>
                                         <option value="default">-- Выберите --</option>
                                     </select>
                                 </li>
                                 <li class="filter__header__params__item">
                                     <label for="clinicCountry">Страна: </label>
                                     <select id="clinicCountry" class="filter__select country" data-param="country">
-                                        <option value="default">-- Выберите --</option>
+                                        <option value="default" selected>-- Выберите --</option>
                                     </select>
                                 </li>
                                 <li class="filter__header__params__item">
                                     <label for="clinicStatus">Статус: </label>
-                                    <select id="clinicStatus" class="filter__select status" data-param="status">
-                                        <option value="default">-- Выберите --</option>
+                                    <select id="clinicStatus" class="filter__select status status--company" data-param="status">
+                                        <option value="default" selected>-- Выберите --</option>
                                     </select>
                                 </li>
                             </ul>
 
-                            <ul class="filter__header__params__list js-filter-additional" data-type="practice">
+                            <ul class="filter__header__params__list js-filter-additional" data-type="praxis">
                                 <span class="close js-filter-params-close">x</span>
                                 <!--<label>Additional for: Clinics</label>-->
                                 <li class="filter__header__params__item">
-                                    <label for="practiceCooperation">Cooperation (компания): </label>
-                                    <select id="practiceCooperation" class="filter__select cooperation" data-param="cooperation">
-                                        <option value="default">-- Выберите --</option>
+                                    <label for="praxisCooperation">Cooperation (компания): </label>
+                                    <select id="praxisCooperation" class="filter__select cooperation cooperation--company" data-param="cooperation">
+                                        <option value="default" selected>-- Выберите --</option>
                                     </select>
                                 </li>
                                 <!-- <li class="filter__header__params__item">
@@ -179,21 +190,21 @@
                                      </select>
                                  </li>-->
                                 <li class="filter__header__params__item multiple">
-                                    <label for="practiceProfile">Медпрофиль компании: </label>
-                                    <select id="practiceProfile" class="filter__select profile" data-param="med_profile" multiple>
+                                    <label for="praxisProfile">Медпрофиль компании: </label>
+                                    <select id="praxisProfile" class="filter__select profile profile--company" data-param="med_profile" multiple>
                                         <option value="default">-- Выберите --</option>
                                     </select>
                                 </li>
                                 <li class="filter__header__params__item">
-                                    <label for="practiceCountry">Страна: </label>
-                                    <select id="practiceCountry" class="filter__select country" data-param="country">
-                                        <option value="default">-- Выберите --</option>
+                                    <label for="praxisCountry">Страна: </label>
+                                    <select id="praxisCountry" class="filter__select country" data-param="country">
+                                        <option value="default" selected>-- Выберите --</option>
                                     </select>
                                 </li>
                                 <li class="filter__header__params__item">
-                                    <label for="practiceStatus">Статус: </label>
-                                    <select id="practiceStatus" class="filter__select status" data-param="status">
-                                        <option value="default">-- Выберите --</option>
+                                    <label for="praxisStatus">Статус: </label>
+                                    <select id="praxisStatus" class="filter__select status status--company" data-param="status">
+                                        <option value="default" selected>-- Выберите --</option>
                                     </select>
                                 </li>
                             </ul>
@@ -202,8 +213,8 @@
                                 <span class="close js-filter-params-close">x</span>
                                 <li class="filter__header__params__item">
                                     <label for="doctorCooperation">Cooperation (kontakt): </label>
-                                    <select id="doctorCooperation" class="filter__select cooperation" data-param="cooperation">
-                                        <option value="default">-- Выберите --</option>
+                                    <select id="doctorCooperation" class="filter__select cooperation cooperation--contact" data-param="cooperation">
+                                        <option value="default" selected>-- Выберите --</option>
                                     </select>
                                 </li>
                                 <li class="filter__header__params__item">
@@ -220,15 +231,15 @@
                                         <option value="default">-- Выберите --</option>
                                     </select>
                                 </li>-->
-                                <li class="filter__header__params__item">
+                                <li class="filter__header__params__item multiple">
                                     <label for="doctorProfile">Профиль Контакт: </label>
-                                    <select id="doctorProfile" class="filter__select profile" data-param="med_profile">
+                                    <select id="doctorProfile" class="filter__select profile profile--contact" data-param="med_profile" multiple>
                                         <option value="default">-- Выберите --</option>
                                     </select>
                                 </li>
                                 <li class="filter__header__params__item">
                                     <label for="doctorStatus">Статус (контакт): </label>
-                                    <select id="doctorStatus" type="text" class="filter__select status" data-param="status" >
+                                    <select id="doctorStatus" type="text" class="filter__select status status--contact" data-param="status" >
                                         <option value="default">-- Выберите --</option>
                                     </select>
                                 </li>
@@ -269,7 +280,8 @@
                                     <option value="0" class="radius__value">0</option>
                                     <option value="1000" class="radius__value">1 km</option>
                                     <option value="5000" class="radius__value">5 km</option>
-                                    <option value="10000" class="radius__value" selected>10 km</option>
+                                    <option value="10000" class="radius__value">10 km</option>
+                                    <option value="25000" class="radius__value" selected>25 km</option>
                                     <option value="50000" class="radius__value">50 km</option>
                                     <option value="100000" class="radius__value">100 km</option>
                                     <option value="150000" class="radius__value">150 km</option>
@@ -300,6 +312,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/js/select2.min.js"></script>
 <script src="./js/jquery.formstyler.min.js"></script>
 <script src="./js/main.js?<?=time()?>"></script>
-<script async defer src="//maps.googleapis.com/maps/api/js?key=<?=$GM_API_KEY?>=places&callback=initMap"></script>
+<script async defer src="//maps.googleapis.com/maps/api/js?key=<?=$GM_API_KEY?>=places&callback=initApp"></script>
 </body>
 </html>
