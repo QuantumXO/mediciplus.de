@@ -842,6 +842,10 @@ body {
           font-size: 15px; }
       .filter__result__item .address {
         font-size: 14px; }
+      .filter__result__item .details {
+        display: none; }
+        .filter__result__item .details.show {
+          display: block; }
       .filter__result__item .bottom {
         display: -webkit-box;
         display: -webkit-flex;

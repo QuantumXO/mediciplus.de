@@ -432,13 +432,79 @@ function initMap() {
 
                     //console.log('getData() -> LOCATIONS: ', LOCATIONS);
 
-                    filter(FILTER_PARAMS.type, FILTER_PARAMS);
+                    getFieldsValues();
 
                     //setMarkers(LOCATIONS, animationDrop); // first init of markers
                 }
 
             });
     }
+
+    const getFieldsValues = async () => {
+
+        const data = await fetch('/map/get-fields.php')
+            .then(response => response.json());
+
+        console.log(data);
+
+        if(data){
+            //console.log('data: ', data);
+
+            INDUSTRY_LIST = data.contactFilter[0].INDUSTRY.LIST.map(function(item){
+                return {ID: item.STATUS_ID, VALUE: item.NAME};
+            });
+            COUNTRY_LIST = data.contactFilter[3].COUNTRY.LIST;
+            LANGUAGES_LIST = data.contactFilter[4].SPRACHE.LIST;
+            MED_PROFILES_CONTACT_LIST = data.contactFilter[2].MED_PROFILE.LIST;
+            MED_PROFILES_COMPANY_LIST = data.companyFilter[2].MED_PROFILE.LIST;
+            STATUSES_CONTACT_LIST = data.contactFilter[5].STATUS.LIST;
+            STATUSES_COMPANY_LIST = data.companyFilter[4].STATUS.LIST;
+            COOPERATIONS_CONTACT_LIST = data.contactFilter[1].COOPERATION.LIST;
+            COOPERATIONS_COMPANY_LIST = data.companyFilter[1].COOPERATION.LIST;
+
+            setOptions([
+                {
+                    FIELD_NAME: 'industry',
+                    LIST: INDUSTRY_LIST,
+                },
+                {
+                    FIELD_NAME: 'country',
+                    LIST: COUNTRY_LIST,
+                },
+                {
+                    FIELD_NAME: 'language',
+                    LIST: LANGUAGES_LIST,
+                },
+                {
+                    FIELD_NAME: 'cooperation',
+                    LIST: COOPERATIONS_COMPANY_LIST,
+                },
+                {
+                    FIELD_NAME: 'cooperation_contact',
+                    LIST: COOPERATIONS_CONTACT_LIST,
+                },
+                {
+                    FIELD_NAME: 'profile',
+                    LIST: MED_PROFILES_COMPANY_LIST,
+                },
+                {
+                    FIELD_NAME: 'profile_contact',
+                    LIST: MED_PROFILES_CONTACT_LIST,
+                },
+                {
+                    FIELD_NAME: 'status_company',
+                    LIST: STATUSES_COMPANY_LIST,
+                },
+                {
+                    FIELD_NAME: 'status_contact',
+                    LIST: STATUSES_CONTACT_LIST,
+                },
+            ]);
+        }
+
+        filter(FILTER_PARAMS.type, FILTER_PARAMS);
+
+    };
 
     function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
         let R = 6371; // Radius of the earth in km
@@ -467,133 +533,10 @@ function initMap() {
     // Resize frame
     BX24.fitWindow();
 
-    const getFieldsIndustry = function(){
-        BX24.callMethod(
-            "crm.status.list",
-            {
-                order: { "SORT": "ASC" },
-                filter: {
-                    "ENTITY_ID": 'INDUSTRY'
-                }
-            },
-            function(result){
-                if(result.error()){
-                    console.error(result.error());
-                }else{
-                    result = result.data();
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-                    let newArr = [];
-                    let obj = {};
-
-                    result.forEach(function(item){
-                        newArr.push({
-                            ID: item.STATUS_ID,
-                            VALUE: item.NAME
-                        });
-                    });
-
-                    result = {
-                        'FIELD_NAME' : 'industry',
-                        'LIST' : newArr,
-                    };
-
-
-                    INDUSTRY_LIST = result.LIST;
-
-                    //console.log(`result : `, result);
-
-                    setOptions(result);
-                }
-            }
-        );
-    };
-
-    const getCompanyUserfieldValues = function(FIELD_NAME, type){
-
-        let valuesList,
-            listURL;
-
-        listURL = type == 'company' ? "crm.company.userfield.list" : "crm.contact.userfield.list"
-
-        BX24.callMethod(
-            listURL,
-            {
-                order: { "SORT": "ASC" },
-                filter: { "FIELD_NAME": FIELD_NAME }
-            },
-            function(result){
-                if(result.error()){
-                    console.error(result.error());
-
-                }else{
-
-                    //console.log(`result.data(): `, result.data()[0].LIST);
-
-                    let name,
-                        list = [];
-
-                    result.data()[0].LIST.forEach(function(item){
-
-                        list.push({
-                            ID: item.ID,
-                            VALUE: item.VALUE
-                        });
-                    });
-
-                    if(FIELD_NAME == 'UF_CRM_1438258999'){
-                        FIELD_NAME = 'cooperation';
-                        COOPERATIONS_COMPANY_LIST = list;
-
-                    }else if(FIELD_NAME == 'UF_CRM_1387031615'){
-                        FIELD_NAME = 'profile';
-                        MED_PROFILES_COMPANY_LIST = list;
-
-                    }else if(FIELD_NAME == 'UF_CRM_1402932716'){
-                        FIELD_NAME = 'country';
-                        COUNTRY_LIST = list;
-
-                    }else if(FIELD_NAME == 'UF_CRM_1415786182'){
-                        FIELD_NAME = 'status_company';
-                        STATUSES_COMPANY_LIST = list;
-
-                    }else if(FIELD_NAME == 'UF_CRM_1433940616'){
-                        FIELD_NAME = 'language';
-                        //console.log('result: ', result);
-                        LANGUAGES_LIST = list;
-
-                    }else if(FIELD_NAME == 'UF_CRM_1553940316'){
-                        FIELD_NAME = 'wochenede_company';
-
-                    }else if(FIELD_NAME == 'UF_CRM_1388085826'){
-                        FIELD_NAME = 'status_contact';
-                        STATUSES_CONTACT_LIST = list;
-                        //console.log('STATUSES_CONTACT_LIST: ', STATUSES_CONTACT_LIST);
-
-                    }else if(FIELD_NAME == 'UF_CRM_1438259138'){
-                        FIELD_NAME = 'cooperation_contact';
-                        COOPERATIONS_CONTACT_LIST = list;
-                        //console.log('COOPERATIONS_CONTACT_LIST: ', COOPERATIONS_CONTACT_LIST);
-
-                    }else if(FIELD_NAME == 'UF_CRM_1387029485'){
-                        FIELD_NAME = 'profile_contact';
-                        MED_PROFILES_CONTACT_LIST = list;
-                        //console.log('MED_PROFILES_CONTACT_LIST: ', MED_PROFILES_CONTACT_LIST);
-
-                    }
-
-                    result = {
-                        FIELD_NAME : FIELD_NAME,
-                        LIST : list
-                    };
-
-                    //console.log('result: ', result);
-
-                    setOptions(result);
-                    //return result;
-                }
-            }
-        );
-    };
+// Map init
 
     //UF_CRM_1387031615 -- Мед. Профиль (company)
     //UF_CRM_1425472914 -- Auserdinst (contact)
@@ -601,87 +544,73 @@ function initMap() {
     //UF_CRM_1553940264 -- wochenede (contact)
     //UF_CRM_1553940316 -- wochenede (company)
 
-    const industry = getFieldsIndustry('industry'); // Сфера деятельности
-    const COOPERATIONS = getCompanyUserfieldValues('UF_CRM_1438258999', 'company'); //Cooperation
-    const COOPERATIONS_CONTACT = getCompanyUserfieldValues('UF_CRM_1438259138', 'contact'); //Cooperation (contact)
-    const PROFILES = getCompanyUserfieldValues("UF_CRM_1387031615", 'company'); // Мед. Профиль Компании
-    const PROFILES_CONTACT = getCompanyUserfieldValues("UF_CRM_1387029485", 'contact'); // Мед. Профиль (contact)
-    const COUNTRIES = getCompanyUserfieldValues("UF_CRM_1402932716", 'company'); // country
-    const STATUSES_COMPANY = getCompanyUserfieldValues("UF_CRM_1415786182", 'company'); // status (company)
-    const STATUSES_CONTACT = getCompanyUserfieldValues("UF_CRM_1388085826", 'contact'); // status
-    //const WOCHENEDE_COMPANY = getCompanyUserfieldValues("UF_CRM_1553940316", 'company'); // wochenede (company)
-    const SPRACHE = getCompanyUserfieldValues("UF_CRM_1433940616", 'contact'); // sprache
+    function setOptions(listsArr){
 
-    let iteration = 0;
+        const countrtSelect = document.querySelectorAll('select.country');
+        const cooperationSelectCompany = document.querySelectorAll('select.cooperation--company');
+        const cooperationSelectContact = document.querySelectorAll('select.cooperation--contact');
+        const profileSelectCompany = document.querySelectorAll('select.profile--company');
+        const profileSelectContact = document.querySelectorAll('select.profile--contact');
+        const industrySelect = document.querySelectorAll('select.industry');
+        const statusSelectCompany = document.querySelectorAll('select.status--company');
+        const statusSelectContact = document.querySelectorAll('select.status--contact');
+        const languageSelect = document.querySelectorAll('select.sprache');
 
-    function setOptions(item){
+        for(let i = 0; i < listsArr.length; i++){
+            const name = listsArr[i].FIELD_NAME;
+            const list = listsArr[i].LIST;
 
-        const name = item.FIELD_NAME;
-        const list = item.LIST;
+            if(list){
 
-        if(list){
-            const countrtSelect = document.querySelectorAll('select.country');
-            const cooperationSelectCompany = document.querySelectorAll('select.cooperation--company');
-            const cooperationSelectContact = document.querySelectorAll('select.cooperation--contact');
-            const profileSelectCompany = document.querySelectorAll('select.profile--company');
-            const profileSelectContact = document.querySelectorAll('select.profile--contact');
-            const industrySelect = document.querySelectorAll('select.industry');
-            const statusSelectCompany = document.querySelectorAll('select.status--company');
-            const statusSelectContact = document.querySelectorAll('select.status--contact');
-            const languageSelect = document.querySelectorAll('select.sprache');
+                if(name == 'country'){
+                    mapping(countrtSelect, list);
+                }else if(name == 'cooperation'){
+                    mapping(cooperationSelectCompany, list);
+                }else if(name == 'profile'){
+                    mapping(profileSelectCompany, list);
+                }else if(name == 'industry'){
+                    mapping(industrySelect, list);
+                }else if(name == 'status_company'){
+                    mapping(statusSelectCompany, list);
+                }else if(name == 'language'){
+                    mapping(languageSelect, list);
+                }else if(name == 'status_contact'){
+                    mapping(statusSelectContact, list);
+                }else if(name == 'cooperation_contact'){
+                    mapping(cooperationSelectContact, list);
+                }else if(name == 'profile_contact'){
+                    mapping(profileSelectContact, list);
+                }
+            }
+
+        }
+
+        function mapping(node, list){
 
             let itemValue,
                 itemId;
             const fragment = document.createDocumentFragment();
 
-            function mapping(node){
+            for(let i = 0; i < node.length; i++){
 
-                for(let i = 0; i < node.length; i++){
+                list.forEach(function(item){
+                    let newOption = document.createElement('option');
 
-                    list.forEach(function(item){
-                        let newOption = document.createElement('option');
+                    itemValue = item.VALUE;
+                    itemId = item.ID;
 
-                        itemValue = item.VALUE;
-                        itemId = item.ID;
+                    newOption.innerHTML = itemValue;
+                    newOption.value = itemId;
+                    newOption.setAttribute('data-value', itemId);
+                    fragment.appendChild(newOption);
 
-                        newOption.innerHTML = itemValue;
-                        newOption.value = itemId;
-                        newOption.setAttribute('data-value', itemId);
-                        fragment.appendChild(newOption);
+                });
 
-                    });
-
-                    node[i].appendChild(fragment);
-                    iteration++;
-                }
-            }
-
-            if(name == 'country'){
-                mapping(countrtSelect);
-            }else if(name == 'cooperation'){
-                mapping(cooperationSelectCompany);
-            }else if(name == 'profile'){
-                mapping(profileSelectCompany);
-            }else if(name == 'industry'){
-                mapping(industrySelect);
-            }else if(name == 'status_company'){
-                mapping(statusSelectCompany);
-            }else if(name == 'language'){
-                mapping(languageSelect);
-            }else if(name == 'status_contact'){
-                mapping(statusSelectContact);
-            }else if(name == 'cooperation_contact'){
-                mapping(cooperationSelectContact);
-            }else if(name == 'profile_contact'){
-                mapping(profileSelectContact);
+                node[i].appendChild(fragment);
             }
         }
+
     }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Map init
 
     if(SEARCH_VALUE){
         searchField.value = SEARCH_VALUE;
@@ -1054,23 +983,18 @@ function initMap() {
     }
 
     function showDetails() {
-        const showDetails = document.getElementsByClassName('js-more');
+        const showDetails = document.querySelectorAll('.js-more');
 
-        let markerId,
-            marker;
+        [].slice.call(showDetails).forEach(function(item){
 
-        [].slice.call(showDetails).forEach(function (item) {
-
-            item.addEventListener('click', function () {
-                markerId = item.getAttribute('data-marker-id');
-
-                marker = allMarkers.filter(item => item.id == markerId)[0];
-
-                setActiveResultItem(markerId);
-
-                renderPopUp(marker);
+            item.addEventListener('click', function(){
+                console.log('this: ', this);
+                this.closest('.filter__result__item').querySelectorAll('.js-details')[0].classList.toggle('show');
             });
+
         });
+
+
     }
 
     function setMarkers(LOCATIONS, animation){
@@ -1104,6 +1028,7 @@ function initMap() {
                 phone_fax: element.PHONE_FAX,
                 phone_mobile: element.PHONE_MOBILE,
                 phone_work: element.PHONE_WORK,
+                sprache: element.SPRACHE,
                 name: element.NAME || null,
             });
 
@@ -1155,6 +1080,7 @@ function initMap() {
 
                     }else{
                         result = MED_PROFILES_COMPANY_LIST.filter(item => item.ID == id)[0];
+
                     }
 
                     break;
@@ -1180,6 +1106,11 @@ function initMap() {
 
                     break;
 
+                case 'sprache':
+                    result = LANGUAGES_LIST.filter(item => item.ID == id)[0];
+
+                    break;
+
             }
 
             title = result ? result.VALUE : null;
@@ -1197,6 +1128,7 @@ function initMap() {
         let med_profiles = '';
         let profile;
         let BxItemURL;
+        let additional;
 
         if(type != 'doctor'){
             BxItemURL = '/crm/company/details/';
@@ -1205,7 +1137,6 @@ function initMap() {
         }
 
         if(med_profile.length){
-
 
             med_profile = med_profile.map(item => {
                 return getTitleFromId('med_profile', item, !sex ? 'clinic' : 'contact');
@@ -1242,7 +1173,6 @@ function initMap() {
             sex = getTitleFromId('sex', sex, null);
         }
 
-
         let infoWindowContent = `
           <div class="popUp">
               <h3 style="font-weight: 700;"><a href="${BxItemURL}${id}/" target="_blank">${title}</a></h3>
@@ -1278,15 +1208,25 @@ function initMap() {
         const resultListFragment = document.createDocumentFragment();
         const allMarkersLength = markersList.length;
 
-        let newReultItem,
-            type;
+        let newReultItem;
 
         resultList.innerHTML = ''; // Clear list
 
-        //console.log('renderList(markersList): ', markersList);
+        console.log('renderList(markersList): ', markersList);
 
         if(allMarkersLength){
             for(let i = 0; i < allMarkersLength; i++){
+
+                let profile,
+                    med_profiles = '',
+                    cooperation,
+                    sex,
+                    sprache,
+                    type,
+                    status,
+                    language,
+                    languages = '',
+                    med_profile;
 
                 switch (markersList[i].type){
                     case 'clinic':
@@ -1300,6 +1240,69 @@ function initMap() {
                     case 'doctor':
                         type = 'Doctor';
                         break;
+                }
+
+                if(markersList[i].med_profile.length){
+
+                    med_profile = markersList[i].med_profile.map(item => {
+                        return getTitleFromId('med_profile', item, !markersList[i].sex ? 'clinic' : 'contact');
+
+                    });
+
+                    for(let i = 0; i < med_profile.length; i++){
+
+                        if(med_profile[i]){
+                            if(i != (med_profile.length - 1)){
+                                profile = med_profile[i] + ',&nbsp;';
+
+                            }else{
+                                profile = med_profile[i];
+
+                            }
+
+                            med_profiles += profile;
+                        }
+
+                    }
+
+                }
+
+                if(markersList[i].cooperation){
+                    cooperation = getTitleFromId('cooperation', markersList[i].cooperation, !markersList[i].sex ? 'clinic' : 'contact');
+                }
+
+                if(markersList[i].status){
+                    status = getTitleFromId('status', markersList[i].status, null);
+                }
+
+                if(markersList[i].sprache && markersList[i].sprache.length){
+
+                    //console.log('markersList[i].sprache: ', markersList[i].sprache);
+
+                    sprache = markersList[i].sprache.map(item => {
+                        return getTitleFromId('sprache', item, null);
+                    });
+
+                    for(let i = 0; i < sprache.length; i++){
+
+                        if(sprache[i]){
+                            if(i != (sprache.length - 1)){
+                                language = sprache[i] + ',&nbsp;';
+
+                            }else{
+                                language = sprache[i];
+
+                            }
+
+                            languages += language;
+                        }
+
+                    }
+
+                }
+
+                if(markersList[i].sex){
+                    sex = getTitleFromId('sex', markersList[i].sex, null);
                 }
 
                 //type = markersList[i].type == 'clinic' ? 'Clinic' : 'Praxis';
@@ -1329,10 +1332,23 @@ function initMap() {
                       ${type ? '<span class="type">'  + type + '</span>' : ''}
                   </p>
                   <p class="address">${markersList[i].address}</p>
+                  ${med_profiles ? "<p class='info'>" + med_profiles + "</p>" : ""}
+                  ${cooperation ? "<p class='info'>" + cooperation + "</p>" : ""}
+                  <div class="details js-details">
+                      ${markersList[i].phone_work ? '<p class="info">Work:&nbsp;<a href="tel:' + markersList[i].phone_work + '">' + markersList[i].phone_work + '</a></p>' : ''}
+                      ${markersList[i].phone_fax ? '<p class="info">Fax:&nbsp;' + markersList[i].phone_fax + '</p>' : ''}</p>
+                      ${markersList[i].phone_mobile ? '<p class="info">Mobile:&nbsp;<a href="tel:' + markersList[i].phone_mobile + '">' + markersList[i].phone_mobile + '</a></p>' : ''}
+                      ${languages ? '<p class="info">Languages:&nbsp;' + languages + '</p>' : ''}
+                      ${status ? '<p class="info">Status:&nbsp;' + status + '</p>' : ''}
+                      ${type == 'doctor' && sex ? '<p class="info">Sex:&nbsp;' + sex + '</p>' : ''}
+                      ${markersList[i].wochenende != null ? '<p class="info">Wochenende:&nbsp;' + markersList[i].wochenende + '</p>' : ''}
+                      ${markersList[i].ausendienst != null ? '<p class="info">Ausendienst:&nbsp;' + markersList[i].ausendienst + '</p>' : ''}
+                  </div>
                   <div class="bottom">
                       <a href="#" class="direction js-direction" data-direction="${markersList[i].address}">Get direction</a>
                       <a href="#" class="more js-more" data-marker-id="${markersList[i].id}">Details</a>
                   </div>
+  
                   <div class="directions-info js-directions-info">
                       <div class="js-duration"></div>
                       <div class="distance js-distance"></div>
@@ -1368,6 +1384,20 @@ function initMap() {
 
             if(target.classList.contains('js-to-center-link')){
                 setActiveMarker(target);
+
+
+
+                let markerId,
+                    marker;
+
+                markerId = target.getAttribute('data-marker-id');
+
+                marker = allMarkers.filter(item => item.id == markerId)[0];
+
+                setActiveResultItem(markerId);
+
+                renderPopUp(marker, true);
+
             }
         });
 
