@@ -157,6 +157,7 @@ function initMap() {
     const filterRadius = document.getElementById('radius');
     const filterResultCounter = document.querySelector('.filter__result__counter .value');
     const filterParamsSelect = document.getElementsByClassName('filter__params__select')[0];
+    const filterCustomList = document.getElementsByClassName('js-custom-filter-list')[0];
     const closeFilterMobBtn = document.getElementsByClassName('js-close-filter')[0];
     const clearFieldBtn = document.getElementsByClassName('js-clear'); // all clear btns
     const clearFieldBtnsArr = [].slice.call(clearFieldBtn);
@@ -264,10 +265,10 @@ function initMap() {
         }
     };
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Custom
+    // Custom
 
     $(".profile").on("select2:select select2:unselect", function (e) {
 
@@ -310,7 +311,7 @@ function initMap() {
 
         CLIENT_ADDRESS = searhField.value.replace(/ /gi, '+') || null;
 
-        const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${CLIENT_ADDRESS}&key=AIzaSyBeVoPDyYZyUq-h735KGeK4OA9-BEuecBg&libraries`);
+        const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${CLIENT_ADDRESS}&key=AIzaSyCZLQh0F2FUbMOz0lcd6E0sahcxwuXA3NA&libraries`);
         const data = await response.json();
 
         if(data.status == 'OK'){
@@ -336,7 +337,7 @@ function initMap() {
             })
             .then(function(data) {
 
-                //console.log('getData() -> data: ', data);
+                console.log('getData() -> data: ', data);
 
                 if(data){
 
@@ -353,7 +354,7 @@ function initMap() {
                             distance,
                             position;
 
-                        if(item.INDUSTRY == 'NOTPROFIT' && !item.SEX){ // Клиника [Мед. Клиника]
+                        /*if(item.INDUSTRY == 'NOTPROFIT' && !item.SEX){ // Клиника [Мед. Клиника]
                             item.TYPE = 'clinic';
 
                         }else if(item.INDUSTRY == '3' && !item.SEX){ // Доктор [Мед. Праксис]
@@ -364,7 +365,7 @@ function initMap() {
 
                         }else {
                             item.TYPE = null;
-                        }
+                        }*/
 
                         // Ні
                         if(COOPERATION == 1201 || COOPERATION == 1193){
@@ -411,8 +412,8 @@ function initMap() {
                             };
                         }
 
-                        item.LAT = item.LAT || 0;
-                        item.LNG = item.LNG || 0;
+                        item.LAT = +item.LAT || 0;
+                        item.LNG = +item.LNG || 0;
 
                         lat = item.LAT;
                         lng = item.LNG;
@@ -526,17 +527,17 @@ function initMap() {
         return deg * (Math.PI/180)
     }
 
-//////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////
 
-// Битрикс24
+    // Битрикс24
 
     // Resize frame
     BX24.fitWindow();
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Map init
+    // Map init
 
     //UF_CRM_1387031615 -- Мед. Профиль (company)
     //UF_CRM_1425472914 -- Auserdinst (contact)
@@ -642,7 +643,7 @@ function initMap() {
         this.click();
     });
 
-    document.body.addEventListener('click', function (e) {
+    document.addEventListener('click', function (e) {
         const target = e.target;
 
         let filterAdditionalShow = document.querySelector(`.js-filter-additional.show`) || null;
@@ -661,7 +662,17 @@ function initMap() {
             }
             //document.querySelector(`.js-btn.active`).classList.remove('active');
             activeFilterBtn = null;
+
+        }else if(
+            target.classList.contains('js-custom-filter-list') ||
+            target.closest('js-custom-filter-list')
+        ){
+            console.log('click');
+
+            filterCustomList.classList.toggle('active');
+
         }
+
     });
 
     [].slice.call(filterParamsBasicBtn).forEach(function (item) {
@@ -1174,20 +1185,20 @@ function initMap() {
         }
 
         let infoWindowContent = `
-          <div class="popUp">
-              <h3 style="font-weight: 700;"><a href="${BxItemURL}${id}/" target="_blank">${title}</a></h3>
-              <p>Addess:&nbsp;${address}</p>
-              ${med_profiles ? '<p>Медпрофиль:&nbsp;' + med_profiles + '</p>' : ''}
-              ${cooperation ? '<p>Cooperation:&nbsp;' + cooperation + '</p>' : ''}
-              ${wochenende != null ? '<p>Wochenende:&nbsp;' + wochenende + '</p>' : ''}
-              ${ausendienst != null ? '<p>Ausendienst:&nbsp;' + ausendienst + '</p>' : ''}
-              ${status != null ? '<p>Status:&nbsp;' + status + '</p>' : ''}
-              ${phone_work ? '<p>Work:&nbsp;<a href="tel:' + phone_work + '">' + phone_work + '</a></p>' : ''}
-              ${phone_fax ? '<p>Fax:&nbsp;' + phone_fax + '</p>' : ''}
-              ${phone_mobile ? '<p>Mobile:&nbsp;<a href="tel:' + phone_mobile + '">' + phone_mobile + '</a></p>' : ''}
-              ${type == 'doctor' && sex ? '<p>Sex:&nbsp;' + sex + '</p>' : ''}
-          </div>
-        `;
+            <div class="popUp">
+                <h3 style="font-weight: 700;"><a href="${BxItemURL}${id}/" target="_blank">${title}</a></h3>
+                <p>Addess:&nbsp;${address}</p>
+                ${med_profiles ? '<p>Медпрофиль:&nbsp;' + med_profiles + '</p>' : ''}
+                ${cooperation ? '<p>Cooperation:&nbsp;' + cooperation + '</p>' : ''}
+                ${wochenende != null ? '<p>Wochenende:&nbsp;' + wochenende + '</p>' : ''}
+                ${ausendienst != null ? '<p>Ausendienst:&nbsp;' + ausendienst + '</p>' : ''}
+                ${status != null ? '<p>Status:&nbsp;' + status + '</p>' : ''}
+                ${phone_work ? '<p>Work:&nbsp;<a href="tel:' + phone_work + '">' + phone_work + '</a></p>' : ''}
+                ${phone_fax ? '<p>Fax:&nbsp;' + phone_fax + '</p>' : ''}
+                ${phone_mobile ? '<p>Mobile:&nbsp;<a href="tel:' + phone_mobile + '">' + phone_mobile + '</a></p>' : ''}
+                ${type == 'doctor' && sex ? '<p>Sex:&nbsp;' + sex + '</p>' : ''}
+            </div>
+          `;
 
         if(POP_UP_IS_ACTIVE){
             POP_UP_IS_ACTIVE.close();
@@ -1212,7 +1223,7 @@ function initMap() {
 
         resultList.innerHTML = ''; // Clear list
 
-        console.log('renderList(markersList): ', markersList);
+        //console.log('renderList(markersList): ', markersList);
 
         if(allMarkersLength){
             for(let i = 0; i < allMarkersLength; i++){
@@ -1316,44 +1327,44 @@ function initMap() {
                 }
 
                 newReultItem.innerHTML = `
-                  <h3 class="title">
-                      <a 
-                          href="#"
-                          class="to-center-link js-to-center-link" 
-                          data-lat="${markersList[i].lat}" 
-                          data-lng="${markersList[i].lng}"
-                          data-marker-id="${markersList[i].id}"
-                      >
-                          ${markersList[i].title}
-                      </a>
-                  </h3>
-                  <p class="info">
-                      ${markersList[i].schedule ? 'Open:&nbsp;<span class="value">'  + markersList[i].schedule + '</span>,&nbsp;' : ''}
-                      ${type ? '<span class="type">'  + type + '</span>' : ''}
-                  </p>
-                  <p class="address">${markersList[i].address}</p>
-                  ${med_profiles ? "<p class='info'>" + med_profiles + "</p>" : ""}
-                  ${cooperation ? "<p class='info'>" + cooperation + "</p>" : ""}
-                  <div class="details js-details">
-                      ${markersList[i].phone_work ? '<p class="info">Work:&nbsp;<a href="tel:' + markersList[i].phone_work + '">' + markersList[i].phone_work + '</a></p>' : ''}
-                      ${markersList[i].phone_fax ? '<p class="info">Fax:&nbsp;' + markersList[i].phone_fax + '</p>' : ''}</p>
-                      ${markersList[i].phone_mobile ? '<p class="info">Mobile:&nbsp;<a href="tel:' + markersList[i].phone_mobile + '">' + markersList[i].phone_mobile + '</a></p>' : ''}
-                      ${languages ? '<p class="info">Languages:&nbsp;' + languages + '</p>' : ''}
-                      ${status ? '<p class="info">Status:&nbsp;' + status + '</p>' : ''}
-                      ${type == 'doctor' && sex ? '<p class="info">Sex:&nbsp;' + sex + '</p>' : ''}
-                      ${markersList[i].wochenende != null ? '<p class="info">Wochenende:&nbsp;' + markersList[i].wochenende + '</p>' : ''}
-                      ${markersList[i].ausendienst != null ? '<p class="info">Ausendienst:&nbsp;' + markersList[i].ausendienst + '</p>' : ''}
-                  </div>
-                  <div class="bottom">
-                      <a href="#" class="direction js-direction" data-direction="${markersList[i].address}">Get direction</a>
-                      <a href="#" class="more js-more" data-marker-id="${markersList[i].id}">Details</a>
-                  </div>
-  
-                  <div class="directions-info js-directions-info">
-                      <div class="js-duration"></div>
-                      <div class="distance js-distance"></div>
-                  </div>
-               `;
+                    <h3 class="title">
+                        <a 
+                            href="#"
+                            class="to-center-link js-to-center-link" 
+                            data-lat="${markersList[i].lat}" 
+                            data-lng="${markersList[i].lng}"
+                            data-marker-id="${markersList[i].id}"
+                        >
+                            ${markersList[i].title}
+                        </a>
+                    </h3>
+                    <p class="info">
+                        ${markersList[i].schedule ? 'Open:&nbsp;<span class="value">'  + markersList[i].schedule + '</span>,&nbsp;' : ''}
+                        ${type ? '<span class="type">'  + type + '</span>' : ''}
+                    </p>
+                    <p class="address">${markersList[i].address}</p>
+                    ${med_profiles ? "<p class='info'>" + med_profiles + "</p>" : ""}
+                    ${cooperation ? "<p class='info'>" + cooperation + "</p>" : ""}
+                    <div class="details js-details">
+                        ${markersList[i].phone_work ? '<p class="info">Work:&nbsp;<a href="tel:' + markersList[i].phone_work + '">' + markersList[i].phone_work + '</a></p>' : ''}
+                        ${markersList[i].phone_fax ? '<p class="info">Fax:&nbsp;' + markersList[i].phone_fax + '</p>' : ''}</p>
+                        ${markersList[i].phone_mobile ? '<p class="info">Mobile:&nbsp;<a href="tel:' + markersList[i].phone_mobile + '">' + markersList[i].phone_mobile + '</a></p>' : ''}
+                        ${languages ? '<p class="info">Languages:&nbsp;' + languages + '</p>' : ''}
+                        ${status ? '<p class="info">Status:&nbsp;' + status + '</p>' : ''}
+                        ${type == 'doctor' && sex ? '<p class="info">Sex:&nbsp;' + sex + '</p>' : ''}
+                        ${markersList[i].wochenende != null ? '<p class="info">Wochenende:&nbsp;' + markersList[i].wochenende + '</p>' : ''}
+                        ${markersList[i].ausendienst != null ? '<p class="info">Ausendienst:&nbsp;' + markersList[i].ausendienst + '</p>' : ''}
+                    </div>
+                    <div class="bottom">
+                        <a href="#" class="direction js-direction" data-direction="${markersList[i].address}">Get direction</a>
+                        <a href="#" class="more js-more" data-marker-id="${markersList[i].id}">Details</a>
+                    </div>
+
+                    <div class="directions-info js-directions-info">
+                        <div class="js-duration"></div>
+                        <div class="distance js-distance"></div>
+                    </div>
+                 `;
 
                 resultListFragment.appendChild(newReultItem);
             }
@@ -1493,7 +1504,7 @@ function initMap() {
         FILTER_PARAMS.radius = RADIUS;
         FILTER_PARAMS.type = type.toLowerCase();
 
-        //console.log('FILTER_PARAMS: ', FILTER_PARAMS);
+        console.log('FILTER_PARAMS: ', FILTER_PARAMS);
 
         locFilterArr = locFilterArr.filter(item => {
 

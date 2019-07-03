@@ -1,6 +1,7 @@
 <?php
   global $GM_API_KEY;
-  $GM_API_KEY = 'AIzaSyBeVoPDyYZyUq-h735KGeK4OA9-BEuecBg&libraries';
+  //$GM_API_KEY = 'AIzaSyBeVoPDyYZyUq-h735KGeK4OA9-BEuecBg&libraries';
+  $GM_API_KEY = 'AIzaSyCZLQh0F2FUbMOz0lcd6E0sahcxwuXA3NA&libraries';
 
   $xmlFeed = $_SERVER["DOCUMENT_ROOT"] . "/map/feed/map_feed.xml";
   //require 'on_company_update.php';
@@ -22,7 +23,6 @@
     <script src="//api.bitrix24.com/api/v1/"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <title>Map application</title>
-
 </head>
 <body>
 <script>
@@ -104,37 +104,40 @@
 
                                 <div class="inner">
                                     <div class="btn js-btn active" data-type="all">
-                                        <!--<span class="icon"></span>-->
                                         <span class="text">All</span>
                                     </div>
                                     <div class="btn js-btn" data-type="clinics">
-                                        <!--<span class="icon" style="height: 23.47px;"><img src="./img/doctor.png" width="20" alt="doctor icon" /></span>-->
                                         <span class="text">Clinics</span>
                                     </div>
                                     <div class="btn js-btn" data-type="praxis">
-                                        <!--<span class="icon" style="height: 26px;"><img src="./img/hospital.png" width="20" alt="hospital icon" /></span>-->
                                         <span class="text">Praxis</span>
                                     </div>
                                     <div class="btn js-btn" data-type="doctors">
-                                        <!--<span class="icon" style="height: 26px;"><img src="./img/hospital.png" width="20" alt="hospital icon" /></span>-->
                                         <span class="text">Doctors</span>
                                     </div>
-                                    <div class="btn js-btn" data-type="notdienst">
-                                        <!--<span class="icon" style="height: 26px;"><img src="./img/hospital.png" width="20" alt="hospital icon" /></span>-->
-                                        <span class="text">Notdienst</span>
-                                    </div>
-                                    <div class="btn js-btn" data-type="taxi">
-                                        <!--<span class="icon" style="height: 26px;"><img src="./img/hospital.png" width="20" alt="hospital icon" /></span>-->
-                                        <span class="text">Taxi</span>
-                                    </div>
-                                    <div class="btn js-btn" data-type="krankenwahgentransport">
-                                        <!--<span class="icon" style="height: 26px;"><img src="./img/hospital.png" width="20" alt="hospital icon" /></span>-->
-                                        <span class="text">Krankenwahgentransport</span>
-                                    </div>
-                                    <div class="btn js-btn" data-type="privatärztlichenotdienst">
-                                        <!--<span class="icon" style="height: 26px;"><img src="./img/hospital.png" width="20" alt="hospital icon" /></span>-->
-                                        <span class="text">Privatärztlichenotdienst</span>
-                                    </div>
+
+                                    <ul class="list js-custom-filter-list">
+                                        <li class="js-btn" data-type="notdienst">
+                                            <span class="text">Notdienst</span>
+                                        </li>
+                                        <li class="js-btn" data-type="taxi">
+                                            <span class="text">Taxi</span>
+                                        </li>
+                                        <li class="js-btn" data-type="krankenwahgentransport">
+                                            <span class="text">Krankenwahgentransport</span>
+                                        </li>
+                                        <li class="js-btn" data-type="privatärztlichenotdienst">
+                                            <span class="text">Privatärztlichenotdienst</span>
+                                        </li>
+                                    </ul>
+                                    <!--<select class="filter__select">
+                                      <option value="default" selected disabled>Additional</option>
+                                      <option class="js-btn" value="notdienst" data-type="notdienst">notdienst</option>
+                                      <option class="js-btn" value="taxi" data-type="taxi">taxi</option>
+                                      <option class="js-btn" value="krankenwahgentransport" data-type="krankenwahgentransport">krankenwahgentransport</option>
+                                      <option class="js-btn" value="privatärztlichenotdienst" data-type="privatärztlichenotdienst">privatärztlichenotdienst</option>
+                                    </select>-->
+
                                 </div>
 
                             </div>

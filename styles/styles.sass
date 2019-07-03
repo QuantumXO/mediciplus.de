@@ -427,9 +427,9 @@ body
 							transition: all .218s ease 0s
 							cursor: pointer
 
-							&:nth-last-child(1),
-							&:nth-last-child(2),
-							&:nth-last-child(3)
+							&:nth-last-child(1)
+							//&:nth-last-child(2),
+							//&:nth-last-child(3)
 								margin-top: 10px
 
 							&:not(:last-child)
@@ -453,6 +453,37 @@ body
 								display: inline-block
 								text-align: center
 								font-size: 13px
+
+						.list
+							width: 100%
+							height: 35px
+							margin-top: 10px
+							display: inline-block
+							overflow: hidden
+
+							&.active
+								height: auto
+
+							li
+								padding: 5px
+								width: 100%
+								height: 35px
+								display: flex
+								align-items: center
+								justify-content: flex-start
+								border-radius: 3px
+								user-select: none
+								cursor: pointer
+								
+								&:hover
+									background: #f7f7f7 linear-gradient(#f7f7f7, #f1f1f1)
+
+								.text
+									height: 25px
+									line-height: 25px
+									display: inline-block
+
+
 
 
 				.filter__label

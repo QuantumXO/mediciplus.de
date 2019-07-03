@@ -625,8 +625,6 @@ body {
             -o-transition: all .218s ease 0s;
             transition: all .218s ease 0s;
             cursor: pointer; }
-            .filter__header__params__inner .btns__inner .btn:nth-last-child(1), .filter__header__params__inner .btns__inner .btn:nth-last-child(2), .filter__header__params__inner .btns__inner .btn:nth-last-child(3) {
-              margin-top: 10px; }
             .filter__header__params__inner .btns__inner .btn:not(:last-child) {
               margin-right: 10px; }
             .filter__header__params__inner .btns__inner .btn:hover, .filter__header__params__inner .btns__inner .btn.active {
@@ -649,6 +647,46 @@ body {
               display: inline-block;
               text-align: center;
               font-size: 13px; }
+          .filter__header__params__inner .btns__inner .list {
+            width: 100%;
+            height: 35px;
+            margin-top: 10px;
+            display: inline-block;
+            overflow: hidden; }
+            .filter__header__params__inner .btns__inner .list.active {
+              height: auto; }
+            .filter__header__params__inner .btns__inner .list li {
+              padding: 5px;
+              width: 100%;
+              height: 35px;
+              display: -webkit-box;
+              display: -webkit-flex;
+              display: -ms-flexbox;
+              display: flex;
+              -webkit-box-align: center;
+              -webkit-align-items: center;
+              -ms-flex-align: center;
+              align-items: center;
+              -webkit-box-pack: start;
+              -webkit-justify-content: flex-start;
+              -ms-flex-pack: start;
+              justify-content: flex-start;
+              -webkit-border-radius: 3px;
+              border-radius: 3px;
+              -webkit-user-select: none;
+              -moz-user-select: none;
+              -ms-user-select: none;
+              user-select: none;
+              cursor: pointer; }
+              .filter__header__params__inner .btns__inner .list li:hover {
+                background: #f7f7f7 -webkit-gradient(linear, left top, left bottom, from(#f7f7f7), to(#f1f1f1));
+                background: #f7f7f7 -webkit-linear-gradient(#f7f7f7, #f1f1f1);
+                background: #f7f7f7 -o-linear-gradient(#f7f7f7, #f1f1f1);
+                background: #f7f7f7 linear-gradient(#f7f7f7, #f1f1f1); }
+              .filter__header__params__inner .btns__inner .list li .text {
+                height: 25px;
+                line-height: 25px;
+                display: inline-block; }
         .filter__header__params__inner .filter__label {
           display: -webkit-box;
           display: -webkit-flex;

@@ -1,26 +1,154 @@
-/*{
- "ID": "549",
- "TITLE": "",
- "SEX": "45",
- "ADDRESS": "ул. Айманова 68А Алматы Казахстан ",
- "LAT": 43.2469713,
- "LNG": 76.89651049999999,
- "TYPE_ID": "SUPPLIER",
- "INDUSTRY": "3",
- "MED_PROFILE": [
- 141
- ],
- "COOPERATION": "1216",
- "STATUS_ID": [],
- "PHONE_WORK": "+49 211 35 23 22",
- "PHONE_FAX": "+49 211 935 77 70",
- "PHONE_MOBILE": null
- },*/
+
+function initApp(){
+    PLACEMENT = BX24.placement.info();
+    //console.log("PLACEMENT: ", PLACEMENT);
+
+    if(PLACEMENT.placement == "CRM_CONTACT_DETAIL_TAB"){
+        getClientOrCompanyAddress(PLACEMENT.options.ID, 'crm.contact.get', 'contact');
+
+    }else if(PLACEMENT.placement == "CRM_COMPANY_DETAIL_TAB"){
+        getClientOrCompanyAddress(PLACEMENT.options.ID, 'crm.company.get', 'company');
+
+    }else{
+        initMap();
+    }
+}
+
+function getClientOrCompanyAddress(id, CRMUrl, type){
+
+    //console.log('getClientOrCompanyAddress()');
+
+    BX24.callMethod(
+        CRMUrl,
+        { id: id },
+        function(result){
+
+            console.log("result: ", result);
+
+            if(result.error())
+                console.error(result.error());
+            else{
+                const searhField = document.querySelector('#searchField');
+                let resultData = result.data(),
+                    COUNTRY,
+                    CITY,
+                    ADDRESS,
+                    ADDRESS_2,
+                    UF_CRM_1559428470374;
+
+                COUNTRY = resultData.ADDRESS_COUNTRY ? resultData.ADDRESS_COUNTRY + ' ' : '';
+                CITY = resultData.ADDRESS_CITY ? resultData.ADDRESS_CITY + ' ' : '';
+                ADDRESS = resultData.ADDRESS ? resultData.ADDRESS + ' ' : '';
+                ADDRESS_2 = resultData.ADDRESS_2 ? resultData.ADDRESS_2 + ' ' : '';
+                UF_CRM_1559428470374 = resultData.UF_CRM_1559428470374 ? resultData.UF_CRM_1559428470374 + ' ' : '';
+
+                if(COUNTRY || CITY || ADDRESS || ADDRESS_2){
+                    searhField.value = COUNTRY + CITY + ADDRESS + ADDRESS_2;
+
+                    initMap();
+                }else if(UF_CRM_1559428470374){
+                    searhField.value = UF_CRM_1559428470374;
+                    initMap();
+
+                }else{
+                    if(type == 'contact'){
+                        getClientOrCompanyRequisite(3, id);
+                    }else{
+                        getClientOrCompanyRequisite(4, id);
+                    }
+
+                }
+
+            }
+        }
+    );
+}
+
+function getClientOrCompanyRequisite(ENTITY_TYPE_ID, ENTITY_ID){
+
+    //console.log('getClientOrCompanyRequisite()');
+
+    /*
+     ENTITY_TYPE_ID:
+     {ID: 3, NAME: "Контакт"}
+     {ID: 4, NAME: "Компания"}
+     {ID: 8, NAME: "Реквизиты"}
+
+     ENTITY_ID - ID contact/company
+     */
+
+    BX24.callMethod(
+        "crm.requisite.list", {
+            order: {"ENTITY_ID": "ASC"},
+            filter: {
+                "ENTITY_TYPE_ID": ENTITY_TYPE_ID,
+                "ENTITY_ID": ENTITY_ID
+            },
+            select: ["ID"]
+        },function (result){
+            if(result.error()){
+                console.error(result.error());
+
+            }else{
+                //console.log('crm.requisite.list ID: ', result.data()[0].ID);
+                getAddressFromRequisite(result.data()[0].ID);
+
+            }
+        }
+    );
+
+}
+
+function getAddressFromRequisite(requisiteId){
+    //console.log('getAddressFromRequisite()');
+    BX24.callMethod(
+        'crm.address.list',
+        {
+            filter: {
+                'ENTITY_TYPE_ID': 8,
+                "ENTITY_ID": requisiteId
+            },
+        },function (result){
+            if(result.error()){
+                console.error(result.error());
+            }else{
+
+                console.log('crm.address.list: ', result.data());
+
+                const searhField = document.querySelector('#searchField');
+                let resultData = result.data()[0],
+                    COUNTRY,
+                    CITY,
+                    PROVINCE,
+                    REGION,
+                    POSTAL_CODE,
+                    ADDRESS_1,
+                    ADDRESS_2;
+
+                COUNTRY = resultData.COUNTRY ? resultData.COUNTRY + ' ' : '';
+                CITY = resultData.CITY ? resultData.CITY + ' ' : '';
+                ADDRESS_1 = resultData.ADDRESS_1 ? resultData.ADDRESS_1 + ' ' : '';
+                ADDRESS_2 = resultData.ADDRESS_2 ? resultData.ADDRESS_2 + ' ' : '';
+                REGION = resultData.REGION ? resultData.REGION + ' ' : '';
+                PROVINCE = resultData.PROVINCE ? resultData.PROVINCE + ' ' : '';
+
+                if(COUNTRY || CITY || ADDRESS_1 || ADDRESS_2 || REGION || PROVINCE){
+                    searhField.value = COUNTRY + REGION + CITY + ADDRESS_1 + ADDRESS_2;
+                }
+
+                initMap();
+            }
+        }
+    );
+
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 function initMap() {
 
     // Search
-    const searhField = document.getElementById('searchField');
+    const searhField = document.querySelector('#searchField');
     const searhFields = document.getElementsByClassName('search-field');
     const searchFindBtn = document.getElementById('searchFind');
 
@@ -29,6 +157,7 @@ function initMap() {
     const filterRadius = document.getElementById('radius');
     const filterResultCounter = document.querySelector('.filter__result__counter .value');
     const filterParamsSelect = document.getElementsByClassName('filter__params__select')[0];
+    const filterCustomList = document.getElementsByClassName('js-custom-filter-list')[0];
     const closeFilterMobBtn = document.getElementsByClassName('js-close-filter')[0];
     const clearFieldBtn = document.getElementsByClassName('js-clear'); // all clear btns
     const clearFieldBtnsArr = [].slice.call(clearFieldBtn);
@@ -52,18 +181,20 @@ function initMap() {
     const directionFieldsWrap = document.getElementsByClassName('direction__menu')[0]; // fields wrap
 
     // Google map
-    const defaultZoom = 11;
+    const defaultZoom = 14;
     const geocoder = new google.maps.Geocoder();
     const directionsService = new google.maps.DirectionsService;
     let directionsDisplay = new google.maps.DirectionsRenderer;
-    const hospitalIcon = "./img/hospital.png";
-    const hospitalIconWidth = 26;
-    const hospitalIconHeight = 33.8;
+    //const hospitalIcon = "./img/hospital.png";
+    const hospitalIconPath = "M448 492v20H0v-20c0-6.627 5.373-12 12-12h20V120c0-13.255 10.745-24 24-24h88V24c0-13.255 10.745-24 24-24h112c13.255 0 24 10.745 24 24v72h88c13.255 0 24 10.745 24 24v360h20c6.627 0 12 5.373 12 12zM308 192h-40c-6.627 0-12 5.373-12 12v40c0 6.627 5.373 12 12 12h40c6.627 0 12-5.373 12-12v-40c0-6.627-5.373-12-12-12zm-168 64h40c6.627 0 12-5.373 12-12v-40c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v40c0 6.627 5.373 12 12 12zm104 128h-40c-6.627 0-12 5.373-12 12v84h64v-84c0-6.627-5.373-12-12-12zm64-96h-40c-6.627 0-12 5.373-12 12v40c0 6.627 5.373 12 12 12h40c6.627 0 12-5.373 12-12v-40c0-6.627-5.373-12-12-12zm-116 12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v40c0 6.627 5.373 12 12 12h40c6.627 0 12-5.373 12-12v-40zM182 96h26v26a6 6 0 0 0 6 6h20a6 6 0 0 0 6-6V96h26a6 6 0 0 0 6-6V70a6 6 0 0 0-6-6h-26V38a6 6 0 0 0-6-6h-20a6 6 0 0 0-6 6v26h-26a6 6 0 0 0-6 6v20a6 6 0 0 0 6 6z"
+    //const hospitalIconWidth = 26;
+    //const hospitalIconHeight = 33.8;
     //const hospitalIconWidthScaledSize = 31;
     //const hospitalIconHeightScaledSize = 38.8;
-    const doctorIcon = "./img/doctor.png";
-    const doctorIconWidth = 26;
-    const doctorIconHeight = 33.8;
+    //const doctorIcon = "./img/doctor.png";
+    const doctorIconPath = "M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zM104 424c0 13.3 10.7 24 24 24s24-10.7 24-24-10.7-24-24-24-24 10.7-24 24zm216-135.4v49c36.5 7.4 64 39.8 64 78.4v41.7c0 7.6-5.4 14.2-12.9 15.7l-32.2 6.4c-4.3.9-8.5-1.9-9.4-6.3l-3.1-15.7c-.9-4.3 1.9-8.6 6.3-9.4l19.3-3.9V416c0-62.8-96-65.1-96 1.9v26.7l19.3 3.9c4.3.9 7.1 5.1 6.3 9.4l-3.1 15.7c-.9 4.3-5.1 7.1-9.4 6.3l-31.2-4.2c-7.9-1.1-13.8-7.8-13.8-15.9V416c0-38.6 27.5-70.9 64-78.4v-45.2c-2.2.7-4.4 1.1-6.6 1.9-18 6.3-37.3 9.8-57.4 9.8s-39.4-3.5-57.4-9.8c-7.4-2.6-14.9-4.2-22.6-5.2v81.6c23.1 6.9 40 28.1 40 53.4 0 30.9-25.1 56-56 56s-56-25.1-56-56c0-25.3 16.9-46.5 40-53.4v-80.4C48.5 301 0 355.8 0 422.4v44.8C0 491.9 20.1 512 44.8 512h358.4c24.7 0 44.8-20.1 44.8-44.8v-44.8c0-72-56.8-130.3-128-133.8z"
+    //const doctorIconWidth = 26;
+    //const doctorIconHeight = 33.8;
     const directionFromIcon = "./img/directionFromIcon.png";
     const options = {
         center: {lat: 50.431275, lng: 30.516910}, //{lat: -34.397, lng: 150.644}
@@ -75,7 +206,6 @@ function initMap() {
     const animationBounce= google.maps.Animation.BOUNCE;
 
     const ITERATION_SELECT_NUM = 7;
-
 
     const SEX_LIST = [
         {ID: 45, VALUE: "Мужской"},
@@ -110,6 +240,7 @@ function initMap() {
             radius: RADIUS
         },
         clientMarkerRadius,
+        CLIENT_ID,
         CLIENT_ADDRESS,
         CLIENT_LAT,
         CLIENT_LNG;
@@ -126,6 +257,7 @@ function initMap() {
         onSelectClosed: function() {
 
             const $this = $(this);
+
             if(!$this.hasClass('radius__select')){
                 //getAddParams($(this));
             }
@@ -133,68 +265,24 @@ function initMap() {
         }
     };
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Custom
-    function custom(){
+    // Custom
 
-        //$('.radius__select').styler();
+    $(".profile").on("select2:select select2:unselect", function (e) {
 
-        document.body.addEventListener('click', function(e){
+        //this returns all the selected item
+        const value = $(this).val();
 
-            const target = e.target;
-            const multiSelect = document.querySelectorAll('.select2-results__options[aria-multiselectable="true"]');
-            const wrap = e.target.parentNode.parentNode;
+        let data = {
+            name: 'med_profile',
+            value: value.length ? value : null,
+        };
 
-            let isRemoveBtn = 0;
+        getAddParams(data);
 
-            if(
-                (wrap && wrap.classList.contains('select2-results__options')) ||
-                target.closest('.select2-results__options[aria-multiselectable="true"]') ||
-                target.closest('.select2-selection__choice__remove') ||
-                target.classList.contains('select2-selection__choice__remove')
-
-            ){
-                wrap && wrap.classList.add('show');
-
-                if(target.classList.contains('select2-selection__choice__remove')){
-                    isRemoveBtn = 1;
-                }
-
-                //console.log('click');
-
-                if(target.nodeName == 'LI' || isRemoveBtn){
-                    let data;
-                    let arr = [];
-                    const regExpId = /[0-9]*$/gm;
-                    const selected = document.querySelectorAll('li[aria-selected="true"]');
-
-                    //console.log('selected: ', selected);
-
-                    for(let i = 0; i < selected.length; i++){
-                        arr.push(+selected[i].getAttribute('data-select2-id').match(regExpId)[0]);
-                    }
-
-                    data = {
-                        name: 'med_profile',
-                        value: arr.length ? arr : null,
-                    }
-
-                    getAddParams(data);
-
-                }
-
-            }else{
-                [].slice.call(multiSelect).forEach(function(item){
-                    item.classList.remove('show');
-                });
-
-            }
-
-        });
-
-    }custom();
+    });
 
     function initSelect2(){
 
@@ -223,7 +311,7 @@ function initMap() {
 
         CLIENT_ADDRESS = searhField.value.replace(/ /gi, '+') || null;
 
-        const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${CLIENT_ADDRESS}&key=AIzaSyBeVoPDyYZyUq-h735KGeK4OA9-BEuecBg&libraries`);
+        const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${CLIENT_ADDRESS}&key=AIzaSyCZLQh0F2FUbMOz0lcd6E0sahcxwuXA3NA&libraries`);
         const data = await response.json();
 
         if(data.status == 'OK'){
@@ -241,7 +329,7 @@ function initMap() {
 
     function getData(){
 
-        fetch(dataURL)
+        fetch(dataURL, {cache: "no-store"})
             .then(response => {
                 if(response.status == 200){
                     return response.json();
@@ -249,7 +337,7 @@ function initMap() {
             })
             .then(function(data) {
 
-                //console.log('getData() -> data: ', data);
+                console.log('getData() -> data: ', data);
 
                 if(data){
 
@@ -261,44 +349,73 @@ function initMap() {
                             lng,
                             type,
                             icon,
+                            COOPERATION = item.COOPERATION,
+                            color = "#808080",
                             distance,
                             position;
 
-                        if(item.INDUSTRY == 'NOTPROFIT' && !item.SEX){ // Клиника [Мед. Клиника]
+                        /*if(item.INDUSTRY == 'NOTPROFIT' && !item.SEX){ // Клиника [Мед. Клиника]
                             item.TYPE = 'clinic';
 
-                        }else if(item.INDUSTRY == '3' && !item.SEX){ // Доктор [Мед. Ассистанс]
+                        }else if(item.INDUSTRY == '3' && !item.SEX){ // Доктор [Мед. Праксис]
                             item.TYPE = 'praxis';
 
                         }else if(item.SEX){
                             item.TYPE = 'doctor';
 
                         }else {
-                            item.TYPE = 'undefined';
+                            item.TYPE = null;
+                        }*/
+
+                        // Ні
+                        if(COOPERATION == 1201 || COOPERATION == 1193){
+
+                            // В процесі домовленості
+                        }else if(COOPERATION == 1203 || COOPERATION == 1195){
+                            color = "#FFFF00";
+
+                            // Відмова від співпраці
+                        }else if(COOPERATION == 1205 || COOPERATION == 1197){
+                            color = "#FF0100";
+
+                            // Співпраця
+                        }else if(COOPERATION == 1207 || COOPERATION == 1199){
+                            color = "#018000";
+
+                            // Співпрацю призупинено
+                        }else if(COOPERATION == 1216 || COOPERATION == 1209){
+                            color = "#FFA500";
+
                         }
 
                         if(item.TYPE == 'clinic'){
                             item.ICON = {
-                                url: hospitalIcon,
-                                scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight),
+                                //url: hospitalIcon,
+                                //scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight),
+                                path: hospitalIconPath,
+                                anchor: new google.maps.Point(0,0),
+                                fillColor: color,
+                                fillOpacity: 1,
+                                scale: .05
                             };
 
                         }else{
+
                             item.ICON = {
                                 //url: doctorIcon,
                                 //scaledSize: new google.maps.Size(doctorIconWidth, doctorIconHeight),
-                                path: "M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zM104 424c0 13.3 10.7 24 24 24s24-10.7 24-24-10.7-24-24-24-24 10.7-24 24zm216-135.4v49c36.5 7.4 64 39.8 64 78.4v41.7c0 7.6-5.4 14.2-12.9 15.7l-32.2 6.4c-4.3.9-8.5-1.9-9.4-6.3l-3.1-15.7c-.9-4.3 1.9-8.6 6.3-9.4l19.3-3.9V416c0-62.8-96-65.1-96 1.9v26.7l19.3 3.9c4.3.9 7.1 5.1 6.3 9.4l-3.1 15.7c-.9 4.3-5.1 7.1-9.4 6.3l-31.2-4.2c-7.9-1.1-13.8-7.8-13.8-15.9V416c0-38.6 27.5-70.9 64-78.4v-45.2c-2.2.7-4.4 1.1-6.6 1.9-18 6.3-37.3 9.8-57.4 9.8s-39.4-3.5-57.4-9.8c-7.4-2.6-14.9-4.2-22.6-5.2v81.6c23.1 6.9 40 28.1 40 53.4 0 30.9-25.1 56-56 56s-56-25.1-56-56c0-25.3 16.9-46.5 40-53.4v-80.4C48.5 301 0 355.8 0 422.4v44.8C0 491.9 20.1 512 44.8 512h358.4c24.7 0 44.8-20.1 44.8-44.8v-44.8c0-72-56.8-130.3-128-133.8z",
+                                path: doctorIconPath,
                                 anchor: new google.maps.Point(0,0),
-                                fillColor: 'red',
+                                fillColor: color,
                                 fillOpacity: 1,
-                                scale: .07
+                                scale: .05
                             };
                         }
 
-                        item.LAT = item.LAT || 0;
-                        item.LNG = item.LNG || 0;
+                        item.LAT = +item.LAT || 0;
+                        item.LNG = +item.LNG || 0;
 
-                        lat = item.LAT
+                        lat = item.LAT;
                         lng = item.LNG;
 
                         item.POSITION = {lat: lat, lng: lng};
@@ -314,15 +431,81 @@ function initMap() {
 
                     LOCATIONS = data;
 
-                    console.log('getData() -> LOCATIONS: ', LOCATIONS);
+                    //console.log('getData() -> LOCATIONS: ', LOCATIONS);
 
-                    filter(FILTER_PARAMS.type, FILTER_PARAMS);
+                    getFieldsValues();
 
                     //setMarkers(LOCATIONS, animationDrop); // first init of markers
                 }
 
             });
     }
+
+    const getFieldsValues = async () => {
+
+        const data = await fetch('/map/get-fields.php')
+            .then(response => response.json());
+
+        console.log(data);
+
+        if(data){
+            //console.log('data: ', data);
+
+            INDUSTRY_LIST = data.contactFilter[0].INDUSTRY.LIST.map(function(item){
+                return {ID: item.STATUS_ID, VALUE: item.NAME};
+            });
+            COUNTRY_LIST = data.contactFilter[3].COUNTRY.LIST;
+            LANGUAGES_LIST = data.contactFilter[4].SPRACHE.LIST;
+            MED_PROFILES_CONTACT_LIST = data.contactFilter[2].MED_PROFILE.LIST;
+            MED_PROFILES_COMPANY_LIST = data.companyFilter[2].MED_PROFILE.LIST;
+            STATUSES_CONTACT_LIST = data.contactFilter[5].STATUS.LIST;
+            STATUSES_COMPANY_LIST = data.companyFilter[4].STATUS.LIST;
+            COOPERATIONS_CONTACT_LIST = data.contactFilter[1].COOPERATION.LIST;
+            COOPERATIONS_COMPANY_LIST = data.companyFilter[1].COOPERATION.LIST;
+
+            setOptions([
+                {
+                    FIELD_NAME: 'industry',
+                    LIST: INDUSTRY_LIST,
+                },
+                {
+                    FIELD_NAME: 'country',
+                    LIST: COUNTRY_LIST,
+                },
+                {
+                    FIELD_NAME: 'language',
+                    LIST: LANGUAGES_LIST,
+                },
+                {
+                    FIELD_NAME: 'cooperation',
+                    LIST: COOPERATIONS_COMPANY_LIST,
+                },
+                {
+                    FIELD_NAME: 'cooperation_contact',
+                    LIST: COOPERATIONS_CONTACT_LIST,
+                },
+                {
+                    FIELD_NAME: 'profile',
+                    LIST: MED_PROFILES_COMPANY_LIST,
+                },
+                {
+                    FIELD_NAME: 'profile_contact',
+                    LIST: MED_PROFILES_CONTACT_LIST,
+                },
+                {
+                    FIELD_NAME: 'status_company',
+                    LIST: STATUSES_COMPANY_LIST,
+                },
+                {
+                    FIELD_NAME: 'status_contact',
+                    LIST: STATUSES_CONTACT_LIST,
+                },
+            ]);
+        }
+
+        filter(FILTER_PARAMS.type, FILTER_PARAMS);
+
+    };
 
     function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
         let R = 6371; // Radius of the earth in km
@@ -344,215 +527,17 @@ function initMap() {
         return deg * (Math.PI/180)
     }
 
-//////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////
 
-// Битрикс24
+    // Битрикс24
 
     // Resize frame
     BX24.fitWindow();
 
-    // Get company.userfield.list
-    BX24.callMethod(
-        "crm.company.userfield.list",
-        {
-            order: { "SORT": "ASC" }
-        },
-        function(result){
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            if(result.error())
-                console.error(result.error());
-            else{
-
-                //console.log(`crm.company.userfield.list: `, result.data());
-                return result;
-            }
-        }
-    );
-
-    const getFieldsIndustry = function(){
-        BX24.callMethod(
-            "crm.status.list",
-            {
-                order: { "SORT": "ASC" },
-                filter: {
-                    "ENTITY_ID": 'INDUSTRY'
-                }
-            },
-            function(result){
-                if(result.error()){
-                    console.error(result.error());
-                }else{
-                    result = result.data();
-
-                    let newArr = [];
-                    let obj = {};
-
-                    result.forEach(function(item){
-                        newArr.push({
-                            ID: item.STATUS_ID,
-                            VALUE: item.NAME
-                        });
-                    });
-
-                    result = {
-                        'FIELD_NAME' : 'industry',
-                        'LIST' : newArr,
-                    };
-
-
-                    INDUSTRY_LIST = result.LIST;
-
-                    //console.log(`result : `, result);
-
-                    setOptions(result);
-                }
-            }
-        );
-    };
-
-    BX24.callMethod(
-        "crm.contact.company.fields",
-        {},
-        function(result)
-        {
-            if(result.error())
-                console.error(result.error());
-            else{
-
-                //console.log('crm.contact.company.fields: ', result.data());
-            }
-        }
-    );
-
-
-    BX24.callMethod(
-        "crm.company.fields",
-        {},
-        function(result)
-        {
-            if(result.error())
-                console.error(result.error());
-            else{
-                //console.log('crm.company.fields:', result.data());
-            }
-        }
-    );
-
-    BX24.callMethod(
-        "crm.contact.userfield.list",
-        {
-            order: { "SORT": "ASC" }
-        },
-        function(result)
-        {
-            if(result.error())
-                console.error(result.error());
-            else
-            {
-                //console.log('crm.contact.userfield.list: ', result.data());
-            }
-        }
-    );
-
-    BX24.callMethod(
-        "crm.contact.fields",
-        {},
-        function(result)
-        {
-            if(result.error())
-                console.error(result.error());
-            else {
-                //console.log('crm.contact.fields: ', result.data());
-            }
-        }
-    );
-
-    const getCompanyUserfieldValues = function(FIELD_NAME, type){
-
-        let valuesList,
-            listURL;
-
-        listURL = type == 'company' ? "crm.company.userfield.list" : "crm.contact.userfield.list"
-
-        BX24.callMethod(
-            listURL,
-            {
-                order: { "SORT": "ASC" },
-                filter: { "FIELD_NAME": FIELD_NAME }
-            },
-            function(result){
-                if(result.error()){
-                    console.error(result.error());
-
-                }else{
-
-                    //console.log(`result.data(): `, result.data()[0].LIST);
-
-                    let name,
-                        list = [];
-
-                    result.data()[0].LIST.forEach(function(item){
-
-                        list.push({
-                            ID: item.ID,
-                            VALUE: item.VALUE
-                        });
-                    });
-
-                    if(FIELD_NAME == 'UF_CRM_1438258999'){
-                        FIELD_NAME = 'cooperation';
-                        COOPERATIONS_COMPANY_LIST = list;
-
-                    }else if(FIELD_NAME == 'UF_CRM_1387031615'){
-                        FIELD_NAME = 'profile';
-                        MED_PROFILES_COMPANY_LIST = list;
-
-                    }else if(FIELD_NAME == 'UF_CRM_1402932716'){
-                        FIELD_NAME = 'country';
-                        COUNTRY_LIST = list;
-
-                    }else if(FIELD_NAME == 'UF_CRM_1415786182'){
-                        FIELD_NAME = 'status_company';
-                        STATUSES_COMPANY_LIST = list;
-
-                    }else if(FIELD_NAME == 'UF_CRM_1433940616'){
-                        FIELD_NAME = 'language';
-                        //console.log('result: ', result);
-                        LANGUAGES_LIST = list;
-
-                    }else if(FIELD_NAME == 'UF_CRM_1553940316'){
-                        FIELD_NAME = 'wochenede_company';
-
-                    }else if(FIELD_NAME == 'UF_CRM_1388085826'){
-                        FIELD_NAME = 'status_contact';
-                        STATUSES_CONTACT_LIST = list;
-                        //console.log('STATUSES_CONTACT_LIST: ', STATUSES_CONTACT_LIST);
-
-                    }else if(FIELD_NAME == 'UF_CRM_1438259138'){
-                        FIELD_NAME = 'cooperation_contact';
-                        COOPERATIONS_CONTACT_LIST = list;
-                        //console.log('COOPERATIONS_CONTACT_LIST: ', COOPERATIONS_CONTACT_LIST);
-
-                    }else if(FIELD_NAME == 'UF_CRM_1387029485'){
-                        FIELD_NAME = 'profile_contact';
-                        MED_PROFILES_CONTACT_LIST = list;
-                        //console.log('MED_PROFILES_CONTACT_LIST: ', MED_PROFILES_CONTACT_LIST);
-
-                    }
-
-                    result = {
-                        FIELD_NAME : FIELD_NAME,
-                        LIST : list
-                    };
-
-                    //console.log('result: ', result);
-
-                    setOptions(result);
-                    //return result;
-                }
-            }
-        );
-    };
+    // Map init
 
     //UF_CRM_1387031615 -- Мед. Профиль (company)
     //UF_CRM_1425472914 -- Auserdinst (contact)
@@ -560,86 +545,73 @@ function initMap() {
     //UF_CRM_1553940264 -- wochenede (contact)
     //UF_CRM_1553940316 -- wochenede (company)
 
-    const industry = getFieldsIndustry('industry'); // Сфера деятельности
-    const COOPERATIONS = getCompanyUserfieldValues('UF_CRM_1438258999', 'company'); //Cooperation
-    const COOPERATIONS_CONTACT = getCompanyUserfieldValues('UF_CRM_1438259138', 'contact'); //Cooperation (contact)
-    const PROFILES = getCompanyUserfieldValues("UF_CRM_1387031615", 'company'); // Мед. Профиль Компании
-    const PROFILES_CONTACT = getCompanyUserfieldValues("UF_CRM_1387029485", 'contact'); // Мед. Профиль (contact)
-    const COUNTRIES = getCompanyUserfieldValues("UF_CRM_1402932716", 'company'); // country
-    const STATUSES_COMPANY = getCompanyUserfieldValues("UF_CRM_1415786182", 'company'); // status (company)
-    const STATUSES_CONTACT = getCompanyUserfieldValues("UF_CRM_1388085826", 'contact'); // status
-    //const WOCHENEDE_COMPANY = getCompanyUserfieldValues("UF_CRM_1553940316", 'company'); // wochenede (company)
-    const SPRACHE = getCompanyUserfieldValues("UF_CRM_1433940616", 'contact'); // sprache
+    function setOptions(listsArr){
 
-    let iteration = 0;
+        const countrtSelect = document.querySelectorAll('select.country');
+        const cooperationSelectCompany = document.querySelectorAll('select.cooperation--company');
+        const cooperationSelectContact = document.querySelectorAll('select.cooperation--contact');
+        const profileSelectCompany = document.querySelectorAll('select.profile--company');
+        const profileSelectContact = document.querySelectorAll('select.profile--contact');
+        const industrySelect = document.querySelectorAll('select.industry');
+        const statusSelectCompany = document.querySelectorAll('select.status--company');
+        const statusSelectContact = document.querySelectorAll('select.status--contact');
+        const languageSelect = document.querySelectorAll('select.sprache');
 
-    function setOptions(item){
+        for(let i = 0; i < listsArr.length; i++){
+            const name = listsArr[i].FIELD_NAME;
+            const list = listsArr[i].LIST;
 
-        const name = item.FIELD_NAME;
-        const list = item.LIST;
+            if(list){
 
-        if(list){
-            const countrtSelect = document.querySelectorAll('select.country');
-            const cooperationSelect = document.querySelectorAll('select.cooperation');
-            const profileSelect = document.querySelectorAll('select.profile');
-            const industrySelect = document.querySelectorAll('select.industry');
-            const statusSelectContact = document.querySelectorAll('select#doctorStatus');
-            const statusSelectCompany = document.querySelectorAll('select#clinicStatus');
-            const languageSelect = document.querySelectorAll('select.sprache');
+                if(name == 'country'){
+                    mapping(countrtSelect, list);
+                }else if(name == 'cooperation'){
+                    mapping(cooperationSelectCompany, list);
+                }else if(name == 'profile'){
+                    mapping(profileSelectCompany, list);
+                }else if(name == 'industry'){
+                    mapping(industrySelect, list);
+                }else if(name == 'status_company'){
+                    mapping(statusSelectCompany, list);
+                }else if(name == 'language'){
+                    mapping(languageSelect, list);
+                }else if(name == 'status_contact'){
+                    mapping(statusSelectContact, list);
+                }else if(name == 'cooperation_contact'){
+                    mapping(cooperationSelectContact, list);
+                }else if(name == 'profile_contact'){
+                    mapping(profileSelectContact, list);
+                }
+            }
+
+        }
+
+        function mapping(node, list){
 
             let itemValue,
                 itemId;
             const fragment = document.createDocumentFragment();
 
-            function mapping(node){
+            for(let i = 0; i < node.length; i++){
 
-                for(let i = 0; i < node.length; i++){
+                list.forEach(function(item){
+                    let newOption = document.createElement('option');
 
-                    list.forEach(function(item){
-                        let newOption = document.createElement('option');
+                    itemValue = item.VALUE;
+                    itemId = item.ID;
 
-                        itemValue = item.VALUE;
-                        itemId = item.ID;
+                    newOption.innerHTML = itemValue;
+                    newOption.value = itemId;
+                    newOption.setAttribute('data-value', itemId);
+                    fragment.appendChild(newOption);
 
-                        newOption.innerHTML = itemValue;
-                        newOption.value = itemId;
-                        newOption.setAttribute('data-value', itemId);
-                        fragment.appendChild(newOption);
+                });
 
-                    });
-
-                    node[i].appendChild(fragment);
-                    iteration++;
-                }
-
-                if(iteration == ITERATION_SELECT_NUM){
-                    //$('.filter__select').styler(jqStylerConfig);
-                    //initSelect2();
-                }
-            }
-
-            if(name == 'country'){
-                mapping(countrtSelect);
-            }else if(name == 'cooperation'){
-                mapping(cooperationSelect);
-            }else if(name == 'profile'){
-                mapping(profileSelect);
-            }else if(name == 'industry'){
-                mapping(industrySelect);
-            }else if(name == 'status_company'){
-                mapping(statusSelectCompany);
-            }else if(name == 'language'){
-                mapping(languageSelect);
-            }else if(name == 'status_contact'){
-                mapping(statusSelectContact);
+                node[i].appendChild(fragment);
             }
         }
+
     }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Map init
 
     if(SEARCH_VALUE){
         searchField.value = SEARCH_VALUE;
@@ -671,7 +643,7 @@ function initMap() {
         this.click();
     });
 
-    document.body.addEventListener('click', function (e) {
+    document.addEventListener('click', function (e) {
         const target = e.target;
 
         let filterAdditionalShow = document.querySelector(`.js-filter-additional.show`) || null;
@@ -690,7 +662,17 @@ function initMap() {
             }
             //document.querySelector(`.js-btn.active`).classList.remove('active');
             activeFilterBtn = null;
+
+        }else if(
+            target.classList.contains('js-custom-filter-list') ||
+            target.closest('js-custom-filter-list')
+        ){
+            console.log('click');
+
+            filterCustomList.classList.toggle('active');
+
         }
+
     });
 
     [].slice.call(filterParamsBasicBtn).forEach(function (item) {
@@ -784,10 +766,10 @@ function initMap() {
 
                 clientMarkerRadius = new google.maps.Circle({
                     strokeColor: '#00B1DA',
-                    strokeOpacity: 0.3,
+                    strokeOpacity: 0, // 0.3
                     strokeWeight: 1,
                     fillColor: '#00B1DA',
-                    fillOpacity: 0.20,
+                    fillOpacity: 0, // 0.2
                     map: RADIUS != 100000000000 ? map : null,
                     center: results[0].geometry.location,
                     radius: RADIUS // in meters
@@ -1012,23 +994,18 @@ function initMap() {
     }
 
     function showDetails() {
-        const showDetails = document.getElementsByClassName('js-more');
+        const showDetails = document.querySelectorAll('.js-more');
 
-        let markerId,
-            marker;
+        [].slice.call(showDetails).forEach(function(item){
 
-        [].slice.call(showDetails).forEach(function (item) {
-
-            item.addEventListener('click', function () {
-                markerId = item.getAttribute('data-marker-id');
-
-                marker = allMarkers.filter(item => item.id == markerId)[0];
-
-                setActiveResultItem(markerId);
-
-                renderPopUp(marker);
+            item.addEventListener('click', function(){
+                console.log('this: ', this);
+                this.closest('.filter__result__item').querySelectorAll('.js-details')[0].classList.toggle('show');
             });
+
         });
+
+
     }
 
     function setMarkers(LOCATIONS, animation){
@@ -1062,12 +1039,11 @@ function initMap() {
                 phone_fax: element.PHONE_FAX,
                 phone_mobile: element.PHONE_MOBILE,
                 phone_work: element.PHONE_WORK,
+                sprache: element.SPRACHE,
                 name: element.NAME || null,
             });
 
             allMarkers.push(marker);
-
-
 
         });
 
@@ -1090,7 +1066,7 @@ function initMap() {
         renderList(allMarkers); // renders list of markers
     }
 
-    setMarkers(LOCATIONS, animationDrop); // first init of markers
+    //setMarkers(LOCATIONS, animationDrop); // first init of markers
 
     function removeMarkers(){
 
@@ -1115,6 +1091,7 @@ function initMap() {
 
                     }else{
                         result = MED_PROFILES_COMPANY_LIST.filter(item => item.ID == id)[0];
+
                     }
 
                     break;
@@ -1140,6 +1117,11 @@ function initMap() {
 
                     break;
 
+                case 'sprache':
+                    result = LANGUAGES_LIST.filter(item => item.ID == id)[0];
+
+                    break;
+
             }
 
             title = result ? result.VALUE : null;
@@ -1151,12 +1133,13 @@ function initMap() {
 
     function renderPopUp(item) {
 
-        console.log('renderPopUp() -> item', item);
+        //console.log('renderPopUp() -> item', item);
 
         let {title, type, address, schedule, id, phone_work, phone_fax, phone_mobile, cooperation, status, sex, med_profile, wochenende, ausendienst} = item; // item data
         let med_profiles = '';
         let profile;
         let BxItemURL;
+        let additional;
 
         if(type != 'doctor'){
             BxItemURL = '/crm/company/details/';
@@ -1165,7 +1148,6 @@ function initMap() {
         }
 
         if(med_profile.length){
-
 
             med_profile = med_profile.map(item => {
                 return getTitleFromId('med_profile', item, !sex ? 'clinic' : 'contact');
@@ -1202,22 +1184,21 @@ function initMap() {
             sex = getTitleFromId('sex', sex, null);
         }
 
-
         let infoWindowContent = `
-          <div class="popUp">
-              <h3 style="font-weight: 700;"><a href="${BxItemURL}${id}/" target="_blank">${title}</a></h3>
-              <p>Addess:&nbsp;${address}</p>
-              ${med_profiles ? '<p>Медпрофиль:&nbsp;' + med_profiles + '</p>' : ''}
-              ${cooperation ? '<p>Cooperation:&nbsp;' + cooperation + '</p>' : ''}
-              ${wochenende != null ? '<p>Wochenende:&nbsp;' + wochenende + '</p>' : ''}
-              ${ausendienst != null ? '<p>Ausendienst:&nbsp;' + ausendienst + '</p>' : ''}
-              ${status != null ? '<p>Status:&nbsp;' + status + '</p>' : ''}
-              ${phone_work ? '<p>Work:&nbsp;<a href="tel:' + phone_work + '">' + phone_work + '</a></p>' : ''}
-              ${phone_fax ? '<p>Fax:&nbsp;' + phone_fax + '</p>' : ''}
-              ${phone_mobile ? '<p>Mobile:&nbsp;<a href="tel:' + phone_mobile + '">' + phone_mobile + '</a></p>' : ''}
-              ${type == 'doctor' && sex ? '<p>Sex:&nbsp;' + sex + '</p>' : ''}
-          </div>
-        `;
+            <div class="popUp">
+                <h3 style="font-weight: 700;"><a href="${BxItemURL}${id}/" target="_blank">${title}</a></h3>
+                <p>Addess:&nbsp;${address}</p>
+                ${med_profiles ? '<p>Медпрофиль:&nbsp;' + med_profiles + '</p>' : ''}
+                ${cooperation ? '<p>Cooperation:&nbsp;' + cooperation + '</p>' : ''}
+                ${wochenende != null ? '<p>Wochenende:&nbsp;' + wochenende + '</p>' : ''}
+                ${ausendienst != null ? '<p>Ausendienst:&nbsp;' + ausendienst + '</p>' : ''}
+                ${status != null ? '<p>Status:&nbsp;' + status + '</p>' : ''}
+                ${phone_work ? '<p>Work:&nbsp;<a href="tel:' + phone_work + '">' + phone_work + '</a></p>' : ''}
+                ${phone_fax ? '<p>Fax:&nbsp;' + phone_fax + '</p>' : ''}
+                ${phone_mobile ? '<p>Mobile:&nbsp;<a href="tel:' + phone_mobile + '">' + phone_mobile + '</a></p>' : ''}
+                ${type == 'doctor' && sex ? '<p>Sex:&nbsp;' + sex + '</p>' : ''}
+            </div>
+          `;
 
         if(POP_UP_IS_ACTIVE){
             POP_UP_IS_ACTIVE.close();
@@ -1238,8 +1219,7 @@ function initMap() {
         const resultListFragment = document.createDocumentFragment();
         const allMarkersLength = markersList.length;
 
-        let newReultItem,
-            type;
+        let newReultItem;
 
         resultList.innerHTML = ''; // Clear list
 
@@ -1247,6 +1227,17 @@ function initMap() {
 
         if(allMarkersLength){
             for(let i = 0; i < allMarkersLength; i++){
+
+                let profile,
+                    med_profiles = '',
+                    cooperation,
+                    sex,
+                    sprache,
+                    type,
+                    status,
+                    language,
+                    languages = '',
+                    med_profile;
 
                 switch (markersList[i].type){
                     case 'clinic':
@@ -1262,6 +1253,69 @@ function initMap() {
                         break;
                 }
 
+                if(markersList[i].med_profile.length){
+
+                    med_profile = markersList[i].med_profile.map(item => {
+                        return getTitleFromId('med_profile', item, !markersList[i].sex ? 'clinic' : 'contact');
+
+                    });
+
+                    for(let i = 0; i < med_profile.length; i++){
+
+                        if(med_profile[i]){
+                            if(i != (med_profile.length - 1)){
+                                profile = med_profile[i] + ',&nbsp;';
+
+                            }else{
+                                profile = med_profile[i];
+
+                            }
+
+                            med_profiles += profile;
+                        }
+
+                    }
+
+                }
+
+                if(markersList[i].cooperation){
+                    cooperation = getTitleFromId('cooperation', markersList[i].cooperation, !markersList[i].sex ? 'clinic' : 'contact');
+                }
+
+                if(markersList[i].status){
+                    status = getTitleFromId('status', markersList[i].status, null);
+                }
+
+                if(markersList[i].sprache && markersList[i].sprache.length){
+
+                    //console.log('markersList[i].sprache: ', markersList[i].sprache);
+
+                    sprache = markersList[i].sprache.map(item => {
+                        return getTitleFromId('sprache', item, null);
+                    });
+
+                    for(let i = 0; i < sprache.length; i++){
+
+                        if(sprache[i]){
+                            if(i != (sprache.length - 1)){
+                                language = sprache[i] + ',&nbsp;';
+
+                            }else{
+                                language = sprache[i];
+
+                            }
+
+                            languages += language;
+                        }
+
+                    }
+
+                }
+
+                if(markersList[i].sex){
+                    sex = getTitleFromId('sex', markersList[i].sex, null);
+                }
+
                 //type = markersList[i].type == 'clinic' ? 'Clinic' : 'Praxis';
 
                 newReultItem = document.createElement('li');
@@ -1273,28 +1327,44 @@ function initMap() {
                 }
 
                 newReultItem.innerHTML = `
-                  <h3 class="title">
-                      <a 
-                          href="#"
-                          class="to-center-link js-to-center-link" 
-                          data-lat="${markersList[i].lat}" 
-                          data-lng="${markersList[i].lng}"
-                          data-marker-id="${markersList[i].id}"
-                      >
-                          ${markersList[i].title}
-                      </a>
-                  </h3>
-                  <p class="info">${markersList[i].schedule ? 'Open:&nbsp;<span class="value">'  + markersList[i].schedule + '</span>,&nbsp;' : ''}<span class="type hospital">${type}</span></p>
-                  <p class="address">${markersList[i].address}</p>
-                  <div class="bottom">
-                      <a href="#" class="direction js-direction" data-direction="${markersList[i].address}">Get direction</a>
-                      <a href="#" class="more js-more" data-marker-id="${markersList[i].id}">Details</a>
-                  </div>
-                  <div class="directions-info js-directions-info">
-                      <div class="js-duration"></div>
-                      <div class="distance js-distance"></div>
-                  </div>
-               `;
+                    <h3 class="title">
+                        <a 
+                            href="#"
+                            class="to-center-link js-to-center-link" 
+                            data-lat="${markersList[i].lat}" 
+                            data-lng="${markersList[i].lng}"
+                            data-marker-id="${markersList[i].id}"
+                        >
+                            ${markersList[i].title}
+                        </a>
+                    </h3>
+                    <p class="info">
+                        ${markersList[i].schedule ? 'Open:&nbsp;<span class="value">'  + markersList[i].schedule + '</span>,&nbsp;' : ''}
+                        ${type ? '<span class="type">'  + type + '</span>' : ''}
+                    </p>
+                    <p class="address">${markersList[i].address}</p>
+                    ${med_profiles ? "<p class='info'>" + med_profiles + "</p>" : ""}
+                    ${cooperation ? "<p class='info'>" + cooperation + "</p>" : ""}
+                    <div class="details js-details">
+                        ${markersList[i].phone_work ? '<p class="info">Work:&nbsp;<a href="tel:' + markersList[i].phone_work + '">' + markersList[i].phone_work + '</a></p>' : ''}
+                        ${markersList[i].phone_fax ? '<p class="info">Fax:&nbsp;' + markersList[i].phone_fax + '</p>' : ''}</p>
+                        ${markersList[i].phone_mobile ? '<p class="info">Mobile:&nbsp;<a href="tel:' + markersList[i].phone_mobile + '">' + markersList[i].phone_mobile + '</a></p>' : ''}
+                        ${languages ? '<p class="info">Languages:&nbsp;' + languages + '</p>' : ''}
+                        ${status ? '<p class="info">Status:&nbsp;' + status + '</p>' : ''}
+                        ${type == 'doctor' && sex ? '<p class="info">Sex:&nbsp;' + sex + '</p>' : ''}
+                        ${markersList[i].wochenende != null ? '<p class="info">Wochenende:&nbsp;' + markersList[i].wochenende + '</p>' : ''}
+                        ${markersList[i].ausendienst != null ? '<p class="info">Ausendienst:&nbsp;' + markersList[i].ausendienst + '</p>' : ''}
+                    </div>
+                    <div class="bottom">
+                        <a href="#" class="direction js-direction" data-direction="${markersList[i].address}">Get direction</a>
+                        <a href="#" class="more js-more" data-marker-id="${markersList[i].id}">Details</a>
+                    </div>
+
+                    <div class="directions-info js-directions-info">
+                        <div class="js-duration"></div>
+                        <div class="distance js-distance"></div>
+                    </div>
+                 `;
 
                 resultListFragment.appendChild(newReultItem);
             }
@@ -1325,6 +1395,20 @@ function initMap() {
 
             if(target.classList.contains('js-to-center-link')){
                 setActiveMarker(target);
+
+
+
+                let markerId,
+                    marker;
+
+                markerId = target.getAttribute('data-marker-id');
+
+                marker = allMarkers.filter(item => item.id == markerId)[0];
+
+                setActiveResultItem(markerId);
+
+                renderPopUp(marker, true);
+
             }
         });
 
@@ -1376,7 +1460,7 @@ function initMap() {
         const paramValue = param.value;
         const paramTitle = param.text || null;
 
-        console.log('param: ', param);
+        //console.log('param: ', param);
 
         if(paramName == 'radius'){
 
@@ -1469,13 +1553,12 @@ function initMap() {
 
                             FILTER_PARAMS[key].forEach(function(paramKey){
 
-                                //console.log('paramKey: ', paramKey);
+                                paramKey = +paramKey;
 
                                 if(itemKey && itemKey.indexOf(paramKey) != -1){
 
                                     result = item || null;
                                     return item;
-
                                 }
                             });
 
