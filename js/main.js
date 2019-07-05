@@ -291,9 +291,15 @@ function initMap() {
         select.select2({minimumResultsForSearch: -1});
 
         select.on('select2:select', function(e){
+            let data = e.params.data;
 
-            if(e.target.getAttribute('data-param') != 'med_profile'){
-                let data = e.params.data;
+            if($(this).hasClass('js-custom-filter-list')){
+
+                $('.js-btn.active').removeClass('active');
+
+                filter(data.id, null);
+
+            }else if(e.target.getAttribute('data-param') != 'med_profile'){
                 data = {
                     name: e.target.getAttribute('data-param'),
                     value: data.id,
@@ -337,7 +343,7 @@ function initMap() {
             })
             .then(function(data) {
 
-                console.log('getData() -> data: ', data);
+                //console.log('getData() -> data: ', data);
 
                 if(data){
 
@@ -355,17 +361,29 @@ function initMap() {
                             position;
 
                         /*if(item.INDUSTRY == 'NOTPROFIT' && !item.SEX){ // Клиника [Мед. Клиника]
-                            item.TYPE = 'clinic';
+                         item.TYPE = 'clinic';
 
-                        }else if(item.INDUSTRY == '3' && !item.SEX){ // Доктор [Мед. Праксис]
-                            item.TYPE = 'praxis';
+                         }else if(item.INDUSTRY == '3' && !item.SEX){ // Доктор [Мед. Праксис]
+                         item.TYPE = 'praxis';
 
-                        }else if(item.SEX){
-                            item.TYPE = 'doctor';
+                         }else if(item.SEX){
+                         item.TYPE = 'doctor';
 
-                        }else {
-                            item.TYPE = null;
-                        }*/
+                         }*/
+                        if(!item.TYPE && item.INDUSTRY) {
+
+                            if(item.INDUSTRY.toLowerCase() == 17 || item.INDUSTRY.toLowerCase() == 14){
+                                item.TYPE = 'notdienst';
+                            }else if(item.INDUSTRY.toLowerCase() == 21){
+                                item.TYPE = 'taxi';
+                            }else if(item.INDUSTRY.toLowerCase() == 18){
+                                item.TYPE = 'krankenwahgentransport';
+                            }else if(item.INDUSTRY.toLowerCase() == 22){
+                                item.TYPE = 'privatärztlichenotdienst';
+
+                            }
+
+                        }
 
                         // Ні
                         if(COOPERATION == 1201 || COOPERATION == 1193){
@@ -446,10 +464,9 @@ function initMap() {
         const data = await fetch('/map/get-fields.php')
             .then(response => response.json());
 
-        console.log(data);
 
         if(data){
-            //console.log('data: ', data);
+            console.log('data: ', data);
 
             INDUSTRY_LIST = data.contactFilter[0].INDUSTRY.LIST.map(function(item){
                 return {ID: item.STATUS_ID, VALUE: item.NAME};
@@ -643,7 +660,7 @@ function initMap() {
         this.click();
     });
 
-    document.addEventListener('click', function (e) {
+    document.body.addEventListener('click', function (e) {
         const target = e.target;
 
         let filterAdditionalShow = document.querySelector(`.js-filter-additional.show`) || null;
@@ -663,16 +680,7 @@ function initMap() {
             //document.querySelector(`.js-btn.active`).classList.remove('active');
             activeFilterBtn = null;
 
-        }else if(
-            target.classList.contains('js-custom-filter-list') ||
-            target.closest('js-custom-filter-list')
-        ){
-            console.log('click');
-
-            filterCustomList.classList.toggle('active');
-
         }
-
     });
 
     [].slice.call(filterParamsBasicBtn).forEach(function (item) {
@@ -696,7 +704,7 @@ function initMap() {
 
             additionalWrapCurrent = document.querySelector(`.js-filter-additional[data-type=${itemType}]`) || null;
 
-            if(itemType != btnActive.getAttribute('data-type')){
+            if(!btnActive || (btnActive && itemType != btnActive.getAttribute('data-type'))){
                 filter(itemType, null);
             }
 
@@ -781,6 +789,47 @@ function initMap() {
         });
 
     }
+
+    searhField.addEventListener('keydown', function(){
+        realTimeSearch(this.value);
+    });
+
+    function realTimeSearch(query){
+
+        if(document.querySelectorAll('.search__list')[0]){
+            document.querySelectorAll('.search__list')[0].remove();
+        }
+
+        const resultList = document.createElement('ul');
+        const resultFragment = document.createDocumentFragment();
+
+        let resultArr;
+
+        resultList.classList.add('search__list');
+
+        //console.log('LOCATIONS: ', LOCATIONS);
+
+        resultArr = LOCATIONS.filter( function(item) {
+            return item.TITLE.toLowerCase().indexOf(query.toLowerCase()) != -1;
+        });
+
+        console.log('resultArr: ', resultArr);
+
+        resultArr.forEach(item => {
+            const resultItem = document.createElement('li');
+
+            resultItem.classList.add('search__item');
+            resultItem.classList.add('js-custom-search-item');
+            resultItem.innerHTML = item.TITLE;
+            resultFragment.appendChild(resultItem);
+        });
+
+        resultList.appendChild(resultFragment);
+        searhField.parentNode.appendChild(resultList);
+
+        return;
+    }
+
 
     function autocompliteFunc() {
         let autocomplete;
@@ -1062,7 +1111,6 @@ function initMap() {
 
         });
 
-
         renderList(allMarkers); // renders list of markers
     }
 
@@ -1084,6 +1132,13 @@ function initMap() {
 
         if(id){
             switch (listType){
+
+                case 'industry':
+                    //console.log('INDUSTRY_LIST: ', INDUSTRY_LIST);
+
+                    //result = INDUSTRY_LIST.filter(item => item.STATUS_ID == id)[0];
+                    break;
+
                 case 'med_profile':
 
                     if(opt && opt == 'contact'){
@@ -1251,6 +1306,10 @@ function initMap() {
                     case 'doctor':
                         type = 'Doctor';
                         break;
+
+                    default:
+                        type = markersList[i].type;
+                        break;
                 }
 
                 if(markersList[i].med_profile.length){
@@ -1396,8 +1455,6 @@ function initMap() {
             if(target.classList.contains('js-to-center-link')){
                 setActiveMarker(target);
 
-
-
                 let markerId,
                     marker;
 
@@ -1409,6 +1466,17 @@ function initMap() {
 
                 renderPopUp(marker, true);
 
+            }else if(target.classList.contains('js-custom-search-item')){
+
+                SEARCH_VALUE = target.innerHTML;
+
+                if(SEARCH_VALUE){
+                    searchField.value = SEARCH_VALUE;
+
+                    geocodeAddress(geocoder, map);
+
+                    target.parentNode.remove();
+                }
             }
         });
 

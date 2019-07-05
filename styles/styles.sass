@@ -329,6 +329,7 @@ body
 			&.search
 				display: flex
 				align-items: center
+				position: relative
 
 			&.direction
 				.block
@@ -340,6 +341,26 @@ body
 
 			&.hidden
 				display: none !important
+
+			.search__list
+				top: 44px
+				left: 0
+				position: absolute
+				background-color: #fff
+				border: 1px solid #ccc
+				border-bottom-color: #B3B3B3
+				z-index: 99
+
+			.search__item
+				padding: 10px
+				cursor: pointer
+
+				&:not(:last-child)
+					margin-bottom: 10px
+					border-bottom: #ccc
+
+				&:hover
+					background-color: #fafafa
 
 		&__open
 			padding: 0 10px
@@ -414,6 +435,7 @@ body
 
 						.btn
 							padding: 5px
+							margin-bottom: 10px
 							display: inline-flex
 							flex-grow: 1
 							height: 35px
@@ -432,7 +454,7 @@ body
 							//&:nth-last-child(3)
 								margin-top: 10px
 
-							&:not(:last-child)
+							&:not(:nth-child(4))
 								margin-right: 10px
 
 							&:hover,
