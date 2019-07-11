@@ -1,22 +1,24 @@
 
 function initApp(){
-    PLACEMENT = BX24.placement.info();
+    const PLACEMENT = BX24.placement.info();
     //console.log("PLACEMENT: ", PLACEMENT);
 
     if(PLACEMENT.placement == "CRM_CONTACT_DETAIL_TAB"){
-        getClientOrCompanyAddress(PLACEMENT.options.ID, 'crm.contact.get', 'contact');
+        getClientOrCompanyAddress(PLACEMENT.options.ID, 'contact');
 
     }else if(PLACEMENT.placement == "CRM_COMPANY_DETAIL_TAB"){
-        getClientOrCompanyAddress(PLACEMENT.options.ID, 'crm.company.get', 'company');
+        getClientOrCompanyAddress(PLACEMENT.options.ID, 'company');
 
     }else{
         initMap();
     }
 }
 
-function getClientOrCompanyAddress(id, CRMUrl, type){
+function getClientOrCompanyAddress(id, type){
 
     //console.log('getClientOrCompanyAddress()');
+
+    const CRMUrl = type == 'contact' ? 'crm.contact.get' : 'crm.company.get';
 
     BX24.callMethod(
         CRMUrl,
@@ -27,8 +29,9 @@ function getClientOrCompanyAddress(id, CRMUrl, type){
 
             if(result.error())
                 console.error(result.error());
+
             else{
-                const searhField = document.querySelector('#searchField');
+                const searchField = document.querySelector('#searchField');
                 let resultData = result.data(),
                     COUNTRY,
                     CITY,
@@ -43,11 +46,11 @@ function getClientOrCompanyAddress(id, CRMUrl, type){
                 UF_CRM_1559428470374 = resultData.UF_CRM_1559428470374 ? resultData.UF_CRM_1559428470374 + ' ' : '';
 
                 if(COUNTRY || CITY || ADDRESS || ADDRESS_2){
-                    searhField.value = COUNTRY + CITY + ADDRESS + ADDRESS_2;
+                    searchField.value = COUNTRY + CITY + ADDRESS + ADDRESS_2;
 
                     initMap();
                 }else if(UF_CRM_1559428470374){
-                    searhField.value = UF_CRM_1559428470374;
+                    searchField.value = UF_CRM_1559428470374;
                     initMap();
 
                 }else{
@@ -90,6 +93,7 @@ function getClientOrCompanyRequisite(ENTITY_TYPE_ID, ENTITY_ID){
                 console.error(result.error());
 
             }else{
+                //console.log("crm.requisite.list() -> result: ", result);
                 //console.log('crm.requisite.list ID: ', result.data()[0].ID);
                 getAddressFromRequisite(result.data()[0].ID);
 
@@ -108,14 +112,15 @@ function getAddressFromRequisite(requisiteId){
                 'ENTITY_TYPE_ID': 8,
                 "ENTITY_ID": requisiteId
             },
+            select: ['COUNTRY', 'CITY', 'ADDRESS_1', 'ADDRESS_2', 'REGION', 'PROVINCE']
         },function (result){
             if(result.error()){
                 console.error(result.error());
             }else{
 
-                console.log('crm.address.list: ', result.data());
+                //console.log('crm.address.list: ', result.data());
 
-                const searhField = document.querySelector('#searchField');
+                const searchField = document.querySelector('#searchField');
                 let resultData = result.data()[0],
                     COUNTRY,
                     CITY,
@@ -133,7 +138,7 @@ function getAddressFromRequisite(requisiteId){
                 PROVINCE = resultData.PROVINCE ? resultData.PROVINCE + ' ' : '';
 
                 if(COUNTRY || CITY || ADDRESS_1 || ADDRESS_2 || REGION || PROVINCE){
-                    searhField.value = COUNTRY + REGION + CITY + ADDRESS_1 + ADDRESS_2;
+                    searchField.value = COUNTRY + REGION + CITY + ADDRESS_1 + ADDRESS_2;
                 }
 
                 initMap();
@@ -143,13 +148,13 @@ function getAddressFromRequisite(requisiteId){
 
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////
 function initMap() {
 
     // Search
-    const searhField = document.querySelector('#searchField');
-    const searhFields = document.getElementsByClassName('search-field');
+    const searchField = document.querySelector('#searchField');
+    const searchFieldName = document.querySelector('#searchFieldName');
+    const searchFields = document.getElementsByClassName('search-field');
     const searchFindBtn = document.getElementById('searchFind');
 
     // Filter
@@ -221,7 +226,8 @@ function initMap() {
         activeFilterBtn,
         activeFilter = 'all',
         TRAVEL_TYPE = 'DRIVING',
-        SEARCH_VALUE = searhField.value || null,
+        SEARCH_ADDRESS_VALUE = searchField.value || null,
+        SEARCH_NAME_VALUE = searchFieldName.value || null,
         ACTIVE_RESULT_ITEM_ID = null,
         APP_STATUS = 0, //  0 - search | 1 - direction
         INDUSTRY_LIST,
@@ -232,6 +238,7 @@ function initMap() {
         COUNTRY_LIST,
         STATUSES_COMPANY_LIST,
         STATUSES_CONTACT_LIST,
+        FILTERED_LACATIONS_LIST,
         LANGUAGES_LIST;
 
     let clientMarker,
@@ -286,7 +293,7 @@ function initMap() {
 
     function initSelect2(){
 
-        const select = $('select.filter__select')
+        const select = $('select.filter__select');
 
         select.select2({minimumResultsForSearch: -1});
 
@@ -313,19 +320,21 @@ function initMap() {
 
     }initSelect2();
 
-    async function getClientLocation(){
+    async function getClientLocation(newClientAddress){
 
-        CLIENT_ADDRESS = searhField.value.replace(/ /gi, '+') || null;
+        CLIENT_ADDRESS = searchField.value.replace(/ /gi, '+') || null;
+        newClientAddress = newClientAddress ? newClientAddress : null;
 
         const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${CLIENT_ADDRESS}&key=AIzaSyCZLQh0F2FUbMOz0lcd6E0sahcxwuXA3NA&libraries`);
         const data = await response.json();
+
 
         if(data.status == 'OK'){
 
             CLIENT_LAT = +data.results[0].geometry.location.lat;
             CLIENT_LNG = +data.results[0].geometry.location.lng;
 
-            await getData();
+            await getData(newClientAddress);
 
         }else{
             console.log('getClientLocation() -> error: ', data);
@@ -333,130 +342,150 @@ function initMap() {
 
     }getClientLocation();
 
-    function getData(){
+    function getData(newClientAddress){
 
-        fetch(dataURL, {cache: "no-store"})
-            .then(response => {
-                if(response.status == 200){
-                    return response.json();
-                }
+        if(newClientAddress){
+            let distance,
+                lat,
+                lng;
+
+            LOCATIONS = LOCATIONS.map(function(item){
+
+                item.LAT = +item.LAT || 0;
+                item.LNG = +item.LNG || 0;
+
+                lat = item.LAT;
+                lng = item.LNG;
+
+                distance = getDistanceFromLatLonInKm(+CLIENT_LAT, +CLIENT_LNG, +lat, +lng);
+                item.DISTANCE = Math.round(distance);
+
+                //filter(FILTER_PARAMS.type, FILTER_PARAMS);
             })
-            .then(function(data) {
 
-                //console.log('getData() -> data: ', data);
+        }else{
 
-                if(data){
+            fetch(dataURL, {cache: "no-store"})
+                .then(response => {
+                    if(response.status == 200){
+                        return response.json();
+                    }
+                })
+                .then(function(data) {
 
-                    CLIENT_ADDRESS = searhField.value || null;
+                    //console.log('getData() -> data: ', data);
 
-                    data.forEach(function(item, i){
+                    if(data){
 
-                        let lat,
-                            lng,
-                            type,
-                            icon,
-                            COOPERATION = item.COOPERATION,
-                            color = "#808080",
-                            distance,
-                            position;
+                        /*if(placement_id){
 
-                        /*if(item.INDUSTRY == 'NOTPROFIT' && !item.SEX){ // Клиника [Мед. Клиника]
-                         item.TYPE = 'clinic';
+                         CLIENT_ADDRESS = data.filter(item => item.ID == placement_id)[0].ADDRESS;
+                         searchField.value = CLIENT_ADDRESS;
 
-                         }else if(item.INDUSTRY == '3' && !item.SEX){ // Доктор [Мед. Праксис]
-                         item.TYPE = 'praxis';
+                         console.log('getData() -> CLIENT_ADDRESS: ', CLIENT_ADDRESS);
 
-                         }else if(item.SEX){
-                         item.TYPE = 'doctor';
-
+                         getClientLocation();
                          }*/
-                        if(!item.TYPE && item.INDUSTRY) {
 
-                            if(item.INDUSTRY.toLowerCase() == 17 || item.INDUSTRY.toLowerCase() == 14){
-                                item.TYPE = 'notdienst';
-                            }else if(item.INDUSTRY.toLowerCase() == 21){
-                                item.TYPE = 'taxi';
-                            }else if(item.INDUSTRY.toLowerCase() == 18){
-                                item.TYPE = 'krankenwahgentransport';
-                            }else if(item.INDUSTRY.toLowerCase() == 22){
-                                item.TYPE = 'privatärztlichenotdienst';
+                        data.forEach(function(item, i){
+
+                            let lat,
+                                lng,
+                                type,
+                                icon,
+                                COOPERATION = item.COOPERATION,
+                                color = "#808080",
+                                distance,
+                                position;
+
+                            if(!item.TYPE && item.INDUSTRY) {
+
+                                if(item.INDUSTRY.toLowerCase() == 17 || item.INDUSTRY.toLowerCase() == 14){
+                                    item.TYPE = 'notdienst';
+                                }else if(item.INDUSTRY.toLowerCase() == 21){
+                                    item.TYPE = 'taxi';
+                                }else if(item.INDUSTRY.toLowerCase() == 18){
+                                    item.TYPE = 'krankenwahgentransport';
+                                }else if(item.INDUSTRY.toLowerCase() == 22){
+                                    item.TYPE = 'privatärztlichenotdienst';
+
+                                }
+                            }
+
+                            // Ні
+                            if(COOPERATION == 1201 || COOPERATION == 1193){
+
+                                // В процесі домовленості
+                            }else if(COOPERATION == 1203 || COOPERATION == 1195){
+                                color = "#FFFF00";
+
+                                // Відмова від співпраці
+                            }else if(COOPERATION == 1205 || COOPERATION == 1197){
+                                color = "#FF0100";
+
+                                // Співпраця
+                            }else if(COOPERATION == 1207 || COOPERATION == 1199){
+                                color = "#018000";
+
+                                // Співпрацю призупинено
+                            }else if(COOPERATION == 1216 || COOPERATION == 1209){
+                                color = "#FFA500";
 
                             }
 
-                        }
+                            if(item.TYPE == 'clinic'){
+                                item.ICON = {
+                                    //url: hospitalIcon,
+                                    //scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight),
+                                    path: hospitalIconPath,
+                                    anchor: new google.maps.Point(0,0),
+                                    fillColor: color,
+                                    fillOpacity: 1,
+                                    scale: .05
+                                };
 
-                        // Ні
-                        if(COOPERATION == 1201 || COOPERATION == 1193){
+                            }else{
+                                item.ICON = {
+                                    //url: doctorIcon,
+                                    //scaledSize: new google.maps.Size(doctorIconWidth, doctorIconHeight),
+                                    path: doctorIconPath,
+                                    anchor: new google.maps.Point(0,0),
+                                    fillColor: color,
+                                    fillOpacity: 1,
+                                    scale: .05
+                                };
+                            }
 
-                            // В процесі домовленості
-                        }else if(COOPERATION == 1203 || COOPERATION == 1195){
-                            color = "#FFFF00";
+                            item.LAT = +item.LAT || 0;
+                            item.LNG = +item.LNG || 0;
 
-                            // Відмова від співпраці
-                        }else if(COOPERATION == 1205 || COOPERATION == 1197){
-                            color = "#FF0100";
+                            lat = item.LAT;
+                            lng = item.LNG;
 
-                            // Співпраця
-                        }else if(COOPERATION == 1207 || COOPERATION == 1199){
-                            color = "#018000";
+                            item.POSITION = {lat: lat, lng: lng};
 
-                            // Співпрацю призупинено
-                        }else if(COOPERATION == 1216 || COOPERATION == 1209){
-                            color = "#FFA500";
+                            distance = getDistanceFromLatLonInKm(+CLIENT_LAT, +CLIENT_LNG, +lat, +lng);
 
-                        }
+                            item.SEX = item.SEX || null;
+                            item.COMMENTS = item.COMMENTS || null;
+                            item.STATUS = item.STATUS || null;
+                            item.SCHEDULE = item.SCHEDULE || null;
+                            item.DISTANCE = Math.round(distance);
 
-                        if(item.TYPE == 'clinic'){
-                            item.ICON = {
-                                //url: hospitalIcon,
-                                //scaledSize: new google.maps.Size(hospitalIconWidth, hospitalIconHeight),
-                                path: hospitalIconPath,
-                                anchor: new google.maps.Point(0,0),
-                                fillColor: color,
-                                fillOpacity: 1,
-                                scale: .05
-                            };
+                        });
 
-                        }else{
+                        LOCATIONS = data;
 
-                            item.ICON = {
-                                //url: doctorIcon,
-                                //scaledSize: new google.maps.Size(doctorIconWidth, doctorIconHeight),
-                                path: doctorIconPath,
-                                anchor: new google.maps.Point(0,0),
-                                fillColor: color,
-                                fillOpacity: 1,
-                                scale: .05
-                            };
-                        }
+                        //console.log('getData() -> LOCATIONS: ', LOCATIONS);
 
-                        item.LAT = +item.LAT || 0;
-                        item.LNG = +item.LNG || 0;
+                        getFieldsValues();
 
-                        lat = item.LAT;
-                        lng = item.LNG;
+                        //setMarkers(LOCATIONS, animationDrop); // first init of markers
+                    }
 
-                        item.POSITION = {lat: lat, lng: lng};
+                });
+        }
 
-                        distance = getDistanceFromLatLonInKm(+CLIENT_LAT, +CLIENT_LNG, +lat, +lng);
-
-                        item.SEX = item.SEX || null;
-                        item.STATUS = item.STATUS || null;
-                        item.SCHEDULE = item.SCHEDULE || null;
-                        item.DISTANCE = Math.round(distance);
-
-                    });
-
-                    LOCATIONS = data;
-
-                    //console.log('getData() -> LOCATIONS: ', LOCATIONS);
-
-                    getFieldsValues();
-
-                    //setMarkers(LOCATIONS, animationDrop); // first init of markers
-                }
-
-            });
     }
 
     const getFieldsValues = async () => {
@@ -464,9 +493,8 @@ function initMap() {
         const data = await fetch('/map/get-fields.php')
             .then(response => response.json());
 
-
         if(data){
-            console.log('data: ', data);
+            //console.log('data: ', data);
 
             INDUSTRY_LIST = data.contactFilter[0].INDUSTRY.LIST.map(function(item){
                 return {ID: item.STATUS_ID, VALUE: item.NAME};
@@ -630,10 +658,10 @@ function initMap() {
 
     }
 
-    if(SEARCH_VALUE){
-        searchField.value = SEARCH_VALUE;
+    if(SEARCH_ADDRESS_VALUE){
+        searchField.value = SEARCH_ADDRESS_VALUE;
 
-        geocodeAddress(geocoder, map);
+        geocodeAddress();
     }
 
     closeFilterMobBtn.addEventListener('click', function () {
@@ -650,7 +678,7 @@ function initMap() {
     publicTransportBtn.addEventListener('click', function (e) {
         //e.preventDefault();
 
-        let from = SEARCH_VALUE;
+        let from = SEARCH_ADDRESS_VALUE;
         let to = directionToField.value;
         from = from.replace(/ /gi, '+');
         to = to.replace(/ /gi, '+');
@@ -755,7 +783,14 @@ function initMap() {
 
     function geocodeAddress() {
 
-        let address = SEARCH_VALUE;
+        let address;
+
+        address = SEARCH_ADDRESS_VALUE;
+
+
+        //lastAddress = address;
+
+        //console.log('address: ', address);
 
         geocoder.geocode({'address': address}, function(results, status) {
             if (status === 'OK') {
@@ -765,12 +800,12 @@ function initMap() {
                     clientMarkerRadius.setMap(null);
                 }
 
-                map.setCenter(results[0].geometry.location);
-
                 clientMarker = new google.maps.Marker({
                     map: map,
                     position: results[0].geometry.location
                 });
+
+                map.setCenter(results[0].geometry.location);
 
                 clientMarkerRadius = new google.maps.Circle({
                     strokeColor: '#00B1DA',
@@ -790,84 +825,87 @@ function initMap() {
 
     }
 
-    searhField.addEventListener('keydown', function(){
+    searchFieldName.addEventListener('click', initRealTimeSearch);
+    searchFieldName.addEventListener('keyup', initRealTimeSearch);
+
+    function initRealTimeSearch(){
         realTimeSearch(this.value);
-    });
+    }
 
     function realTimeSearch(query){
 
-        if(document.querySelectorAll('.search__list')[0]){
-            document.querySelectorAll('.search__list')[0].remove();
+        const searchList = document.querySelectorAll('.search__list')[0];
+
+        if(searchList){
+            searchList.remove();
         }
 
         const resultList = document.createElement('ul');
         const resultFragment = document.createDocumentFragment();
 
-        let resultArr;
-
         resultList.classList.add('search__list');
 
-        //console.log('LOCATIONS: ', LOCATIONS);
+        if(FILTERED_LACATIONS_LIST){
 
-        resultArr = LOCATIONS.filter( function(item) {
-            return item.TITLE.toLowerCase().indexOf(query.toLowerCase()) != -1;
-        });
+            let resultArr = FILTERED_LACATIONS_LIST.filter( function(item) {
+                return item.TITLE.toLowerCase().indexOf(query.toLowerCase()) != -1;
+            });
 
-        console.log('resultArr: ', resultArr);
+            resultArr.forEach(item => {
+                const resultItem = document.createElement('li');
 
-        resultArr.forEach(item => {
-            const resultItem = document.createElement('li');
+                resultItem.classList.add('search__item');
+                resultItem.classList.add('js-custom-search-item');
+                resultItem.setAttribute('data-id', item.ID);
+                resultItem.setAttribute('data-lat', item.LAT);
+                resultItem.setAttribute('data-lng', item.LNG);
 
-            resultItem.classList.add('search__item');
-            resultItem.classList.add('js-custom-search-item');
-            resultItem.innerHTML = item.TITLE;
-            resultFragment.appendChild(resultItem);
-        });
 
-        resultList.appendChild(resultFragment);
-        searhField.parentNode.appendChild(resultList);
+                resultItem.innerHTML = item.TITLE;
+                resultFragment.appendChild(resultItem);
+            });
+
+            resultList.appendChild(resultFragment);
+            searchField.parentNode.appendChild(resultList);
+        }
+
+        //console.log('resultArr: ', resultArr);
 
         return;
     }
 
-
     function autocompliteFunc() {
         let autocomplete;
 
-        [].slice.call(searhFields).forEach(function (item) {
+        autocomplete = new google.maps.places.Autocomplete(searchField);
+        autocomplete.bindTo('bounds', map);
 
-            autocomplete = new google.maps.places.Autocomplete(item);
+        let directionMarker = new google.maps.Marker({
+            map: map,
+            icon: {
+                url: directionFromIcon,
+                scaledSize: new google.maps.Size(35, 35)
+            },
+            anchorPoint: new google.maps.Point(0, -29)
+        });
 
-            autocomplete.bindTo('bounds', map);
+        searchField.addEventListener('keyup', function () {
+            SEARCH_ADDRESS_VALUE = this.value;
+        });
 
-            let directionMarker = new google.maps.Marker({
-                map: map,
-                icon: {
-                    url: directionFromIcon,
-                    scaledSize: new google.maps.Size(35, 35)
-                },
-                anchorPoint: new google.maps.Point(0, -29)
-            });
+        autocomplete.addListener('place_changed', function() {
 
-            item.addEventListener('keyup', function () {
-                SEARCH_VALUE = this.value;
-            });
+            directionMarker.setVisible(false);
 
-            autocomplete.addListener('place_changed', function() {
+            let place = autocomplete.getPlace();
 
-                directionMarker.setVisible(false);
+            SEARCH_ADDRESS_VALUE = searchField.value || null;
 
-                let place = autocomplete.getPlace();
+            getClientLocation(SEARCH_ADDRESS_VALUE);
 
-                SEARCH_VALUE = item.value || null;
+            directionMarker.setVisible(true);
 
-                getClientLocation();
-
-                directionMarker.setVisible(true);
-
-                geocodeAddress(geocoder, map);
-            });
-
+            geocodeAddress(geocoder, map);
         });
 
     }autocompliteFunc();
@@ -899,7 +937,8 @@ function initMap() {
 
                         filterParamsWrap.classList.add('hidden');
                         filterBlock[0].classList.add('hidden');
-                        filterBlock[1].classList.remove('hidden');
+                        filterBlock[1].classList.add('hidden');
+                        filterBlock[2].classList.remove('hidden');
                         directionFieldsWrap.classList.add('show');
 
                         APP_STATUS = 1;
@@ -909,7 +948,7 @@ function initMap() {
                     itemId = itemWrap.getAttribute('data-item-id');
                     linkAddress = item.getAttribute('data-direction');
 
-                    directionFromField.value = SEARCH_VALUE;
+                    directionFromField.value = SEARCH_ADDRESS_VALUE;
                     directionToField.value = linkAddress;
 
                     itemWrap.classList.add('active');
@@ -956,14 +995,15 @@ function initMap() {
     backToSearchBtn.addEventListener('click', function () {
         filterParamsWrap.classList.remove('hidden');
         filterBlock[0].classList.remove('hidden');
-        filterBlock[1].classList.add('hidden');
+        filterBlock[1].classList.remove('hidden');
+        filterBlock[2].classList.add('hidden');
         directionFieldsWrap.classList.remove('show');
 
         document.querySelector('.filter__result__item.active').classList.remove('active');
 
         APP_STATUS = 0; // search
 
-        searhField.value = SEARCH_VALUE ? SEARCH_VALUE : null; // value from direction field
+        searchField.value = SEARCH_ADDRESS_VALUE ? SEARCH_ADDRESS_VALUE : null; // value from direction field
 
         toggleStateOfResultItems();
 
@@ -978,7 +1018,7 @@ function initMap() {
         let itemWrap = document.querySelector('.filter__result__item.active') || null;
 
         // value from direction field
-        directionFromField.value = SEARCH_VALUE ? SEARCH_VALUE : null;
+        directionFromField.value = SEARCH_ADDRESS_VALUE ? SEARCH_ADDRESS_VALUE : null;
 
         if(APP_STATUS != 0 && directionFromField.value ){
 
@@ -1080,6 +1120,7 @@ function initMap() {
                 lat: element.LAT,
                 lng: element.LNG,
                 sex: element.SEX,
+                comments: element.COMMENTS,
                 status: element.STATUS,
                 med_profile: element.MED_PROFILE,
                 industry: element.INDUSTRY,
@@ -1096,7 +1137,6 @@ function initMap() {
 
         });
 
-
         allMarkers.forEach(function (item) {
 
             item.addListener('click', function() {
@@ -1110,8 +1150,6 @@ function initMap() {
             });
 
         });
-
-        renderList(allMarkers); // renders list of markers
     }
 
     //setMarkers(LOCATIONS, animationDrop); // first init of markers
@@ -1268,20 +1306,22 @@ function initMap() {
         POP_UP_IS_ACTIVE = infoWindow;
     }
 
-    function renderList(markersList){
+    function renderList(lacationsArr){
+
+        lacationsArr = lacationsArr ? lacationsArr : LOCATIONS;
 
         const resultList = document.getElementById('resultList');
         const resultListFragment = document.createDocumentFragment();
-        const allMarkersLength = markersList.length;
+        const lacationsArrLength = lacationsArr.length;
 
-        let newReultItem;
+        let newResultItem;
 
         resultList.innerHTML = ''; // Clear list
 
-        //console.log('renderList(markersList): ', markersList);
+        //console.log('renderList(lacationsArr): ', lacationsArr);
 
-        if(allMarkersLength){
-            for(let i = 0; i < allMarkersLength; i++){
+        if(lacationsArrLength){
+            for(let i = 0; i < lacationsArrLength; i++){
 
                 let profile,
                     med_profiles = '',
@@ -1294,7 +1334,7 @@ function initMap() {
                     languages = '',
                     med_profile;
 
-                switch (markersList[i].type){
+                switch (lacationsArr[i].TYPE){
                     case 'clinic':
                         type = 'Clinic';
                         break;
@@ -1308,14 +1348,14 @@ function initMap() {
                         break;
 
                     default:
-                        type = markersList[i].type;
+                        type = lacationsArr[i].type;
                         break;
                 }
 
-                if(markersList[i].med_profile.length){
+                if(lacationsArr[i].MED_PROFILE.length){
 
-                    med_profile = markersList[i].med_profile.map(item => {
-                        return getTitleFromId('med_profile', item, !markersList[i].sex ? 'clinic' : 'contact');
+                    med_profile = lacationsArr[i].MED_PROFILE.map(item => {
+                        return getTitleFromId('med_profile', item, !lacationsArr[i].SEX ? 'clinic' : 'contact');
 
                     });
 
@@ -1337,19 +1377,19 @@ function initMap() {
 
                 }
 
-                if(markersList[i].cooperation){
-                    cooperation = getTitleFromId('cooperation', markersList[i].cooperation, !markersList[i].sex ? 'clinic' : 'contact');
+                if(lacationsArr[i].COOPERATION){
+                    cooperation = getTitleFromId('cooperation', lacationsArr[i].COOPERATION, !lacationsArr[i].SEX ? 'clinic' : 'contact');
                 }
 
-                if(markersList[i].status){
-                    status = getTitleFromId('status', markersList[i].status, null);
+                if(lacationsArr[i].STATUS){
+                    status = getTitleFromId('status', lacationsArr[i].STATUS, null);
                 }
 
-                if(markersList[i].sprache && markersList[i].sprache.length){
+                if(lacationsArr[i].SPRACHE && lacationsArr[i].SPRACHE.length){
 
                     //console.log('markersList[i].sprache: ', markersList[i].sprache);
 
-                    sprache = markersList[i].sprache.map(item => {
+                    sprache = lacationsArr[i].SPRACHE.map(item => {
                         return getTitleFromId('sprache', item, null);
                     });
 
@@ -1371,52 +1411,53 @@ function initMap() {
 
                 }
 
-                if(markersList[i].sex){
-                    sex = getTitleFromId('sex', markersList[i].sex, null);
+                if(lacationsArr[i].SEX){
+                    sex = getTitleFromId('sex', lacationsArr[i].SEX, null);
                 }
 
                 //type = markersList[i].type == 'clinic' ? 'Clinic' : 'Praxis';
 
-                newReultItem = document.createElement('li');
-                newReultItem.classList.add('filter__result__item');
-                newReultItem.setAttribute('data-item-id', markersList[i].id);
+                newResultItem = document.createElement('li');
+                newResultItem.classList.add('filter__result__item');
+                newResultItem.setAttribute('data-item-id', lacationsArr[i].ID);
 
-                if(markersList[i].id == ACTIVE_RESULT_ITEM_ID){
-                    newReultItem.classList.add('active');
+                if(lacationsArr[i].id == ACTIVE_RESULT_ITEM_ID){
+                    newResultItem.classList.add('active');
                 }
 
-                newReultItem.innerHTML = `
+                newResultItem.innerHTML = `
                     <h3 class="title">
                         <a 
                             href="#"
                             class="to-center-link js-to-center-link" 
-                            data-lat="${markersList[i].lat}" 
-                            data-lng="${markersList[i].lng}"
-                            data-marker-id="${markersList[i].id}"
+                            data-lat="${lacationsArr[i].LAT}" 
+                            data-lng="${lacationsArr[i].LNG}"
+                            data-marker-id="${lacationsArr[i].ID}"
                         >
-                            ${markersList[i].title}
+                            ${lacationsArr[i].TITLE}
                         </a>
                     </h3>
                     <p class="info">
-                        ${markersList[i].schedule ? 'Open:&nbsp;<span class="value">'  + markersList[i].schedule + '</span>,&nbsp;' : ''}
+                        ${lacationsArr[i].SCHEDULE ? 'Open:&nbsp;<span class="value">'  + lacationsArr[i].SCHEDULE + '</span>,&nbsp;' : ''}
                         ${type ? '<span class="type">'  + type + '</span>' : ''}
                     </p>
-                    <p class="address">${markersList[i].address}</p>
+                    <p class="address">${lacationsArr[i].ADDRESS}</p>
                     ${med_profiles ? "<p class='info'>" + med_profiles + "</p>" : ""}
                     ${cooperation ? "<p class='info'>" + cooperation + "</p>" : ""}
                     <div class="details js-details">
-                        ${markersList[i].phone_work ? '<p class="info">Work:&nbsp;<a href="tel:' + markersList[i].phone_work + '">' + markersList[i].phone_work + '</a></p>' : ''}
-                        ${markersList[i].phone_fax ? '<p class="info">Fax:&nbsp;' + markersList[i].phone_fax + '</p>' : ''}</p>
-                        ${markersList[i].phone_mobile ? '<p class="info">Mobile:&nbsp;<a href="tel:' + markersList[i].phone_mobile + '">' + markersList[i].phone_mobile + '</a></p>' : ''}
+                        ${lacationsArr[i].PHONE_WORK ? '<p class="info">Work:&nbsp;<a href="tel:' + lacationsArr[i].PHONE_WORK + '">' + lacationsArr[i].PHONE_WORK + '</a></p>' : ''}
+                        ${lacationsArr[i].PHONE_FAX ? '<p class="info">Fax:&nbsp;' + lacationsArr[i].PHONE_FAX + '</p>' : ''}</p>
+                        ${lacationsArr[i].PHONE_MOBILE ? '<p class="info">Mobile:&nbsp;<a href="tel:' + lacationsArr[i].PHONE_MOBILE + '">' + lacationsArr[i].PHONE_MOBILE + '</a></p>' : ''}
                         ${languages ? '<p class="info">Languages:&nbsp;' + languages + '</p>' : ''}
                         ${status ? '<p class="info">Status:&nbsp;' + status + '</p>' : ''}
-                        ${type == 'doctor' && sex ? '<p class="info">Sex:&nbsp;' + sex + '</p>' : ''}
-                        ${markersList[i].wochenende != null ? '<p class="info">Wochenende:&nbsp;' + markersList[i].wochenende + '</p>' : ''}
-                        ${markersList[i].ausendienst != null ? '<p class="info">Ausendienst:&nbsp;' + markersList[i].ausendienst + '</p>' : ''}
+                        ${sex ? '<p class="info">Sex:&nbsp;' + sex + '</p>' : ''}
+                        ${lacationsArr[i].WOCHENENDE != null ? '<p class="info">Wochenende:&nbsp;' + lacationsArr[i].WOCHENENDE + '</p>' : ''}
+                        ${lacationsArr[i].AUSENDIENST != null ? '<p class="info">Ausendienst:&nbsp;' + lacationsArr[i].AUSENDIENST + '</p>' : ''}
+                        ${lacationsArr[i].COMMENTS != null ? '<p class="info">Comments:&nbsp;' + lacationsArr[i].COMMENTS + '</p>' : ''}
                     </div>
                     <div class="bottom">
-                        <a href="#" class="direction js-direction" data-direction="${markersList[i].address}">Get direction</a>
-                        <a href="#" class="more js-more" data-marker-id="${markersList[i].id}">Details</a>
+                        <a href="#" class="direction js-direction" data-direction="${lacationsArr[i].ADDRESS}">Get direction</a>
+                        <a href="#" class="more js-more" data-marker-id="${lacationsArr[i].ID}">Details</a>
                     </div>
 
                     <div class="directions-info js-directions-info">
@@ -1425,7 +1466,7 @@ function initMap() {
                     </div>
                  `;
 
-                resultListFragment.appendChild(newReultItem);
+                resultListFragment.appendChild(newResultItem);
             }
 
             resultList.appendChild(resultListFragment);
@@ -1439,9 +1480,47 @@ function initMap() {
         }
     }
 
+    document.addEventListener('click', function (e) {
+
+        const target = e.target;
+        const searchList = document.querySelectorAll('.search__list')[0];
+
+        if(target.classList.contains('js-custom-search-item')){
+
+            let found;
+
+            SEARCH_NAME_VALUE = target.getAttribute('data-id');
+
+            //if(SEARCH_NAME_VALUE){
+
+            //console.log('SEARCH_NAME_VALUE: ', SEARCH_NAME_VALUE);
+
+            searchFieldName.value = target.innerHTML;
+
+            found = FILTERED_LACATIONS_LIST.filter(item => item.ID == SEARCH_NAME_VALUE);
+
+            //console.log('found: ', found);
+
+            renderList(found);
+
+            //}
+
+            target.parentNode.remove();
+        }else if(
+            searchList &&
+            target.id != 'searchFieldName' &&
+            !target.classList.contains('search__list') &&
+            !target.closest('.search__list')
+        ){
+            //console.log('target: ', target);
+            searchList.remove();
+        }
+
+    });
+
     function linkToCenterItem(map){
 
-        const resultItemsLinks = document.getElementsByClassName('js-to-center-link');
+        const resultItemsLinks = document.querySelectorAll('.js-to-center-link');
         const resultItemsArr = [].slice.call(resultItemsLinks);
 
         let lat,
@@ -1466,17 +1545,6 @@ function initMap() {
 
                 renderPopUp(marker, true);
 
-            }else if(target.classList.contains('js-custom-search-item')){
-
-                SEARCH_VALUE = target.innerHTML;
-
-                if(SEARCH_VALUE){
-                    searchField.value = SEARCH_VALUE;
-
-                    geocodeAddress(geocoder, map);
-
-                    target.parentNode.remove();
-                }
             }
         });
 
@@ -1494,7 +1562,7 @@ function initMap() {
 
             center = new google.maps.LatLng(lat, lng);
             map.panTo(center);
-            map.setZoom(16);
+            //map.setZoom(16);
 
             for(let i = 0; i < allMarkers.length; i++){
                 if(allMarkers[i].id == id){
@@ -1511,12 +1579,26 @@ function initMap() {
     clearFieldBtnsArr.forEach(function (item) {
         item.addEventListener('click', function () {
 
-            let field = this.parentNode.getElementsByClassName('field')[0];
+            let field = this.parentNode.querySelectorAll('.field')[0];
 
             // fix re-render result list
             if(field.value){
                 field.value = null;
-                SEARCH_VALUE = null;
+            }
+
+            if(item.classList.contains('address')){
+                SEARCH_ADDRESS_VALUE = null;
+
+            }else if(item.classList.contains('name')){
+                const searchList = document.querySelectorAll('.search__list')[0];
+
+                SEARCH_NAME_VALUE = null;
+
+                if(searchList){
+                    searchList.remove();
+                }
+
+                renderList(FILTERED_LACATIONS_LIST);
             }
         });
     });
@@ -1559,7 +1641,9 @@ function initMap() {
         filter(FILTER_PARAMS.type, FILTER_PARAMS);
     }
 
-    function filter(type, addParams) {
+    function filter(type, addParams, $this) {
+
+        FILTERED_LACATIONS_LIST = [];
 
         let locFilterArr = LOCATIONS;
         let filterParamsKeys = [];
@@ -1572,7 +1656,25 @@ function initMap() {
         FILTER_PARAMS.radius = RADIUS;
         FILTER_PARAMS.type = type.toLowerCase();
 
-        console.log('FILTER_PARAMS: ', FILTER_PARAMS);
+        if($this){
+
+            //console.log('$this: ', $this);
+
+            if($this.classList.contains('js-custom-search-item')){
+
+                let CLIENT_LAT = $this.getAttribute('data-lat');
+                let CLIENT_LNG = $this.getAttribute('data-lng');
+
+                locFilterArr = locFilterArr.map(function(item){
+                    item.DISTANCE = getDistanceFromLatLonInKm(+CLIENT_LAT, +CLIENT_LNG, +item.LAT, +item.LNG) || null;
+                    return item;
+                    //console.log('item.DISTANCE: ', item.DISTANCE);
+                });
+
+                //console.log('locFilterArr: ', locFilterArr);
+            }
+
+        }
 
         locFilterArr = locFilterArr.filter(item => {
 
@@ -1580,11 +1682,12 @@ function initMap() {
 
         });
 
+        //console.log('locFilterArr: ', locFilterArr);
+
         if(FILTER_PARAMS.type == 'all'){
 
             locFilterArr = locFilterArr.filter(item => item.TYPE == 'clinic' || item.TYPE == 'praxis' || item.TYPE == 'doctor'); // locFilterArr = LOCATIONS;
 
-            //console.log('locFilterArr: ', locFilterArr);
 
         }else if(FILTER_PARAMS.type == 'clinics' || FILTER_PARAMS.type == 'praxis' || FILTER_PARAMS.type == 'doctors'){
 
@@ -1666,8 +1769,12 @@ function initMap() {
 
         filterResultCounter.innerHTML = locFilterArr.length;
 
+        FILTERED_LACATIONS_LIST = locFilterArr;
+
         removeMarkers();
         setMarkers(locFilterArr, animationDrop);
+
+        renderList(FILTERED_LACATIONS_LIST); // renders list of default markers
 
         activeFilter = type;
         //}

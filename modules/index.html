@@ -63,9 +63,15 @@
             <div class="filter__header">
                 <div class="filter__header__search">
                     <div class="filter__header__inner search js-search-block">
-                        <input type="text" id="searchField" class="field search-field" placeholder="Choose starting point..." value="München" />
+                        <input type="text" id="searchField" class="field search-field" placeholder="Enter address..." value="München" />
                         <!--<span id="searchFind" class="fas fa-search find-icon js-find"></span>-->
-                        <span id="searchClear" class="fas fa-times clear-icon js-clear"></span>
+                        <span id="searchClear" class="fas fa-times clear-icon js-clear address"></span>
+                    </div>
+
+                    <div class="filter__header__inner search js-search-name">
+                        <input type="text" id="searchFieldName" class="field search-field" placeholder="Enter name..." value="" autocomplete="off" />
+                        <!--<span id="searchFind" class="fas fa-search find-icon js-find"></span>-->
+                        <span class="fas fa-times clear-icon js-clear name"></span>
                     </div>
 
                     <div class="filter__header__inner direction js-direction-block hidden">
